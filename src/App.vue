@@ -1,20 +1,18 @@
 <script setup>
 import HelloWorld from './components/HelloWorld.vue'
 import test from './components/test.vue'
+import HomePage from './pages/HomePage.vue';
 
 </script>
-
+<link
+href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+rel="stylesheet"
+integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1hpDhaFf68bxtd"
+crossorigin="anonymous"></link>
+<link href="style.css" rel="stylesheet"></link>
 <template>
-  <div>
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
-  </div>
   <!-- <HelloWorld msg="Vite + Vue" /> -->
-  <test/>
+   <HomePage/>
 </template>
 
 <style scoped>
