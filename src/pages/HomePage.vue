@@ -3,8 +3,11 @@
 		<div class="jumbotron header_class">
 			<div class="row">
 				<div class="col-md-6">
-					<h1>Welcome to CradleCare</h1>
-					<p>Your go-to platform for baby care</p>
+					<h1>
+                        <span class="line-1">Empowering Parents</span>
+                        <span class="line-2">Nurturing Futures</span>
+                    </h1>
+                    <button class="btn btn-primary">Get Started</button>
 				</div>
 				<div class="col-md-6">
 					<img src="../assets//new.svg" alt="baby" />
@@ -12,6 +15,35 @@
 			</div>
 		</div>
 	</header>
+
+    <div class="journey-title">
+        <div class="line"></div>
+        <h2>START YOUR JOURNEY</h2>
+    </div>
+     <!-- BS carousel: start --> 
+     <div id="carouselExampleControls" class="carousel slide" data-bs-ride="carousel"> 
+         <div class="carousel-inner"> 
+             <div class="carousel-item active"> 
+                 <img src="..." class="d-block w-100" alt="..."> 
+             </div> 
+             <div class="carousel-item"> 
+                 <img src="..." class="d-block w-100" alt="..."> 
+             </div> 
+             <div class="carousel-item"> 
+                 <img src="..." class="d-block w-100" alt="..."> 
+             </div> 
+         </div> 
+         <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="prev"> 
+             <span class="carousel-control-prev-icon" aria-hidden="true"></span> 
+             <span class="visually-hidden">Previous</span> 
+         </button> 
+         <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="next">  
+             <span class="carousel-control-next-icon" aria-hidden="true"></span> 
+             <span class="visually-hidden">Next</span> 
+         </button> 
+     </div> 
+     <!-- BS carousel: end --> 
+    
 
 	<section class="intro">
 		<h2>Why CradleCare?</h2>
@@ -52,6 +84,19 @@ export default {
 </script>
 
 <style scoped>
+h1 {
+    text-align: center; 
+    font-size: 32px; 
+}
+
+h1 .line-1, h1 .line-2 {
+    display: block;
+}
+
+h1 .line-2 {
+    margin-top: 10px;
+}
+
 .header_class {
     color:#FF9689;
     padding: 20px;
