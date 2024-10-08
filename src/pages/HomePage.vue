@@ -6,10 +6,8 @@ import CustomHeader from "../components/CustomHeader.vue";
 		<div class="jumbotron header_class">
 			<div class="row">
 				<div class="col-md-6">
-					<h1>
-						<span class="line-1">Empowering Parents</span>
-						<span class="line-2">Nurturing Futures</span>
-					</h1>
+						<span class="line-1 title-class">Empowering Parents</span><br>
+						<span class="line-2 title-class">Nurturing Futures</span><br>
 					<button class="btn btn-primary">Get Started</button>
 				</div>
 				<div class="col-md-6">
@@ -21,7 +19,7 @@ import CustomHeader from "../components/CustomHeader.vue";
 	<div class="secondary-background p-3">
 		<div class="container-fluid">
 			<CustomHeader header="Article" />
-			<h2>TRENDING ARTICLES</h2>
+			<span class="title-class">TRENDING ARTICLES</span>
 			<!-- BS carousel: start -->
 			<div
 				id="carouselExampleControls"
