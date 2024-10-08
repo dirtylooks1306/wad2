@@ -1,5 +1,5 @@
 <script setup>
-import CustomHeader from '../components/CustomHeader.vue';
+import CustomHeader from "../components/CustomHeader.vue";
 </script>
 <template>
 	<header>
@@ -7,77 +7,189 @@ import CustomHeader from '../components/CustomHeader.vue';
 			<div class="row">
 				<div class="col-md-6">
 					<h1>
-                        <span class="line-1">Empowering Parents</span>
-                        <span class="line-2">Nurturing Futures</span>
-                    </h1>
-                    <button class="btn btn-primary">Get Started</button>
+						<span class="line-1">Empowering Parents</span>
+						<span class="line-2">Nurturing Futures</span>
+					</h1>
+					<button class="btn btn-primary">Get Started</button>
 				</div>
 				<div class="col-md-6">
-					<img src="../assets//new.svg" alt="baby" />
+					<img src="../assets/HomeMasthead.svg" alt="baby" />
 				</div>
 			</div>
 		</div>
 	</header>
-    <div class="container trending">
-    <CustomHeader header="Article"/>
-    <div class="journey-title">
-        <div class="line"></div>
-        <h2>START YOUR JOURNEY</h2>
-    </div>
-         <!-- BS carousel: start --> 
-         <div id="carouselExampleControls" class="carousel slide" data-bs-ride="carousel"> 
-         <div class="carousel-inner"> 
-             <div class="carousel-item active"> 
-                 <img src="..." class="d-block w-100" alt="..."> 
-             </div> 
-             <div class="carousel-item"> 
-                 <img src="..." class="d-block w-100" alt="..."> 
-             </div> 
-             <div class="carousel-item"> 
-                 <img src="..." class="d-block w-100" alt="..."> 
-             </div> 
-         </div> 
-         <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="prev"> 
-             <span class="carousel-control-prev-icon" aria-hidden="true"></span> 
-             <span class="visually-hidden">Previous</span> 
-         </button> 
-         <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="next">  
-             <span class="carousel-control-next-icon" aria-hidden="true"></span> 
-             <span class="visually-hidden">Next</span> 
-         </button> 
-     </div> 
-     <!-- BS carousel: end --> 
-    </div>
+	<div class="secondary-background p-3">
+		<div class="container-fluid">
+			<CustomHeader header="Article" />
+			<h2>TRENDING ARTICLES</h2>
+			<!-- BS carousel: start -->
+			<div
+				id="carouselExampleControls"
+				class="carousel slide"
+				data-bs-ride="carousel"
+			>
+				<div class="carousel-inner">
+					<div class="carousel-item active">
+						<div class="container">
+							<div class="row">
+								<div class="col-md-1"></div>
+								<div
+									class="col-md-5 d-flex justify-content-center align-items-center"
+								>
+									<img
+										src="../assets/placeholder.svg"
+										class="d-block w-100 p-3"
+										alt="Descriptive Alt Text"
+									/>
+									<!-- Change this img -->
+								</div>
+								<div class="col-md-5">
+									<h3>Title 1</h3>
+									<p>
+										Lorem ipsum dolor sit amet, consectetur
+										adipiscing elit. Maecenas pretium mi at
+										tincidunt accumsan. Praesent cursus
+										elementum mattis. Nunc a metus quis nibh
+										sagittis gravida.
+									</p>
+								</div>
+								<div class="col-md-1"></div>
+							</div>
+						</div>
+					</div>
 
-    
-
-	<section class="intro">
-		<h2>Why CradleCare?</h2>
-		<p>
-			We provide all the tools and resources you need to raise your baby
-			confidently.
-		</p>
-	</section>
-
-	<section class="features">
-		<h2>Features</h2>
-		<div class="feature-card">
-			<h3>Vaccine Tracker</h3>
-			<p>Track your baby's vaccination schedule with ease.</p>
+					<div class="carousel-item">
+						<div class="container">
+							<div class="row">
+								<div class="col-md-1"></div>
+								<div
+									class="col-md-5 d-flex justify-content-center align-items-center"
+								>
+									<img
+										src="../assets/placeholder.svg"
+										class="d-block w-100 p-3"
+										alt="Descriptive Alt Text"
+									/>
+									<!-- Change this img -->
+								</div>
+								<div class="col-md-5">
+									<h3>Title 2</h3>
+									<p>
+										Lorem ipsum dolor sit amet, consectetur
+										adipiscing elit. Maecenas pretium mi at
+										tincidunt accumsan. Praesent cursus
+										elementum mattis. Nunc a metus quis nibh
+										sagittis gravida.
+									</p>
+								</div>
+								<div class="col-md-1"></div>
+							</div>
+						</div>
+					</div>
+					<div class="carousel-item">
+						<div class="container">
+							<div class="row">
+								<div class="col-md-1"></div>
+								<div
+									class="col-md-5 d-flex justify-content-center align-items-center"
+								>
+									<img
+										src="../assets/placeholder.svg"
+										class="d-block w-100 p-3"
+										alt="Descriptive Alt Text"
+									/>
+									<!-- Change this img -->
+								</div>
+								<div class="col-md-5">
+									<h3>Title 3</h3>
+									<p>
+										Lorem ipsum dolor sit amet, consectetur
+										adipiscing elit. Maecenas pretium mi at
+										tincidunt accumsan. Praesent cursus
+										elementum mattis. Nunc a metus quis nibh
+										sagittis gravida.
+									</p>
+								</div>
+								<div class="col-md-1"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<button
+					class="carousel-control-prev"
+					type="button"
+					data-bs-target="#carouselExampleControls"
+					data-bs-slide="prev"
+				>
+					<span
+						class="carousel-control-prev-icon"
+						aria-hidden="true"
+					></span>
+					<span class="visually-hidden">Previous</span>
+				</button>
+				<button
+					class="carousel-control-next"
+					type="button"
+					data-bs-target="#carouselExampleControls"
+					data-bs-slide="next"
+				>
+					<span
+						class="carousel-control-next-icon"
+						aria-hidden="true"
+					></span>
+					<span class="visually-hidden">Next</span>
+				</button>
+			</div>
+			<!-- BS carousel: end -->
 		</div>
-		<div class="feature-card">
-			<h3>Growth Tracker</h3>
-			<p>
-				Monitor your baby's growth and compare it against national
-				averages.
-			</p>
-		</div>
-		<div class="feature-card">
-			<h3>Forum & Safety Tips</h3>
-			<p>Connect with other parents and share your experiences.</p>
-		</div>
-	</section>
+	</div>
 
+	<div class="container-fluid p-3">
+		<CustomHeader header="GrowthTracker" />
+		<div class="row">
+			<div class="col-md-1"></div>
+			<div class="col-md-4">
+				<div class="title-class">
+					Begin Your Little One's Journey to Healthy Growth!
+				</div>
+				<p>
+					Stay informed and engaged—check out the Growth Tracker to
+					celebrate every milestone!
+				</p>
+				<a href="#"
+					><button class="btn btn-primary">GrowthTracker</button></a
+				>
+			</div>
+			<div class="col-md-6">
+				<img
+					src="../assets/homepageBaby.jpg"
+					alt="Growth Tracker"
+					class="carousel-image"
+				/>
+			</div>
+			<div class="col-md-1"></div>
+		</div>
+	</div>
+	<div class="secondary-background">
+		<section class="features">
+			<h2>Features</h2>
+			<div class="feature-card">
+				<h3>Vaccine Tracker</h3>
+				<p>Track your baby's vaccination schedule with ease.</p>
+			</div>
+			<div class="feature-card">
+				<h3>Growth Tracker</h3>
+				<p>
+					Monitor your baby's growth and compare it against national
+					averages.
+				</p>
+			</div>
+			<div class="feature-card">
+				<h3>Forum & Safety Tips</h3>
+				<p>Connect with other parents and share your experiences.</p>
+			</div>
+		</section>
+	</div>
 	<footer>
 		<p>CradleCare © 2024</p>
 	</footer>
@@ -90,35 +202,44 @@ export default {
 </script>
 
 <style scoped>
-.trending {
-    background-color: #EED4D4;
+.carousel-image {
+	width: 500px;
+	height: 400px;
 }
-h1 {
-    text-align: center; 
-    font-size: 32px; 
+.secondary-background {
+	background-color: #eed4d4;
+	width: 100%;
+}
+h1,
+h2 {
+	text-align: center;
+	font-size: 32px;
+	color: #ff9689;
+	font-family: "Cherry Bomb", sans-serif;
 }
 
-h1 .line-1, h1 .line-2 {
-    display: block;
+h1 .line-1,
+h1 .line-2 {
+	display: block;
 }
 
 h1 .line-2 {
-    margin-top: 10px;
+	margin-top: 10px;
 }
 
 .header_class {
-    color:#FF9689;
-    padding: 20px;
-    font-family: 'Cherry Bomb', sans-serif;
+	color: #ff9689;
+	padding: 20px;
+	font-family: "Cherry Bomb", sans-serif;
 }
 img {
-    max-width: 100%;
-    height: auto;
+	max-width: 100%;
+	height: auto;
 }
 
 .row {
-  display: flex;
-  align-items: center; 
+	display: flex;
+	align-items: center;
 }
 
 .intro,

@@ -28,7 +28,7 @@ export default {
 	font-family: "Cherry Bomb", sans-serif;
 	text-transform: uppercase;
 	font-weight: bold;
-	font-size: 13px;
+	font-size: 16px;
 	text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000,
 		1px 1px 0 #000;
 }
