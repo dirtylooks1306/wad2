@@ -1,3 +1,6 @@
+<script setup>
+import CustomHeader from '../components/CustomHeader.vue';
+</script>
 <template>
 	<header>
 		<div class="jumbotron header_class">
@@ -15,13 +18,14 @@
 			</div>
 		</div>
 	</header>
-
+    <div class="container trending">
+    <CustomHeader header="Article"/>
     <div class="journey-title">
         <div class="line"></div>
         <h2>START YOUR JOURNEY</h2>
     </div>
-     <!-- BS carousel: start --> 
-     <div id="carouselExampleControls" class="carousel slide" data-bs-ride="carousel"> 
+         <!-- BS carousel: start --> 
+         <div id="carouselExampleControls" class="carousel slide" data-bs-ride="carousel"> 
          <div class="carousel-inner"> 
              <div class="carousel-item active"> 
                  <img src="..." class="d-block w-100" alt="..."> 
@@ -43,6 +47,8 @@
          </button> 
      </div> 
      <!-- BS carousel: end --> 
+    </div>
+
     
 
 	<section class="intro">
@@ -84,6 +90,9 @@ export default {
 </script>
 
 <style scoped>
+.trending {
+    background-color: #EED4D4;
+}
 h1 {
     text-align: center; 
     font-size: 32px; 
