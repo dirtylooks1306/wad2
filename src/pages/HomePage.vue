@@ -1,7 +1,9 @@
 <script setup>
-import CustomHeader from "../components/CustomHeader.vue";
+import CustomHeader from "../components/customHeader.vue";
+import NavBar from "../components/navBar2.vue";
 </script>
 <template>
+	<NavBar />
 	<header>
 		<div class="jumbotron header_class">
 			<div class="row">
