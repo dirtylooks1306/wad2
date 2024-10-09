@@ -1,7 +1,7 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
+import HelloWorld from './components/helloWorld.vue'
 import test from './components/test.vue'
-import HomePage from './pages/HomePage.vue';
+import HomePage from './pages/homePage.vue';
 
 </script>
 <link

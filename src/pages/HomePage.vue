@@ -1,5 +1,5 @@
 <script setup>
-import CustomHeader from "../components/CustomHeader.vue";
+import CustomHeader from "../components/customHeader.vue";
 </script>
 <template>
 	<header>
@@ -195,7 +195,7 @@ import CustomHeader from "../components/CustomHeader.vue";
 
 <script>
 export default {
-	name: "HomePage",
+	name: "homePage",
 };
 </script>
 
