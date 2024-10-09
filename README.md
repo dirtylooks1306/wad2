@@ -30,7 +30,9 @@ npm install vue
 ```bash
 npm install firebase
 ```
-
+```bash
+npm install vue-router
+```
 to run the script, cd into the folder
 
 ```bash
