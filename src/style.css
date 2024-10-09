@@ -70,9 +70,14 @@ button:focus-visible {
 }
 
 #app {
-  max-width: 100%;
+  width: 100%;
   margin: 0 auto;
   text-align: center;
+}
+
+.small-icon-button{
+	background-color: transparent;
+	border: none;
 }
 
 @media (prefers-color-scheme: light) {

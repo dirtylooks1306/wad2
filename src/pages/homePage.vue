@@ -1,15 +1,17 @@
 <script setup>
 import CustomHeader from "../components/CustomHeader.vue";
+import Carousel from "../components/Carousel.vue";
 </script>
 <template>
 	<header>
 		<div class="jumbotron header_class">
 			<div class="row">
 				<div class="col-md-6">
-					<h1>
-						<span class="line-1">Empowering Parents</span>
+					<div class="title-class">
+						<span class="line-1">Empowering Parents</span><br />
 						<span class="line-2">Nurturing Futures</span>
-					</h1>
+					</div>
+					<br />
 					<button class="btn btn-primary">Get Started</button>
 				</div>
 				<div class="col-md-6">
@@ -22,125 +24,7 @@ import CustomHeader from "../components/CustomHeader.vue";
 		<div class="container-fluid">
 			<CustomHeader header="Article" />
 			<h2>TRENDING ARTICLES</h2>
-			<!-- BS carousel: start -->
-			<div
-				id="carouselExampleControls"
-				class="carousel slide"
-				data-bs-ride="carousel"
-			>
-				<div class="carousel-inner">
-					<div class="carousel-item active">
-						<div class="container">
-							<div class="row">
-								<div class="col-md-1"></div>
-								<div
-									class="col-md-5 d-flex justify-content-center align-items-center"
-								>
-									<img
-										src="../assets/placeholder.svg"
-										class="d-block w-100 p-3"
-										alt="Descriptive Alt Text"
-									/>
-									<!-- Change this img -->
-								</div>
-								<div class="col-md-5">
-									<h3>Title 1</h3>
-									<p>
-										Lorem ipsum dolor sit amet, consectetur
-										adipiscing elit. Maecenas pretium mi at
-										tincidunt accumsan. Praesent cursus
-										elementum mattis. Nunc a metus quis nibh
-										sagittis gravida.
-									</p>
-								</div>
-								<div class="col-md-1"></div>
-							</div>
-						</div>
-					</div>
-
-					<div class="carousel-item">
-						<div class="container">
-							<div class="row">
-								<div class="col-md-1"></div>
-								<div
-									class="col-md-5 d-flex justify-content-center align-items-center"
-								>
-									<img
-										src="../assets/placeholder.svg"
-										class="d-block w-100 p-3"
-										alt="Descriptive Alt Text"
-									/>
-									<!-- Change this img -->
-								</div>
-								<div class="col-md-5">
-									<h3>Title 2</h3>
-									<p>
-										Lorem ipsum dolor sit amet, consectetur
-										adipiscing elit. Maecenas pretium mi at
-										tincidunt accumsan. Praesent cursus
-										elementum mattis. Nunc a metus quis nibh
-										sagittis gravida.
-									</p>
-								</div>
-								<div class="col-md-1"></div>
-							</div>
-						</div>
-					</div>
-					<div class="carousel-item">
-						<div class="container">
-							<div class="row">
-								<div class="col-md-1"></div>
-								<div
-									class="col-md-5 d-flex justify-content-center align-items-center"
-								>
-									<img
-										src="../assets/placeholder.svg"
-										class="d-block w-100 p-3"
-										alt="Descriptive Alt Text"
-									/>
-									<!-- Change this img -->
-								</div>
-								<div class="col-md-5">
-									<h3>Title 3</h3>
-									<p>
-										Lorem ipsum dolor sit amet, consectetur
-										adipiscing elit. Maecenas pretium mi at
-										tincidunt accumsan. Praesent cursus
-										elementum mattis. Nunc a metus quis nibh
-										sagittis gravida.
-									</p>
-								</div>
-								<div class="col-md-1"></div>
-							</div>
-						</div>
-					</div>
-				</div>
-				<button
-					class="carousel-control-prev"
-					type="button"
-					data-bs-target="#carouselExampleControls"
-					data-bs-slide="prev"
-				>
-					<span
-						class="carousel-control-prev-icon"
-						aria-hidden="true"
-					></span>
-					<span class="visually-hidden">Previous</span>
-				</button>
-				<button
-					class="carousel-control-next"
-					type="button"
-					data-bs-target="#carouselExampleControls"
-					data-bs-slide="next"
-				>
-					<span
-						class="carousel-control-next-icon"
-						aria-hidden="true"
-					></span>
-					<span class="visually-hidden">Next</span>
-				</button>
-			</div>
-			<!-- BS carousel: end -->
+			<Carousel :items="carouselItems" />
 		</div>
 	</div>
 
@@ -170,25 +54,9 @@ import CustomHeader from "../components/CustomHeader.vue";
 			<div class="col-md-1"></div>
 		</div>
 	</div>
-	<div class="secondary-background">
-		<section class="features">
-			<h2>Features</h2>
-			<div class="feature-card">
-				<h3>Vaccine Tracker</h3>
-				<p>Track your baby's vaccination schedule with ease.</p>
-			</div>
-			<div class="feature-card">
-				<h3>Growth Tracker</h3>
-				<p>
-					Monitor your baby's growth and compare it against national
-					averages.
-				</p>
-			</div>
-			<div class="feature-card">
-				<h3>Forum & Safety Tips</h3>
-				<p>Connect with other parents and share your experiences.</p>
-			</div>
-		</section>
+
+	<div class="container-fluid secondary-background p-3">
+		<CustomHeader header="Forum" />
 	</div>
 	<footer>
 		<p>CradleCare © 2024</p>
@@ -198,6 +66,43 @@ import CustomHeader from "../components/CustomHeader.vue";
 <script>
 export default {
 	name: "homePage",
+	components: {
+		CustomHeader,
+		Carousel,
+	},
+	data() {
+		return {
+			carouselItems: [
+				{
+					title: "Title 1",
+					description:
+						"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas pretium mi at tincidunt accumsan.",
+					image: "src/assets/placeholder.svg",
+					alt: "Descriptive Alt Text",
+					icon1: "src/assets/heart.svg",
+					icon2: "src/assets/bookmark.svg",
+				},
+				{
+					title: "Title 2",
+					description:
+						"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas pretium mi at tincidunt accumsan.",
+					image: "/src/assets/placeholder.svg",
+					alt: "Descriptive Alt Text",
+					icon1: "src/assets/heart.svg",
+					icon2: "src/assets/bookmark.svg",
+				},
+				{
+					title: "Title 3",
+					description:
+						"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas pretium mi at tincidunt accumsan.",
+					image: "src/assets/placeholder.svg",
+					alt: "Descriptive Alt Text",
+					icon1: "src/assets/heart.svg",
+					icon2: "src/assets/bookmark.svg",
+				},
+			],
+		};
+	},
 };
 </script>
 
@@ -209,6 +114,7 @@ export default {
 .secondary-background {
 	background-color: #eed4d4;
 	width: 100%;
+	display: flex;
 }
 h1,
 h2 {
@@ -229,7 +135,6 @@ h1 .line-2 {
 
 .header_class {
 	color: #ff9689;
-	padding: 20px;
 	font-family: "Cherry Bomb", sans-serif;
 }
 img {
