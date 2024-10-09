@@ -1,173 +1,93 @@
 <template>
-    <nav class="navbar">
-      <div class="container">
-        <div class="navbar-header">
-          <!-- Hamburger menu for mobile view -->
-          <button
-            type="button"
-            class="navbar-toggle"
-            @click="toggleMenu"
-            aria-label="Toggle navigation"
-          >
-            <img src="@/assets/icons/menu.png" alt="Menu" class="nav-icon" />
-          </button>
-  
-          <!-- Logo with link to home page -->
-          <router-link to="/" class="navbar-brand">
-            <p class="navbar-logo">
-              <img src="@/assets/logo/ccLogo.png" alt="Logo" class="nav-logo" />
-              <img src="@/assets/logo/OutingSG_black.png" alt="OutingSG" class="nav-text-logo" />
-            </p>
-          </router-link>
-        </div>
-  
-        <!-- Right side of the navbar -->
-        <div class="navbar-collapse" :class="{ show: menuOpen }">
-          <ul class="nav navbar-nav">
-            <li>
-              <router-link to="/explore">
-                <img src="@/assets/icons/explore.png" class="nav-icon" alt="Explore" />
-                Explore outings
-              </router-link>
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+      <div class="container-fluid">
+        <!-- Logo with container for alignment -->
+        <router-link to="/" class="navbar-brand">
+          <div class="logo-container">
+            <img src="../assets/icons/ccLogo.png" class="nav-logo" alt="Logo" />
+            <img src="../assets/icons/cctextLogo.png" class="nav-logo text-logo" alt="CradleCare" />
+          </div>
+        </router-link>
+        <!-- Toggler button for mobile view -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <!-- Collapsible navigation content -->
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <a class="nav-link active" aria-current="page" href="#">Home</a>
             </li>
-            <li>
-              <router-link to="/create">
-                <img src="@/assets/icons/create.png" class="nav-icon" alt="Create" />
-                Create outings
-              </router-link>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Link</a>
             </li>
-            <li>
-              <router-link to="/saved">
-                <img src="@/assets/icons/bookmark.png" class="nav-icon" alt="Saved" />
-                Saved outings
-              </router-link>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Dropdown
+              </a>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#">Action</a></li>
+                <li><a class="dropdown-item" href="#">Another action</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#">Something else here</a></li>
+              </ul>
             </li>
-            <li v-if="userIsLoggedIn">
-              <router-link to="/profile">
-                <img src="@/assets/icons/profile.png" class="nav-icon" alt="Profile" />
-                Profile
-              </router-link>
-            </li>
-            <li v-else>
-              <router-link to="/login">
-                <img src="@/assets/icons/login.png" class="nav-icon" alt="Login" />
-                Login
-              </router-link>
+            <li class="nav-item">
+              <a class="nav-link disabled" aria-disabled="true">Disabled</a>
             </li>
           </ul>
         </div>
       </div>
     </nav>
-</template>
+  </template>
+  
   
   <script>
-  import { getAuth } from "firebase/auth";
-  import { ref } from 'vue';
-  
   export default {
     name: 'NavBar',
-    data() {
-      return {
-        userIsLoggedIn: false,
-        searchQuery: '',
-        menuOpen: false,
-      };
-    },
-    methods: {
-      checkUser() {
-        const auth = getAuth();
-        auth.onAuthStateChanged((user) => {
-          this.userIsLoggedIn = !!user;
-        });
-      },
-      toggleMenu() {
-        this.menuOpen = !this.menuOpen;
-      },
-    },
-    created() {
-      this.checkUser();
-    },
   };
   </script>
   
-  <style scoped>
-  .navbar {
-    background-color: var(--primary);
-    border: 0;
-    border-radius: 0;
-    margin: 0;
-    position: fixed;
-    top: 0;
-    width: 100%;
-    z-index: 99;
-  }
-  
-  .container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 15px;
-  }
-  
-  .navbar-logo {
-    display: flex;
-    align-items: center;
-  }
-  
-  .navbar-form {
-    display: flex;
-    margin: 0;
-  }
-  
-  .input-group {
-    display: flex;
-  }
-  
-  .form-control {
-    border: 0;
-    border-radius: 4px;
-    padding: 0.5em;
-  }
-  
-  .navbar-toggle {
-    background: none;
-    border: none;
-  }
-  
-  .nav-icon {
-    width: 25px;
-  }
-  
+<style scoped>
+    .navbar {
+  background-color: #FF9689 !important; /* Add !important to override any other styles */
+    }
+
+    .text-logo {
+  display: block; /* Default display */
+}
+
   .nav-logo {
-    width: 45px;
-  }
-  
-  .navbar-collapse {
-    display: none;
-  }
-  
-  .navbar-collapse.show {
+    max-height: 50px; /* Adjust to fit within your navbar */
+    height: auto;
+    width: auto;
     display: block;
   }
   
-  .navbar-nav {
-    list-style: none;
+  .logo-container {
     display: flex;
-    gap: 10px;
-  }
-  
-  .navbar-nav li {
-    margin: 0;
+    align-items: center; /* Center vertically */
+    justify-content: center; /* Center horizontally */
+    height: 100%; /* Use full height of the navbar */
   }
   
   .navbar-brand {
-    text-decoration: none;
+    display: flex;
+    align-items: center;
+  }
+  
+  .navbar-toggler {
+    border: none;
   }
   
   @media (max-width: 768px) {
     .navbar-collapse {
-      display: block;
+      text-align: center;
     }
   }
+  @media (max-width: 440px) {
+  .text-logo {
+    display: none; /* Hide the text logo on smaller screens */
+  }
+}
   </style>
-  
