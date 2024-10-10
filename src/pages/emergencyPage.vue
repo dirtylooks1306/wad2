@@ -31,7 +31,6 @@ import GoogleMapsLoader from 'google-maps';
 
 <style scoped>
   #map {
-    width: 75%;
-    align-items: center;
+    width: 50%;
   }
 </style>
