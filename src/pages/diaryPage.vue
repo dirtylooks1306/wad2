@@ -5,13 +5,13 @@ import NavBar from "../components/navBar.vue";
 <template>
 	<NavBar />
     <div>
-      <h1>About Page</h1>
-      <p>Learn more about us on this page.</p>
+      <h1>Diary Page</h1>
+      <p>Insert media and text about your parenting journey here.</p>
     </div>
   </template>
   
   <script>
   export default {
-    name: 'aboutPage',
+    name: 'diaryPage',
   };
   </script>  
