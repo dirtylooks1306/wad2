@@ -10,9 +10,6 @@ import GoogleMapsLoader from 'google-maps';
       <p>Emergency services here</p>
     </div>
 
-    <div id="map">
-
-    </div>
 </template>
   
 <script>
