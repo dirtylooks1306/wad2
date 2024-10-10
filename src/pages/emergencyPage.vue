@@ -1,5 +1,6 @@
 <script setup>
 import NavBar from "../components/navBar.vue";
+import GoogleMapsLoader from 'google-maps';
 </script>
 
 <template>
@@ -8,10 +9,29 @@ import NavBar from "../components/navBar.vue";
       <h1>Emergency Page</h1>
       <p>Emergency services here</p>
     </div>
-  </template>
+
+    <div id="map" v-on:load="initMap">
+
+    </div>
+</template>
   
-  <script>
+<script>
   export default {
     name: 'emergencyPage',
+    mounted: function() {
+      GoogleMapsLoader.load(function(google) {
+        let map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 15,
+          center: {lat: 1.297538, lng: 103.849558}
+        })
+      }) 
+    }
   };
-  </script>  
+</script> 
+
+<style scoped>
+  #map {
+    width: 75%;
+    align-items: center;
+  }
+</style>
