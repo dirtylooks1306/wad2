@@ -102,6 +102,11 @@ h1 .line-2 {
     padding: 20px;
     font-family: 'Cherry Bomb', sans-serif;
 }
+
+.journey-title h2 {
+	font-family: 'Cherry Bomb', sans-serif;
+	color: #FF9689;
+}
 img {
     max-width: 100%;
     height: auto;
