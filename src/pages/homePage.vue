@@ -3,6 +3,7 @@ import CustomHeader from "../components/CustomHeader.vue";
 import Carousel from "../components/Carousel.vue";
 </script>
 <template>
+	<NavBar />
 	<header>
 		<div class="jumbotron header_class">
 			<div class="row">
