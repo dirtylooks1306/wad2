@@ -1,6 +1,7 @@
 <script setup>
 import CustomHeader from "../components/CustomHeader.vue";
 import Carousel from "../components/Carousel.vue";
+import NavBar from "../components/navBar.vue";
 </script>
 <template>
 	<NavBar />

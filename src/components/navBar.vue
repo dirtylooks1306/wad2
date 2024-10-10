@@ -56,6 +56,8 @@
         </div>
       </div>
     </nav>
+    <div id="belownavBar">
+    </div>
   </template>
   
   <script>
@@ -65,6 +67,9 @@
   </script>
   
   <style scoped>
+  #belownavBar {
+    height: 80px;
+  }
   .navbar {
     background-color: #FF9689 !important;
     position: fixed; /* Makes the navbar fixed */
