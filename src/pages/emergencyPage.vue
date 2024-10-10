@@ -21,7 +21,7 @@ import GoogleMapsLoader from 'google-maps';
     mounted: function() {
       GoogleMapsLoader.load(function(google) {
         let map = new google.maps.Map(document.getElementById('map'), {
-          zoom: 15,
+          zoom: 4,
           center: {lat: 1.297538, lng: 103.849558}
         })
       }) 
