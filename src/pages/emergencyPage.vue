@@ -16,6 +16,7 @@ import GoogleMapsLoader from 'google-maps';
 </template>
   
 <script>
+  /*
   export default {
     name: 'emergencyPage',
     mounted: function() {
@@ -27,10 +28,12 @@ import GoogleMapsLoader from 'google-maps';
       }) 
     }
   };
+  */
 </script> 
-
+<!--
 <style scoped>
   #map {
     width: 50%;
   }
 </style>
+-->
