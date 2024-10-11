@@ -4,7 +4,9 @@ import {
   auth,
   createUserWithEmailAndPassword,
 } from "../firebaseConfig.js";
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import { onAuthStateChanged } from 'firebase/auth';
 
 // Form input state
 const email = ref("");
@@ -12,6 +14,18 @@ const password = ref("");
 const confirmPassword = ref("");
 const error = ref("");
 const successMessage = ref("");
+
+// Router instance for navigation
+const router = useRouter();
+
+// Redirect if the user is already logged in
+onMounted(() => {
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      router.push("/"); // Redirect to the home page if the user is logged in
+    }
+  });
+});
 
 // Function to handle registration
 const handleRegister = async () => {
@@ -31,9 +45,9 @@ const handleRegister = async () => {
   try {
     await createUserWithEmailAndPassword(auth, email.value, password.value);
     successMessage.value = "Registration successful! Redirecting...";
-    // Redirect to the login page or home page after registration
+    // Redirect to the login page after successful registration
     setTimeout(() => {
-      window.location.href = "/login";
+      router.push("/login");
     }, 2000); // Adjust the delay as needed
   } catch (err) {
     error.value = "Failed to register. " + err.message;
@@ -87,6 +101,12 @@ const handleRegister = async () => {
     <p>Already have an account? <router-link to="/login">Login here</router-link>.</p>
   </div>
 </template>
+
+<script>
+export default {
+  name: 'registerPage',
+};
+</script>
 
 <style scoped>
 .register-container {

@@ -4,13 +4,27 @@ import {
   auth,
   signInWithEmailAndPassword,
 } from "../firebaseConfig.js";
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import { onAuthStateChanged } from 'firebase/auth';
 
 // Form input state
 const email = ref("");
 const password = ref("");
 const error = ref("");
 const successMessage = ref("");
+
+// Router instance for navigation
+const router = useRouter();
+
+// Redirect if the user is already logged in
+onMounted(() => {
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      router.push("/"); // Redirect to the home page if the user is logged in
+    }
+  });
+});
 
 // Function to handle login
 const handleLogin = async () => {
@@ -27,7 +41,7 @@ const handleLogin = async () => {
     successMessage.value = "Login successful! Redirecting...";
     // Redirect to the home page or dashboard after login
     setTimeout(() => {
-      window.location.href = "/";
+      router.push("/");
     }, 2000); // Adjust the delay as needed
   } catch (err) {
     error.value = "Failed to login. Please check your credentials.";
@@ -67,10 +81,16 @@ const handleLogin = async () => {
     <br>
     <p class="error" v-if="error">{{ error }}</p>
     <p class="success" v-if="successMessage">{{ successMessage }}</p>
-    <p>Forgot password? <router-link to="/register">Reset here</router-link>.</p>
+    <p>Forgot password? <router-link to="/forgotpassword">Reset here</router-link>.</p>
     <p>Don't have an account? <router-link to="/register">Register here</router-link>.</p>
   </div>
 </template>
+
+<script>
+export default {
+  name: 'loginPage',
+};
+</script>
 
 <style scoped>
 .login-container {

@@ -1,14 +1,27 @@
 <script setup>
 import { useRoute } from 'vue-router';
-import { computed } from 'vue';
+import { computed, ref, onMounted } from 'vue';
+import { auth } from '../firebaseConfig.js';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 
 const route = useRoute();
 
-// Computed property to determine if the current route is under /articles
+// Reactive variable to track if the user is logged in
+const user = ref(null);
+
+// Check if the current route is under /articles
 const isExploreActive = computed(() => route.path.startsWith('/articles'));
 
-// Computed property for highlighting the specific category
+// Get the category parameter for highlighting the dropdown options
 const activeCategory = computed(() => route.params.category || '');
+
+// Listen to the authentication state changes
+onMounted(() => {
+  onAuthStateChanged(auth, (currentUser) => {
+    user.value = currentUser;
+  });
+});
+
 </script>
 
 <template>
@@ -73,15 +86,25 @@ const activeCategory = computed(() => route.params.category || '');
             <router-link to="/emergency" class="nav-link" :class="{ 'active-item': route.path === '/emergency' }">Emergency</router-link>
           </li>
           <!-- Login/Register link inside collapsible menu for small screens -->
-          <li class="nav-item d-lg-none">
+          <li class="nav-item d-lg-none" v-if="!user">
             <router-link to="/login" class="nav-link login-register">Login/Register</router-link>
+          </li>
+          <li class="nav-item d-lg-none" v-else>
+            <router-link to="/profile" class="nav-link">
+              <img src="../assets/icons/profile.png" class="profile-icon">
+            </router-link>
           </li>
         </ul>
       </div>
 
-      <!-- Right-aligned Login/Register link for larger screens -->
+      <!-- Right-aligned Login/Register or User link for larger screens -->
       <div class="d-none d-lg-flex ms-auto">
-        <router-link to="/login" class="nav-link login-register" :class="{ 'active-item': route.path === '/login' || route.path === '/register' }" >Login/Register</router-link>
+        <router-link v-if="!user" to="/login" class="nav-link login-register" :class="{ 'active-item': route.path === '/login' || route.path === '/register' }">Login/Register</router-link>
+        <div v-else class="d-flex align-items-center">
+          <router-link to="/profile" class="nav-link">
+            <img src="../assets/icons/profile.png" class="profile-icon">
+          </router-link>
+        </div>
       </div>
     </div>
   </nav>
@@ -108,6 +131,12 @@ const activeCategory = computed(() => route.params.category || '');
   height: auto;
   width: auto;
   display: block;
+}
+
+.profile-icon {
+  max-height: 30px; /* Adjust the size to make the icon smaller */
+  height: auto;
+  width: auto;
 }
 
 .logo-container {

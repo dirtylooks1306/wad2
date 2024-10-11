@@ -8,6 +8,8 @@ import emergencyPage from '../pages/emergencyPage.vue';
 import forumPage from '../pages/forumPage.vue';
 import loginPage from '../pages/loginPage.vue';
 import registerPage from '../pages/registerPage.vue';
+import forgotpasswordPage from '../pages/forgotpasswordPage.vue';
+import profilePage from '../pages/profilePage.vue';
 
 const routes = [
 
@@ -61,6 +63,18 @@ const routes = [
         path: '/register',
         name: 'Register',
         component: registerPage
+    },
+
+    {
+        path: '/forgotpassword',
+        name: 'ForgotPassword',
+        component: forgotpasswordPage
+    },
+
+    {
+        path: '/profile',
+        name: 'Profile',
+        component: profilePage
     }
 
 ];
