@@ -5,10 +5,20 @@ import NavBar from "../components/navBar.vue";
 
 <template>
 	<NavBar />
-    <div>
-      <h1>Emergency Page</h1>
-      <p>Emergency services here</p>
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-12">
+        <img src="../assets/AnE.jpg" class="img-fluid" id="background-image" alt=""> 
+        <h5 class="img-overlay-center position-absolute">Emergency Resources</h5> 
+      </div>
     </div>
+  </div>
+  <div class="map-block">
+    <h1>hi</h1>
+  </div>
+  <div>
+    <h1>bye</h1>
+  </div>
 
 </template>
   
@@ -26,10 +36,24 @@ import NavBar from "../components/navBar.vue";
   */
   };
 </script> 
-<!--
+
 <style scoped>
-  #map {
-    width: 50%;
+  #background-image {
+    object-fit: cover;
+    width: 100%;
+    height: 400px;
+  }
+  
+  .img-overlay-center {
+    /*text-align: center;*/
+    top: 50%;
+    left: 50%;
+    color: #ff9689;
+	  font-family: "Cherry Bomb", sans-serif;
+    font-size: 40px;
+  }
+
+  .map-block {
+    background-color: #eed4d4;
   }
 </style>
--->
