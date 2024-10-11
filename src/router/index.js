@@ -6,6 +6,8 @@ import articlesPage from '../pages/articlesPage.vue';
 import diaryPage from '../pages/diaryPage.vue';
 import emergencyPage from '../pages/emergencyPage.vue';
 import forumPage from '../pages/forumPage.vue';
+import loginPage from '../pages/loginPage.vue';
+import registerPage from '../pages/registerPage.vue';
 
 const routes = [
 
@@ -48,6 +50,18 @@ const routes = [
         name: 'Emergency',
         component: emergencyPage
     },
+
+    {
+        path: '/login',
+        name: 'Login',
+        component: loginPage
+    },
+
+    {
+        path: '/register',
+        name: 'Register',
+        component: registerPage
+    }
 
 ];
 

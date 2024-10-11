@@ -5,25 +5,29 @@ import NavBar from "../components/navBar.vue";
 <template>
 	<NavBar />
     <div>
-      <h1>{{ category ? capitalizeCategory(category) : 'All Articles' }}</h1>
-      <!-- Content rendering based on category -->
+      <h1>{{ capitalizeCategory(category) }} Articles</h1>
       <div v-if="category === 'new'">
-        <!-- Display New articles -->
+        <!-- Display new articles here -->
+        <p>Showing new articles...</p>
       </div>
       <div v-else-if="category === 'activities'">
-        <!-- Display Activities articles -->
+        <!-- Display activities articles here -->
+        <p>Showing activities articles...</p>
       </div>
       <div v-else-if="category === 'education'">
-        <!-- Display Education articles -->
+        <!-- Display education articles here -->
+        <p>Showing education articles...</p>
       </div>
       <div v-else-if="category === 'nutrition'">
-        <!-- Display Nutrition articles -->
+        <!-- Display nutrition articles here -->
+        <p>Showing nutrition articles...</p>
       </div>
       <div v-else-if="category === 'recent'">
-        <!-- Display Recently visited articles -->
+        <!-- Display most recently visited articles here -->
+        <p>Showing most recently visited articles...</p>
       </div>
       <div v-else>
-        <!-- Display default content or all articles -->
+        <p>Please select an article category.</p>
       </div>
     </div>
   </template>
@@ -32,11 +36,6 @@ import NavBar from "../components/navBar.vue";
   export default {
     name: 'articlesPage',
     props: ['category'],
-    computed: {
-      category() {
-        return this.$route.query.category || null;
-      },
-    },
     methods: {
       capitalizeCategory(cat) {
         return cat.charAt(0).toUpperCase() + cat.slice(1);
