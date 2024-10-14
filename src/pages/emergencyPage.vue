@@ -20,6 +20,7 @@ import CustomHeader from "../components/CustomHeader.vue";
   <div class="map-block p-3">
     <CustomHeader header="FIND YOUR NEAREST A&E"></CustomHeader>
     <h1>Insert map here</h1>
+    <!-- May not need form -->
     <form id="searchLocation">
       Enter your location (region): <input type="text" class="bg-light rounded-3" id="locationName">
       <button type="button" class="btn btn-success m-2 p-1" onsubmit="">Submit</button>
