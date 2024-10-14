@@ -48,6 +48,7 @@ import CustomHeader from "../components/CustomHeader.vue";
   To Do: Figure out how to generate map using search.html and display as a mini map block
   - Get user current location and pin it on their maps
   - Pin nearest A&Es, as well as display it 
+  - If nearest A&Es are calculated based on user location (lat & long), may not need form
 
   Plans for locating nearest A&E:
   1) Gather all A&E locations and group all locations in object based on region -> locations = {LocA: [], LocB: [], ...}
