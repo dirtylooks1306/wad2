@@ -35,7 +35,7 @@ import CustomHeader from "../components/CustomHeader.vue";
     <div class="contacts-list">
       <span class="service-type">AMBULANCE SERVICES:</span><p class="contact d-inline"> 995</p><br>
       <span class="service-type">PARENT COUNSELLING HOTLINE:</span><p class="contact d-inline"> 1800 222 0000</p><br>
-      Other problems? Feel free to contact us <a class="contact-link" href="diary">here</a>.
+      Other problems? Feel free to contact us <a class="contact-link" href="diary">here</a>. <!-- href link is temporary, to change later if contact page is present -->
     </div>
   </div>
 
