@@ -2,6 +2,7 @@
 import CustomHeader from "../components/CustomHeader.vue";
 import Carousel from "../components/Carousel.vue";
 import NavBar from "../components/navBar.vue";
+import Forum from "../components/Forum.vue";
 </script>
 <template>
 	<NavBar />
@@ -14,7 +15,9 @@ import NavBar from "../components/navBar.vue";
 						<span class="line-2">Nurturing Futures</span>
 					</div>
 					<br />
-					<button class="btn btn-primary">Get Started</button>
+					<router-link to="/diary">
+						<button class="btn btn-primary">Get Started</button>
+					</router-link>
 				</div>
 				<div class="col-md-6">
 					<img src="../assets/HomeMasthead.svg" alt="baby" />
@@ -34,19 +37,19 @@ import NavBar from "../components/navBar.vue";
 		<CustomHeader header="GrowthTracker" />
 		<div class="row">
 			<div class="col-md-1"></div>
-			<div class="col-md-4">
+			<div class="col-md-4 col-12 text-start">
 				<div class="title-class">
 					Begin Your Little One's Journey to Healthy Growth!
 				</div>
-				<p>
+				<p >
 					Stay informed and engaged—check out the Growth Tracker to
 					celebrate every milestone!
 				</p>
-				<a href="#"
-					><button class="btn btn-primary">GrowthTracker</button></a
-				>
+				<router-link to="/tracker">
+					<button class="btn btn-primary">GrowthTracker</button>
+				</router-link>
 			</div>
-			<div class="col-md-6">
+			<div class="col-md-6 col-12">
 				<img
 					src="../assets/homepageBaby.jpg"
 					alt="Growth Tracker"
@@ -59,6 +62,7 @@ import NavBar from "../components/navBar.vue";
 
 	<div class="container-fluid secondary-background p-3">
 		<CustomHeader header="Forum" />
+		<Forum v-for="post in forumPosts" :key="post.id" :post="post" />
 	</div>
 	<footer>
 		<p>CradleCare © 2024</p>
@@ -71,6 +75,8 @@ export default {
 	components: {
 		CustomHeader,
 		Carousel,
+		NavBar,
+		Forum
 	},
 	data() {
 		return {
@@ -102,6 +108,22 @@ export default {
 					icon1: "src/assets/heart.svg",
 					icon2: "src/assets/bookmark.svg",
 				},
+			],
+			forumPosts :[
+				{
+					id: 1,
+					icon: 'fa-car',
+					title: 'Description Title',
+					link: '#',
+					description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+					postsCount: 24,
+					topicsCount: 12,
+					lastPostLink: '#',
+					lastPoster: 'JustAUser',
+					lastPosterLink: '#',
+					lastPostDate: '12 Dec 2020'
+				},
+				
 			],
 		};
 	},
