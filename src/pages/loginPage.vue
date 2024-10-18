@@ -86,12 +86,6 @@ const handleLogin = async () => {
   </div>
 </template>
 
-<script>
-export default {
-  name: 'loginPage',
-};
-</script>
-
 <style scoped>
 .login-container {
   max-width: 400px;

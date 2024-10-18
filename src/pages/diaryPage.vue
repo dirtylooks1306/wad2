@@ -9,9 +9,3 @@ import NavBar from "../components/navBar.vue";
       <p>Insert media and text about your parenting journey here.</p>
     </div>
   </template>
-  
-  <script>
-  export default {
-    name: 'diaryPage',
-  };
-  </script>  

@@ -3,20 +3,28 @@ import NavBar from "../components/navBar.vue";
 import {
   auth,
   createUserWithEmailAndPassword,
+  db,
+  collection,
+  query,
+  where,
+  getDocs,
+  setDoc,
+  doc,
 } from "../firebaseConfig.js";
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { onAuthStateChanged } from 'firebase/auth';
 
+// Router instance for navigation
+const router = useRouter();
+
 // Form input state
+const username = ref("");
 const email = ref("");
 const password = ref("");
 const confirmPassword = ref("");
 const error = ref("");
 const successMessage = ref("");
-
-// Router instance for navigation
-const router = useRouter();
 
 // Redirect if the user is already logged in
 onMounted(() => {
@@ -27,12 +35,26 @@ onMounted(() => {
   });
 });
 
+// Function to check if the username exists in Firestore
+const checkUsername = async () => {
+  try {
+    const usersCollection = collection(db, "users");
+    const q = query(usersCollection, where("username", "==", username.value));
+    const querySnapshot = await getDocs(q);
+    return !querySnapshot.empty; // Return true if the username exists
+  } catch (error) {
+    console.error("Error checking username: ", error);
+    return false;
+  }
+};
+
 // Function to handle registration
 const handleRegister = async () => {
   error.value = "";
   successMessage.value = "";
 
-  if (!email.value || !password.value || !confirmPassword.value) {
+  // Validate form inputs
+  if (!username.value || !email.value || !password.value || !confirmPassword.value) {
     error.value = "Please fill in all fields.";
     return;
   }
@@ -42,9 +64,25 @@ const handleRegister = async () => {
     return;
   }
 
+  // Check if the username is already taken
+  const usernameExists = await checkUsername();
+  if (usernameExists) {
+    error.value = "Username is already taken. Please choose a different one.";
+    return;
+  }
+
   try {
-    await createUserWithEmailAndPassword(auth, email.value, password.value);
+    // Create the user with email and password
+    const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value);
+
+    // Create a user document in the "users" collection with the username as the field
+    await setDoc(doc(db, "users", userCredential.user.uid), {
+      username: username.value,
+      email: email.value, // Optionally store the email in the document as well
+    });
+
     successMessage.value = "Registration successful! Redirecting...";
+    
     // Redirect to the login page after successful registration
     setTimeout(() => {
       router.push("/login");
@@ -60,6 +98,18 @@ const handleRegister = async () => {
   <div class="register-container">
     <h1>Register for CradleCare</h1>
     <form @submit.prevent="handleRegister">
+      <div class="form-group">
+        <label for="username">Username:</label>
+        <input
+          v-model="username"
+          type="text"
+          id="username"
+          class="form-control"
+          placeholder="Enter your username"
+          minlength="3"
+          required
+        />
+      </div>
       <div class="form-group">
         <label for="email">Email:</label>
         <input
@@ -101,12 +151,6 @@ const handleRegister = async () => {
     <p>Already have an account? <router-link to="/login">Login here</router-link>.</p>
   </div>
 </template>
-
-<script>
-export default {
-  name: 'registerPage',
-};
-</script>
 
 <style scoped>
 .register-container {

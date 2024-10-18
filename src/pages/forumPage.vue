@@ -8,10 +8,4 @@ import NavBar from "../components/navBar.vue";
       <h1>Forum Page</h1>
       <p>Post QnA and life updates here</p>
     </div>
-  </template>
-  
-  <script>
-  export default {
-    name: 'forumPage',
-  };
-  </script>  
+</template>

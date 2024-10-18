@@ -9,9 +9,3 @@ import NavBar from "../components/navBar.vue";
       <p>Learn more about us on this page.</p>
     </div>
   </template>
-  
-  <script>
-  export default {
-    name: 'aboutPage',
-  };
-  </script>  
