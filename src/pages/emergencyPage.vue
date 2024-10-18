@@ -28,10 +28,8 @@ import { GoogleMap, Marker } from 'vue3-google-map'
         :center="{ lat: lat, lng: lng }" 
         :zoom="15">
         <div class="markers"> 
-          <!-- To add marker here -->
-          <Marker :options="{ position: { lat: lat, lng: lng }, title: 'Current Location' }" :clickable="true"/> <!-- Shows users their current location -->
-          <!-- Add nearest location marker; add option to redirect users to Google Maps for users to calibrate their navigation route -->
-          <Marker v-for="marker of newMarkers" :options="{ postition: { lat: marker.lat, lng: marker.lng } }"/>
+          <!-- Shows users their current location, change marker location to nearest hospital when one is found -->
+          <Marker :options="{ position: { lat: lat, lng: lng }, title: 'Current Location' }" :clickable="true"/> 
         </div>
       </GoogleMap>
     </div>
@@ -50,16 +48,20 @@ import { GoogleMap, Marker } from 'vue3-google-map'
     <span class="service-type">PARENT COUNSELLING HOTLINE:</span><p class="contact d-inline"> 1800 222 0000</p><br>
     -->
     <table class="contacts-list w-100 mx-auto table-bordered">
-      <tr>
-        <th>SERVICE</th>
-        <th>CONTACT NUMBER</th>
-      </tr>
-      <tr>
-        <td>AMBULANCE</td><td>995</td>
-      </tr>
-      <tr>
-        <td>PARENT COUNSELLINGING HOTLINE</td><td>1800 222 0000</td>
-      </tr>
+      <thead>
+        <tr>
+          <th>SERVICE</th>
+          <th>CONTACT NUMBER</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>AMBULANCE</td><td>995</td>
+        </tr>
+        <tr>
+          <td>PARENT COUNSELLINGING HOTLINE</td><td>1800 222 0000</td>
+        </tr>
+      </tbody>
     </table>
     <p class="enquiries">Other problems? Feel free to contact us <a class="contact-link" href="diary">here</a>.</p> <!-- href link is temporary, to change later if contact page is present -->
   </div>
@@ -86,7 +88,7 @@ import { GoogleMap, Marker } from 'vue3-google-map'
         { name: 'Raffles24 Acute & Critical Care', lat: 1.3064570380276461, lng: 103.85783013568981 },
         { name: 'Ng Teng Fong General Hospital', lat: 1.3343167862509524, lng: 103.7452355572338 }, 
         ],
-        newMarkers: []
+        //newMarkers: []
       }
     },
     created() {
@@ -124,7 +126,8 @@ import { GoogleMap, Marker } from 'vue3-google-map'
         for (let hospital of this.locations) {
           let dist;
           let hospitalName = hospital.name;
-          dist = this.computeDist(userLat, hospital.lat, userLng, hospital.lng);
+          dist = this.computeDist(userLat, hospital.lat, userLng, hospital.lng); 
+          // This is distance over the Earth's surface (aka 'as-the-crow-flies' distance), actual difference slightly varies from formula 
           if (dist < nearestDist) {
             nearestHospital = hospital;
             nearestDist = dist;
@@ -132,8 +135,13 @@ import { GoogleMap, Marker } from 'vue3-google-map'
         }
         //console.log(nearestHospital, nearestDist); -> Successfully finds nearest hospital
         //Part 2: Add nearest hospital location as a marker
+        /* 
         this.newMarkers.push(nearestHospital);
-        console.log(`Marker successfully added! Nearest hospital: ${nearestHospital.name}`)
+        console.log(`Marker successfully added! Nearest hospital: ${nearestHospital.name}`);
+        console.log(this.newMarkers);
+        */
+        this.lat = nearestHospital.lat;
+        this.lng = nearestHospital.lng;
       }
     }
   };
@@ -144,6 +152,9 @@ import { GoogleMap, Marker } from 'vue3-google-map'
   - If nearest A&Es are calculated based on user location (lat & long), may not need form (Settled -> Changed to only
   include one button that will find nearest A&E by finding min diff in lat and long between user location and A&E location)
   - Place pin on nearest A&E location
+    1) Plan A: Dynamically add markers onto the map once nearest hospital has been found
+    2) Plan B: Change the position of the marker on the map -> User's current location (lat & long) will be default values of 
+    marker. After nearest hospital has been found, change position of marker to hospital's coordinates.
 
   Plans for locating nearest A&E:
   1) Gather all A&E locations and group all locations in object based on region -> locations = {LocA: [], LocB: [], ...}
