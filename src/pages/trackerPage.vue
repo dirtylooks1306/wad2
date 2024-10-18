@@ -9,9 +9,3 @@ import NavBar from "../components/navBar.vue";
       <p>Track your baby's growth here.</p>
     </div>
   </template>
-  
-  <script>
-  export default {
-    name: 'trackerPage',
-  };
-  </script>  

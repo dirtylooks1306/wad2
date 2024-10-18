@@ -1,12 +1,38 @@
 <script setup>
 import NavBar from "../components/navBar.vue";
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { auth, signOut } from "../firebaseConfig.js";
+import { auth, signOut, db, collection, query, where, getDocs } from "../firebaseConfig.js";
 
-// State for user information (for demonstration, using a placeholder)
-const user = ref(auth.currentUser);
+// State for user information
+const user = ref(null);
+const username = ref("");
 const router = useRouter();
+
+// Function to fetch the user's username from Firestore
+const fetchUserData = async () => {
+  const currentUser = auth.currentUser;
+  if (currentUser) {
+    try {
+      const userCollection = collection(db, "users");
+      const q = query(userCollection, where("email", "==", currentUser.email));
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach((doc) => {
+        username.value = doc.data().username;
+      });
+      user.value = currentUser;
+    } catch (error) {
+      console.error("Error getting user data:", error);
+    }
+  } else {
+    router.push('/login'); // Redirect to login if no user is found
+  }
+};
+
+// Fetch user data when the component is mounted
+onMounted(() => {
+  fetchUserData();
+});
 
 // Function to handle logout
 const handleLogout = async () => {
@@ -23,19 +49,13 @@ const handleLogout = async () => {
 
 <template>
   <NavBar />
-  <div class="profile-container">
-    <h1>Welcome, {{ user?.email || 'User' }}!</h1>
-    <p>Your email: {{ user?.email }}</p>
+  <div class="profile-container" v-if="user">
+    <h1>Welcome, {{ username || 'User' }}!</h1>
+    <p>Your email: {{ user.email }}</p>
     <p>You are currently logged in to CradleCare.</p>
     <button @click="handleLogout" class="btn btn-danger">Logout</button>
   </div>
 </template>
-
-<script>
-export default {
-  name: 'profilePage',
-};
-</script>
 
 <style scoped>
 .profile-container {
