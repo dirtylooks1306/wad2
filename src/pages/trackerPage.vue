@@ -1,6 +1,15 @@
 <script setup>
 import NavBar from "../components/navBar.vue";
-import { db, collection, getDocs, doc } from "../firebaseConfig.js";
+import {
+	db,
+	collection,
+	getDocs,
+	ref,
+	set,
+	getDatabase,
+	addDoc
+} from "../firebaseConfig.js";
+import { toRaw } from "vue";
 </script>
 
 <template>
@@ -26,7 +35,7 @@ import { db, collection, getDocs, doc } from "../firebaseConfig.js";
       <option value="Vaccine">Vaccination Tracker</option>
     </select> -->
 		<div v-if="activeTab === 'GrowthTracker'" class="container-fluid">
-			<table class="logging-table ">
+			<table class="logging-table">
 				<tbody>
 					<tr>
 						<th>Date of Record</th>
@@ -34,7 +43,7 @@ import { db, collection, getDocs, doc } from "../firebaseConfig.js";
 							{{ post.date || "" }}
 						</td>
 						<td
-							v-for="n in 10 - posts.length"
+							v-for="n in 6 - posts.length"
 							:key="n + posts.length"
 						></td>
 					</tr>
@@ -44,7 +53,7 @@ import { db, collection, getDocs, doc } from "../firebaseConfig.js";
 							{{ post.age || "" }}
 						</td>
 						<td
-							v-for="n in 10 - posts.length"
+							v-for="n in 6 - posts.length"
 							:key="n + posts.length"
 						></td>
 					</tr>
@@ -54,7 +63,7 @@ import { db, collection, getDocs, doc } from "../firebaseConfig.js";
 							{{ post.weight || "" }}
 						</td>
 						<td
-							v-for="n in 10 - posts.length"
+							v-for="n in 6 - posts.length"
 							:key="n + posts.length"
 						></td>
 					</tr>
@@ -64,25 +73,25 @@ import { db, collection, getDocs, doc } from "../firebaseConfig.js";
 							{{ post.height || "" }}
 						</td>
 						<td
-							v-for="n in 10 - posts.length"
+							v-for="n in 6 - posts.length"
 							:key="n + posts.length"
 						></td>
 					</tr>
 					<tr>
 						<th>First steps</th>
-						<td v-for="n in 10" :key="n">
-							{{ posts[n - 1] ? posts[n - 1].steps : "" }}
+						<td v-for="n in 6" :key="n">
+							{{ posts[n - 1] && typeof posts[n - 1].walk === 'boolean' ? (posts[n - 1].walk ? 'Yes' : 'No') : "" }}
 						</td>
 					</tr>
 					<tr>
 						<th>First words</th>
-						<td v-for="n in 10" :key="n">
-							{{ posts[n - 1] ? posts[n - 1].words : "" }}
+						<td v-for="n in 6" :key="n">
+							{{ posts[n - 1] && typeof posts[n - 1].talk === 'boolean' ? (posts[n - 1].talk ? 'Yes' : 'No') : "" }}
 						</td>
 					</tr>
 					<tr>
 						<th>Remarks</th>
-						<td v-for="n in 10" :key="n">
+						<td v-for="n in 6" :key="n">
 							{{ posts[n - 1] ? posts[n - 1].remarks : "" }}
 						</td>
 					</tr>
@@ -257,12 +266,16 @@ import { db, collection, getDocs, doc } from "../firebaseConfig.js";
 					</div>
 					<div class="row pt-3">
 						<div class="col-md-4"></div>
-						<div class="col-md-1">
-							<button type="submit" class="btn btn-primary">
+						<div class="col-md-4">
+							<button
+								type="submit"
+								class="btn btn-primary"
+								@click="savePost"
+							>
 								Submit
 							</button>
 						</div>
-						<div class="col-md-7"></div>
+						<div class="col-md-4"></div>
 					</div>
 				</div>
 
@@ -289,18 +302,33 @@ export default {
 			selectedWords: "",
 			selectedRemarks: "",
 			posts: [],
+			loading:true,
 		};
 	},
 	methods: {
 		changeTab() {},
 		currentDate() {
+			// sets selectedDate default value to today's date
 			const today = new Date();
 			const day = String(today.getDate()).padStart(2, "0");
 			const month = String(today.getMonth() + 1).padStart(2, "0"); // January is 0!
 			const year = today.getFullYear();
-
 			let tdyDate = `${year}-${month}-${day}`;
 			return tdyDate;
+		},
+		async savePost() {
+			// posting user's tracking info data into firebase
+			const userPostsRefPost = collection(db, "users", "user2", "posts");
+			const newPost = {
+				date: this.selectedDate,
+				age: this.selectedAge,
+				weight: this.selectedWeight,
+				height: this.selectedHeight,
+				walk: this.selectedSteps,
+				talk: this.selectedWords,
+				remarks: this.selectedRemarks,
+			};
+		const docRef = await addDoc(userPostsRefPost, newPost);
 		},
 	},
 	created() {
@@ -308,35 +336,17 @@ export default {
 	},
 	async mounted() {
 		window.vm = this;
-		// const postsCollectionRef = collection(db, "posts");
-		// const userDocs = await getDocs(postsCollectionRef);
-		// let arrayOfUsers = userDocs.docs;
-		// const allPosts = {};
-		// for (let indivUser of arrayOfUsers) {
-		// 	let userId = indivUser.id;
-		// 	let userPostsRef = collection(db, `posts/${userId}/post`);
-		// 	const postsSnapshot = await getDocs(userPostsRef);
-		// 	allPosts[userId] = {};
-		// 	postsSnapshot.forEach((postDoc) => {
-		// 		allPosts[userId][postDoc.id] = postDoc.data();
-		// 	});
-		// }
-		// console.log(allPosts);
 
-		let allPosts = {}; // for ONLY user2 (assume we only get back the current user data)
-		let currentUser = collection(db, `posts/user2/post`);
-		const snapShot = await getDocs(currentUser);
-		snapShot.forEach((doc) => {
-			allPosts[doc.id] = doc.data();
-		});
-		let res = [];
-		for (let key in allPosts) {
-			res.push(allPosts[key]);
-		}
-    res.sort((a, b) => {
-    return new Date(a.date) - new Date(b.date);
-  });
-		this.posts = res;
+		// GET user;s tracking info data from firebase
+		const userPostsRefGet = collection(db, "users", "user2", "posts");
+		const snapshot = await getDocs(userPostsRefGet);
+		this.posts = snapshot.docs
+							.map(doc => ({ id: doc.id, ...doc.data() }))
+							.sort((a, b) => {
+								const dateA = new Date(a.date); 
+								const dateB = new Date(b.date); 
+								return dateA - dateB;
+            				});
 	},
 };
 </script>
@@ -385,10 +395,10 @@ tbody {
 .logging-table th,
 .logging-table td {
 	min-width: 100px;
-	/* border: 1px solid #ccc; */
 	text-align: left;
 	padding: 10px;
 }
+
 @media (max-width: 768px) {
 	.desktop-tabs {
 		display: none;

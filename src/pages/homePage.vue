@@ -38,7 +38,7 @@ import Forum from "../components/Forum.vue";
 			<CustomHeader header="GrowthTracker" />
 			<div class="row">
 				<div class="col-md-1"></div>
-				<div class="col-md-4 col-12 text-start">
+				<div class="col-md-4 col-12 text-start pb-3">
 					<div class="title-class">
 						Begin Your Little One's Journey to Healthy Growth!
 					</div>
