@@ -1,7 +1,6 @@
 <script setup>
 import NavBar from "../components/navBar.vue";
 import CustomHeader from "../components/CustomHeader.vue";
-import { ref } from 'vue';
 import { GoogleMap, Marker } from 'vue3-google-map'
 </script>
 
