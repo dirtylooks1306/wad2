@@ -1,8 +1,39 @@
 <script setup>
 import NavBar from "../components/navBar.vue";
 import CustomHeader from "../components/CustomHeader.vue";
-import { ref } from 'vue';
 import { GoogleMap, Marker } from 'vue3-google-map'
+/*
+import { useRoute } from 'vue-router';
+import { onMounted, ref } from 'vue';
+import { collection, query, where, getDocs, orderBy } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';  // Correct Firestore imports
+import { db } from "../firebaseConfig.js";  // Import the Firestore instance (db)
+// Log the Firestore instance to ensure it's properly initialized
+console.log("Firestore instance (db):", db);
+
+const route = useRoute();
+const locationList = ref([]);
+const fetchLocations = async() => {
+  try {
+    const locations = collection(db, "locations");
+    const q = query(locations);
+    const querySnapshot = await getDocs(q);
+    //console.log("Number of locations:", querySnapshot.docs.length); -> Debug to ensure all locations retrieved from Firebase
+    locationList.value = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    console.log(locationList);
+  }
+  catch (error) {
+    console.error("Error fetching locations:", error.message);
+  }
+}
+onMounted(fetchLocations);
+*/
+function showPopUp() {
+  var popup = document.getElementById("helpPopUp");
+  popup.classList.toggle("show");
+}
 </script>
 
 <template>
@@ -18,8 +49,16 @@ import { GoogleMap, Marker } from 'vue3-google-map'
   </div>
 
   <!-- Map block divider -->
-  <div class="map-block p-3">
+  <div class="map-block p-3 position-relative">
     <CustomHeader header="FIND YOUR NEAREST A&E" />
+    <!-- Help prompt to guide users on how to use the map -->
+    <div id="helpPrompt" class="position-absolute popup">
+      <button type="button" class="btn btn-primary px-4" id="help" @click="showPopUp"><span>Help</span></button>
+      <span class="popuptext p-2" id="helpPopUp">
+        1. Click on the "Find Nearest A&E" button to locate your nearest hospital<br>
+        2. Click on the hospital's location marker and click "View on Google Maps" to start calibrating your navigation route!
+      </span>
+    </div>
     <div id="map">
       <!-- Margin left and right set to auto to center map -->
       <GoogleMap 
@@ -35,8 +74,9 @@ import { GoogleMap, Marker } from 'vue3-google-map'
     </div>
     <!-- When users click the button, the web will find nearest A&E location -->
     <form id="searchLocation">
-      <button type="button" class="btn btn-success m-2 p-1" @click="findNearest()">Find nearest A&E</button> <!-- To add function for button -->
+      <button type="button" class="btn btn-success m-2 p-1" @click="findNearest()"><span>Find nearest A&E</span></button> <!-- To add function for button -->
     </form>
+    <span id="nearest">Nearest hospital: <strong>{{ nearest }}</strong></span>
   </div>
 
   <!-- Contact list divider -->
@@ -83,18 +123,31 @@ import { GoogleMap, Marker } from 'vue3-google-map'
         lng: null,
         // Static storage of hospitals
         locations: [
-        { name: 'Sengkang General Hospital', lat: 1.3956941909342555, lng: 103.89332626317386 }, 
+        { name: 'Alexandra Hospital', lat: 1.2874962987730814, lng: 103.80073267207732 },
+        { name: 'Changi General Hospital', lat: 1.34404999352938, lng: 103.94960279625784 },
+        { name: 'Gleneagles Hospital', lat: 1.30764521242119, lng: 103.8198628858667 },
+        { name: 'Khoo Teck Puat Hospital', lat: 1.4243705790643706, lng: 103.8385962294709 },
+        { name: "KK Women’s and Children’s Hospital", lat: 1.311177296639997, lng: 103.84681932461908 },
+        { name: 'Mount Alvernia Hospital', lat: 1.3420612484696135, lng: 103.83770458957798 },
         { name: 'Mount Elizabeth Hospital', lat: 1.3055822026727748, lng: 103.83582102084704 },
-        { name: 'Raffles24 Acute & Critical Care', lat: 1.3064570380276461, lng: 103.85783013568981 },
+        { name: 'Mount Elizabeth Novena Hospital', lat: 1.322267321333642, lng: 103.84404006861622 },
+        { name: 'Sengkang General Hospital', lat: 1.3956941909342555, lng: 103.89332626317386 }, 
+        { name: 'National University Hospital', lat: 1.2945680095759684, lng: 103.78301453136561 },
         { name: 'Ng Teng Fong General Hospital', lat: 1.3343167862509524, lng: 103.7452355572338 }, 
+        { name: 'Parkway East Hospital', lat: 1.3152592115077777, lng: 103.9090328445181 },
+        { name: 'Raffles Hospital', lat: 1.3011719940290543, lng: 103.85708979562519 },
+        { name: 'SGH A&E', lat: 1.27887889121749, lng: 103.83490623940729 },
+        { name: 'Tan Tock Seng Hospital', lat: 1.321445820283406, lng: 103.84583988689484 },
+        { name: 'Woodlands Health Campus', lat: 1.430755656187611, lng: 103.79459742535192 },
         ],
-        //newMarkers: []
+        nearest: null,
       }
     },
     created() {
     this.$getLocation()
       .then((coordinates) => {
         //console.log(coordinates);
+        // Whenever user loads the website, geolocation prompt captures coordinates of user's current location and updates lat and long values in instance
         this.lat = coordinates.lat;
         this.lng = coordinates.lng;
       })
@@ -119,7 +172,7 @@ import { GoogleMap, Marker } from 'vue3-google-map'
       },
       findNearest() {
         //Part 1: Compute distance between user and each hospital, then find nearest location
-        let nearestHospital;
+        var nearestHospital;
         let nearestDist = 99999999; // Default value of greatest distance
         let userLat = this.lat;
         let userLng = this.lng;
@@ -140,6 +193,7 @@ import { GoogleMap, Marker } from 'vue3-google-map'
         console.log(`Marker successfully added! Nearest hospital: ${nearestHospital.name}`);
         console.log(this.newMarkers);
         */
+        this.nearest = nearestHospital.name;
         this.lat = nearestHospital.lat;
         this.lng = nearestHospital.lng;
       }
@@ -147,14 +201,7 @@ import { GoogleMap, Marker } from 'vue3-google-map'
   };
   /*
   To Do: 
-  - Figure out how to generate map using search.html and display as a mini map block (Settled)
-  - Get user current location and pin it on their maps (Settled) 
-  - If nearest A&Es are calculated based on user location (lat & long), may not need form (Settled -> Changed to only
-  include one button that will find nearest A&E by finding min diff in lat and long between user location and A&E location)
-  - Place pin on nearest A&E location
-    1) Plan A: Dynamically add markers onto the map once nearest hospital has been found
-    2) Plan B: Change the position of the marker on the map -> User's current location (lat & long) will be default values of 
-    marker. After nearest hospital has been found, change position of marker to hospital's coordinates.
+  - Start moving static storage of hospital locations into Firebase -> Figure out how to import Firebase data to use in functions (Do by Wed-Fri)
 
   Plans for locating nearest A&E:
   1) Gather all A&E locations and group all locations in object based on region -> locations = {LocA: [], LocB: [], ...}
@@ -174,10 +221,50 @@ import { GoogleMap, Marker } from 'vue3-google-map'
     font-family: "Cherry Bomb", sans-serif;
   }
 
-  .contacts-list, table, .enquiries{
+  button span {
+    cursor: pointer;
+    display: inline-block;
+    position: relative;
+    transition: 0.5s;
+  }
+
+  button span:after {
+    content: '\00bb'; /* Double arrow */
+    position: absolute;
+    opacity: 0;
+    top: 0;
+    right: -20px;
+    transition: 0.5s;
+  }
+
+  button:hover span {
+    padding-right: 25px;
+  }
+
+  button:hover span:after {
+    opacity: 1;
+    right: 0;
+  }
+
+  .contacts-list, table, .enquiries, #nearest{
 	  color: #efba1d;
     font-family: "Cherry Bomb", sans-serif;
     font-size: 30px;
+  }
+    
+  .contact-link, th, strong{
+    text-decoration: underline;
+    text-decoration-color: #ff9689;
+  }
+
+  #help {
+    transition: all 0.5s;
+    cursor: pointer;
+  }
+
+  #helpPrompt {
+    top: 10px;
+    right: 50px;
   }
   
   .img-overlay-center {
@@ -193,9 +280,48 @@ import { GoogleMap, Marker } from 'vue3-google-map'
     background-color: #eed4d4;
   }
 
-  .contact-link, th{
-    text-decoration: underline;
-    text-decoration-color: #ff9689;
+  .popup {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  .popup .popuptext {
+    visibility: hidden;
+    width: 160px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 8% 0;
+    position: absolute;
+    z-index: 1;
+    top: 125%;
+    left: 50%;
+    margin-left: -80px;
+  }
+
+  /* Popup arrow */
+  .popup .popuptext::after {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent #555 transparent;
+  }
+
+  /* Toggle this class - hide and show the popup */
+  .popup .show {
+    visibility: visible;
+    -webkit-animation: fadeIn 1s;
+    animation: fadeIn 1s;
   }
 
   table {
@@ -205,4 +331,16 @@ import { GoogleMap, Marker } from 'vue3-google-map'
   tr:hover {
     background-color: #eed4d4;
   }
+
+  /* Add animation (fade in the popup) */
+  @-webkit-keyframes fadeIn {
+    from {opacity: 0;} 
+    to {opacity: 1;}
+  }
+
+  @keyframes fadeIn {
+    from {opacity: 0;}
+    to {opacity:1 ;}
+  }
+
 </style>
