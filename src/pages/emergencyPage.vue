@@ -90,7 +90,7 @@ import { GoogleMap, Marker } from 'vue3-google-map'
         { name: 'Alexandra Hospital', lat: 1.2874962987730814, lng: 103.80073267207732 },
         { name: 'Changi General Hospital', lat: 1.34404999352938, lng: 103.94960279625784 },
         { name: 'Gleneagles Hospital', lat: 1.30764521242119, lng: 103.8198628858667 },
-        { name: 'Khoo Teck Puat Hospital ', lat: 1.4243705790643706, lng: 103.8385962294709 },
+        { name: 'Khoo Teck Puat Hospital', lat: 1.4243705790643706, lng: 103.8385962294709 },
         { name: "KK Women’s and Children’s Hospital", lat: 1.311177296639997, lng: 103.84681932461908 },
         { name: 'Mount Alvernia Hospital ', lat: 1.3420612484696135, lng: 103.83770458957798 },
         { name: 'Mount Elizabeth Hospital', lat: 1.3055822026727748, lng: 103.83582102084704 },
