@@ -2,6 +2,38 @@
 import NavBar from "../components/navBar.vue";
 import CustomHeader from "../components/CustomHeader.vue";
 import { GoogleMap, Marker } from 'vue3-google-map'
+/*
+import { useRoute } from 'vue-router';
+import { onMounted, ref } from 'vue';
+import { collection, query, where, getDocs, orderBy } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';  // Correct Firestore imports
+import { db } from "../firebaseConfig.js";  // Import the Firestore instance (db)
+// Log the Firestore instance to ensure it's properly initialized
+console.log("Firestore instance (db):", db);
+
+const route = useRoute();
+const locationList = ref([]);
+const fetchLocations = async() => {
+  try {
+    const locations = collection(db, "locations");
+    const q = query(locations);
+    const querySnapshot = await getDocs(q);
+    //console.log("Number of locations:", querySnapshot.docs.length); -> Debug to ensure all locations retrieved from Firebase
+    locationList.value = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    console.log(locationList);
+  }
+  catch (error) {
+    console.error("Error fetching locations:", error.message);
+  }
+}
+onMounted(fetchLocations);
+*/
+function showPopUp() {
+  var popup = document.getElementById("helpPopUp");
+  popup.classList.toggle("show");
+}
 </script>
 
 <template>
@@ -20,8 +52,12 @@ import { GoogleMap, Marker } from 'vue3-google-map'
   <div class="map-block p-3 position-relative">
     <CustomHeader header="FIND YOUR NEAREST A&E" />
     <!-- Help prompt to guide users on how to use the map -->
-    <div id="helpPrompt" class="position-absolute">
-      <button type="button" class="btn btn-primary px-4" id="help"><span>Help</span></button>
+    <div id="helpPrompt" class="position-absolute popup">
+      <button type="button" class="btn btn-primary px-4" id="help" @click="showPopUp"><span>Help</span></button>
+      <span class="popuptext p-2" id="helpPopUp">
+        1. Click on the "Find Nearest A&E" button to locate your nearest hospital<br>
+        2. Click on the hospital's location marker and click "View on Google Maps" to start calibrating your navigation route!
+      </span>
     </div>
     <div id="map">
       <!-- Margin left and right set to auto to center map -->
@@ -244,12 +280,67 @@ import { GoogleMap, Marker } from 'vue3-google-map'
     background-color: #eed4d4;
   }
 
+  .popup {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  .popup .popuptext {
+    visibility: hidden;
+    width: 160px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 8% 0;
+    position: absolute;
+    z-index: 1;
+    top: 125%;
+    left: 50%;
+    margin-left: -80px;
+  }
+
+  /* Popup arrow */
+  .popup .popuptext::after {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent #555 transparent;
+  }
+
+  /* Toggle this class - hide and show the popup */
+  .popup .show {
+    visibility: visible;
+    -webkit-animation: fadeIn 1s;
+    animation: fadeIn 1s;
+  }
+
   table {
     border: 1px solid #ff9689
   }
 
   tr:hover {
     background-color: #eed4d4;
+  }
+
+  /* Add animation (fade in the popup) */
+  @-webkit-keyframes fadeIn {
+    from {opacity: 0;} 
+    to {opacity: 1;}
+  }
+
+  @keyframes fadeIn {
+    from {opacity: 0;}
+    to {opacity:1 ;}
   }
 
 </style>
