@@ -88,20 +88,20 @@ import { GoogleMap, Marker } from 'vue3-google-map'
         // Static storage of hospitals
         locations: [
         { name: 'Alexandra Hospital', lat: 1.2874962987730814, lng: 103.80073267207732 },
-        { name: 'Sengkang General Hospital', lat: 1.3956941909342555, lng: 103.89332626317386 }, 
-        { name: 'Mount Elizabeth Hospital', lat: 1.3055822026727748, lng: 103.83582102084704 },
-        { name: 'Raffles Hospital', lat: 1.3011719940290543, lng: 103.85708979562519 },
-        { name: 'Ng Teng Fong General Hospital', lat: 1.3343167862509524, lng: 103.7452355572338 }, 
-        { name: 'Gleneagles Hospital', lat: 1.30764521242119, lng: 103.8198628858667 },
-        { name: 'National University Hospital', lat: 1.2945680095759684, lng: 103.78301453136561 },
-        { name: 'SGH A&E', lat: 1.27887889121749, lng: 103.83490623940729 },
-        { name: "KK Women’s and Children’s Hospital", lat: 1.311177296639997, lng: 103.84681932461908 },
-        { name: 'Mount Elizabeth Novena Hospital', lat: 1.322267321333642, lng: 103.84404006861622 },
-        { name: 'Tan Tock Seng Hospital', lat: 1.321445820283406, lng: 103.84583988689484 },
-        { name: 'Mount Alvernia Hospital ', lat: 1.3420612484696135, lng: 103.83770458957798 },
-        { name: 'Parkway East Hospital', lat: 1.3152592115077777, lng: 103.9090328445181 },
-        { name: 'Khoo Teck Puat Hospital ', lat: 1.4243705790643706, lng: 103.8385962294709 },
         { name: 'Changi General Hospital', lat: 1.34404999352938, lng: 103.94960279625784 },
+        { name: 'Gleneagles Hospital', lat: 1.30764521242119, lng: 103.8198628858667 },
+        { name: 'Khoo Teck Puat Hospital ', lat: 1.4243705790643706, lng: 103.8385962294709 },
+        { name: "KK Women’s and Children’s Hospital", lat: 1.311177296639997, lng: 103.84681932461908 },
+        { name: 'Mount Alvernia Hospital ', lat: 1.3420612484696135, lng: 103.83770458957798 },
+        { name: 'Mount Elizabeth Hospital', lat: 1.3055822026727748, lng: 103.83582102084704 },
+        { name: 'Mount Elizabeth Novena Hospital', lat: 1.322267321333642, lng: 103.84404006861622 },
+        { name: 'Sengkang General Hospital', lat: 1.3956941909342555, lng: 103.89332626317386 }, 
+        { name: 'National University Hospital', lat: 1.2945680095759684, lng: 103.78301453136561 },
+        { name: 'Ng Teng Fong General Hospital', lat: 1.3343167862509524, lng: 103.7452355572338 }, 
+        { name: 'Parkway East Hospital', lat: 1.3152592115077777, lng: 103.9090328445181 },
+        { name: 'Raffles Hospital', lat: 1.3011719940290543, lng: 103.85708979562519 },
+        { name: 'SGH A&E', lat: 1.27887889121749, lng: 103.83490623940729 },
+        { name: 'Tan Tock Seng Hospital', lat: 1.321445820283406, lng: 103.84583988689484 },
         { name: 'Woodlands Health Campus', lat: 1.430755656187611, lng: 103.79459742535192 },
         ],
         nearest: null,
@@ -111,6 +111,7 @@ import { GoogleMap, Marker } from 'vue3-google-map'
     this.$getLocation()
       .then((coordinates) => {
         //console.log(coordinates);
+        // Whenever user loads the website, geolocation prompt captures coordinates of user's current location and updates lat and long values in instance
         this.lat = coordinates.lat;
         this.lng = coordinates.lng;
       })
@@ -164,14 +165,7 @@ import { GoogleMap, Marker } from 'vue3-google-map'
   };
   /*
   To Do: 
-  - Figure out how to generate map using search.html and display as a mini map block (Settled)
-  - Get user current location and pin it on their maps (Settled) 
-  - If nearest A&Es are calculated based on user location (lat & long), may not need form (Settled -> Changed to only
-  include one button that will find nearest A&E by finding min diff in lat and long between user location and A&E location)
-  - Place pin on nearest A&E location
-    1) Plan A: Dynamically add markers onto the map once nearest hospital has been found
-    2) Plan B: Change the position of the marker on the map -> User's current location (lat & long) will be default values of 
-    marker. After nearest hospital has been found, change position of marker to hospital's coordinates.
+  - Start moving static storage of hospital locations into Firebase -> Figure out how to import Firebase data to use in functions (Do by Wed-Fri)
 
   Plans for locating nearest A&E:
   1) Gather all A&E locations and group all locations in object based on region -> locations = {LocA: [], LocB: [], ...}
