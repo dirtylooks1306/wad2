@@ -18,8 +18,12 @@ import { GoogleMap, Marker } from 'vue3-google-map'
   </div>
 
   <!-- Map block divider -->
-  <div class="map-block p-3">
+  <div class="map-block p-3 position-relative">
     <CustomHeader header="FIND YOUR NEAREST A&E" />
+    <!-- Help prompt to guide users on how to use the map -->
+    <div id="helpPrompt" class="position-absolute">
+      <button type="button" class="btn btn-primary px-4" id="help"><span>Help</span></button>
+    </div>
     <div id="map">
       <!-- Margin left and right set to auto to center map -->
       <GoogleMap 
@@ -35,8 +39,9 @@ import { GoogleMap, Marker } from 'vue3-google-map'
     </div>
     <!-- When users click the button, the web will find nearest A&E location -->
     <form id="searchLocation">
-      <button type="button" class="btn btn-success m-2 p-1" @click="findNearest()">Find nearest A&E</button> <!-- To add function for button -->
+      <button type="button" class="btn btn-success m-2 p-1" @click="findNearest()"><span>Find nearest A&E</span></button> <!-- To add function for button -->
     </form>
+    <span id="nearest">Nearest hospital: <strong>{{ nearest }}</strong></span>
   </div>
 
   <!-- Contact list divider -->
@@ -83,12 +88,24 @@ import { GoogleMap, Marker } from 'vue3-google-map'
         lng: null,
         // Static storage of hospitals
         locations: [
+        { name: 'Alexandra Hospital', lat: 1.2874962987730814, lng: 103.80073267207732 },
         { name: 'Sengkang General Hospital', lat: 1.3956941909342555, lng: 103.89332626317386 }, 
         { name: 'Mount Elizabeth Hospital', lat: 1.3055822026727748, lng: 103.83582102084704 },
-        { name: 'Raffles24 Acute & Critical Care', lat: 1.3064570380276461, lng: 103.85783013568981 },
+        { name: 'Raffles Hospital', lat: 1.3011719940290543, lng: 103.85708979562519 },
         { name: 'Ng Teng Fong General Hospital', lat: 1.3343167862509524, lng: 103.7452355572338 }, 
+        { name: 'Gleneagles Hospital', lat: 1.30764521242119, lng: 103.8198628858667 },
+        { name: 'National University Hospital', lat: 1.2945680095759684, lng: 103.78301453136561 },
+        { name: 'SGH A&E', lat: 1.27887889121749, lng: 103.83490623940729 },
+        { name: "KK Women’s and Children’s Hospital", lat: 1.311177296639997, lng: 103.84681932461908 },
+        { name: 'Mount Elizabeth Novena Hospital', lat: 1.322267321333642, lng: 103.84404006861622 },
+        { name: 'Tan Tock Seng Hospital', lat: 1.321445820283406, lng: 103.84583988689484 },
+        { name: 'Mount Alvernia Hospital ', lat: 1.3420612484696135, lng: 103.83770458957798 },
+        { name: 'Parkway East Hospital', lat: 1.3152592115077777, lng: 103.9090328445181 },
+        { name: 'Khoo Teck Puat Hospital ', lat: 1.4243705790643706, lng: 103.8385962294709 },
+        { name: 'Changi General Hospital', lat: 1.34404999352938, lng: 103.94960279625784 },
+        { name: 'Woodlands Health Campus', lat: 1.430755656187611, lng: 103.79459742535192 },
         ],
-        //newMarkers: []
+        nearest: null,
       }
     },
     created() {
@@ -119,7 +136,7 @@ import { GoogleMap, Marker } from 'vue3-google-map'
       },
       findNearest() {
         //Part 1: Compute distance between user and each hospital, then find nearest location
-        let nearestHospital;
+        var nearestHospital;
         let nearestDist = 99999999; // Default value of greatest distance
         let userLat = this.lat;
         let userLng = this.lng;
@@ -140,6 +157,7 @@ import { GoogleMap, Marker } from 'vue3-google-map'
         console.log(`Marker successfully added! Nearest hospital: ${nearestHospital.name}`);
         console.log(this.newMarkers);
         */
+        this.nearest = nearestHospital.name;
         this.lat = nearestHospital.lat;
         this.lng = nearestHospital.lng;
       }
@@ -174,10 +192,50 @@ import { GoogleMap, Marker } from 'vue3-google-map'
     font-family: "Cherry Bomb", sans-serif;
   }
 
-  .contacts-list, table, .enquiries{
+  button span {
+    cursor: pointer;
+    display: inline-block;
+    position: relative;
+    transition: 0.5s;
+  }
+
+  button span:after {
+    content: '\00bb'; /* Double arrow */
+    position: absolute;
+    opacity: 0;
+    top: 0;
+    right: -20px;
+    transition: 0.5s;
+  }
+
+  button:hover span {
+    padding-right: 25px;
+  }
+
+  button:hover span:after {
+    opacity: 1;
+    right: 0;
+  }
+
+  .contacts-list, table, .enquiries, #nearest{
 	  color: #efba1d;
     font-family: "Cherry Bomb", sans-serif;
     font-size: 30px;
+  }
+    
+  .contact-link, th, strong{
+    text-decoration: underline;
+    text-decoration-color: #ff9689;
+  }
+
+  #help {
+    transition: all 0.5s;
+    cursor: pointer;
+  }
+
+  #helpPrompt {
+    top: 10px;
+    right: 50px;
   }
   
   .img-overlay-center {
@@ -193,11 +251,6 @@ import { GoogleMap, Marker } from 'vue3-google-map'
     background-color: #eed4d4;
   }
 
-  .contact-link, th{
-    text-decoration: underline;
-    text-decoration-color: #ff9689;
-  }
-
   table {
     border: 1px solid #ff9689
   }
@@ -205,4 +258,5 @@ import { GoogleMap, Marker } from 'vue3-google-map'
   tr:hover {
     background-color: #eed4d4;
   }
+
 </style>
