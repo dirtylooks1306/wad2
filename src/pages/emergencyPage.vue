@@ -2,14 +2,14 @@
 import NavBar from "../components/navBar.vue";
 import CustomHeader from "../components/CustomHeader.vue";
 import { GoogleMap, Marker } from 'vue3-google-map'
-/*
 import { useRoute } from 'vue-router';
 import { onMounted, ref } from 'vue';
-import { collection, query, where, getDocs, orderBy } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';  // Correct Firestore imports
+import { collection, query, getDocs } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';  // Correct Firestore imports
 import { db } from "../firebaseConfig.js";  // Import the Firestore instance (db)
 // Log the Firestore instance to ensure it's properly initialized
 console.log("Firestore instance (db):", db);
 
+//Segment to retrieve hospital locations and Google Maps API key from Firebase
 const route = useRoute();
 const locationList = ref([]);
 const fetchLocations = async() => {
@@ -17,19 +17,72 @@ const fetchLocations = async() => {
     const locations = collection(db, "locations");
     const q = query(locations);
     const querySnapshot = await getDocs(q);
-    //console.log("Number of locations:", querySnapshot.docs.length); -> Debug to ensure all locations retrieved from Firebase
     locationList.value = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
-    }));
-    console.log(locationList);
-  }
-  catch (error) {
+    }))
+  } catch(error) {
     console.error("Error fetching locations:", error.message);
   }
 }
 onMounted(fetchLocations);
-*/
+//console.log(locationList); -> Successfully retrieved hospital locations from Firebase
+//Segment end
+
+//Segment start for functions to help users find nearest distance to hospital
+const userLat = ref(0);
+const userLng = ref(0);
+var markerLat;
+var markerLng;
+var nearest;
+
+function getCurrentLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition((position) => {
+      userLat.value = position.coords.latitude
+      userLng.value = position.coords.longitude
+      markerLat = userLat;
+      markerLng = userLng;
+    })
+  } else {
+    alert("Error!")
+  }
+}
+window.onload = getCurrentLocation;
+
+function computeDist(lat1, lat2, lon1, lon2) {
+  const R = 6371e3; // metres
+  const latRad1 = lat1 * Math.PI/180; // φ, λ in radians
+  const latRad2 = lat2 * Math.PI/180;
+  const latRadDiff = (lat2-lat1) * Math.PI/180;
+  const lonRadDiff = (lon2-lon1) * Math.PI/180;
+  const a = Math.sin(latRadDiff/2) * Math.sin(latRadDiff/2) +
+    Math.cos(latRad1) * Math.cos(latRad2) *
+    Math.sin(lonRadDiff/2) * Math.sin(lonRadDiff/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const d = R * c; // in metres
+  return d;
+};
+function findNearest() {
+  //Part 1: Compute distance between user and each hospital, then find nearest location
+  let nearestHospital;
+  let nearestDist = 99999999; // Default value of greatest distance
+  for (let hospital of locationList["_value"]) {
+    let dist;
+    dist = computeDist(userLat["_value"], hospital.lat, userLng["_value"], hospital.lng); 
+    // This is distance over the Earth's surface (aka 'as-the-crow-flies' distance), actual difference slightly varies from formula 
+    if (dist < nearestDist) {
+      nearestHospital = hospital;
+      nearestDist = dist;
+    }
+  }
+  nearest = nearestHospital.name;
+  markerLat.value = nearestHospital.lat;
+  markerLng.value = nearestHospital.lng;
+};
+//Segment end
+
+//Function for popup prompt
 function showPopUp() {
   var popup = document.getElementById("helpPopUp");
   popup.classList.toggle("show");
@@ -64,11 +117,11 @@ function showPopUp() {
       <GoogleMap 
         :api-key="apiKey" 
         style="width: 75%; height: 500px; margin-left: auto; margin-right: auto;"
-        :center="{ lat: lat, lng: lng }" 
+        :center="{ lat: userLat, lng: userLng }" 
         :zoom="15">
         <div class="markers"> 
           <!-- Shows users their current location, change marker location to nearest hospital when one is found -->
-          <Marker :options="{ position: { lat: lat, lng: lng }, title: 'Current Location' }" :clickable="true"/> 
+          <Marker :options="{ position: { lat: markerLat, lng: markerLng }, title: 'Current Location' }" :clickable="true"/> 
         </div>
       </GoogleMap>
     </div>
@@ -111,14 +164,10 @@ function showPopUp() {
 <script>
   export default {
     name: 'emergencyPage',
-    components: {
-		  CustomHeader,
-      GoogleMap,
-      Marker,
-	  },
     data() {
       return {
         apiKey: "AIzaSyATGD0drDahbJeZQOPtXkzm2Qid75e4Mww",
+        /*
         lat: null,
         lng: null,
         // Static storage of hospitals
@@ -141,8 +190,10 @@ function showPopUp() {
         { name: 'Woodlands Health Campus', lat: 1.430755656187611, lng: 103.79459742535192 },
         ],
         nearest: null,
+        */
       }
     },
+    /*
     created() {
     this.$getLocation()
       .then((coordinates) => {
@@ -186,18 +237,12 @@ function showPopUp() {
             nearestDist = dist;
           }
         }
-        //console.log(nearestHospital, nearestDist); -> Successfully finds nearest hospital
-        //Part 2: Add nearest hospital location as a marker
-        /* 
-        this.newMarkers.push(nearestHospital);
-        console.log(`Marker successfully added! Nearest hospital: ${nearestHospital.name}`);
-        console.log(this.newMarkers);
-        */
         this.nearest = nearestHospital.name;
         this.lat = nearestHospital.lat;
         this.lng = nearestHospital.lng;
       }
     }
+    */
   };
   /*
   To Do: 
@@ -212,7 +257,6 @@ function showPopUp() {
 
 <style scoped>
   #background-image {
-    /*object-fit: cover; */
     width: 100%;
     height: 400px;
   }
