@@ -7,9 +7,11 @@ import {
 	ref,
 	set,
 	getDatabase,
-	addDoc
+	addDoc,
 } from "../firebaseConfig.js";
-import { toRaw } from "vue";
+import { nextTick } from "vue";
+import Chart from "chart.js/auto";
+import Utils from "../components/Utils.js";
 </script>
 
 <template>
@@ -80,13 +82,27 @@ import { toRaw } from "vue";
 					<tr>
 						<th>First steps</th>
 						<td v-for="n in 6" :key="n">
-							{{ posts[n - 1] && typeof posts[n - 1].walk === 'boolean' ? (posts[n - 1].walk ? 'Yes' : 'No') : "" }}
+							{{
+								posts[n - 1] &&
+								typeof posts[n - 1].walk === "boolean"
+									? posts[n - 1].walk
+										? "Yes"
+										: "No"
+									: ""
+							}}
 						</td>
 					</tr>
 					<tr>
 						<th>First words</th>
 						<td v-for="n in 6" :key="n">
-							{{ posts[n - 1] && typeof posts[n - 1].talk === 'boolean' ? (posts[n - 1].talk ? 'Yes' : 'No') : "" }}
+							{{
+								posts[n - 1] &&
+								typeof posts[n - 1].talk === "boolean"
+									? posts[n - 1].talk
+										? "Yes"
+										: "No"
+									: ""
+							}}
 						</td>
 					</tr>
 					<tr>
@@ -99,7 +115,7 @@ import { toRaw } from "vue";
 			</table>
 
 			<div class="row pt-3">
-				<div class="input-container col-md-6 ps-5">
+				<div class="input-container col-md-5 ps-5">
 					<div class="form-group row p-1">
 						<div class="col-md-1"></div>
 						<label for="date" class="col-md-3 col-12 col-form-label"
@@ -279,8 +295,23 @@ import { toRaw } from "vue";
 					</div>
 				</div>
 
-				<div class="col-md-6">
-					<img src="../assets/homepageBaby.jpg" class="w-50" />
+				<div class="col-md-7 container-fluid" >
+					<canvas id="babyGrowthWeightChart"></canvas>
+					<canvas id="babyGrowthHeightChart"></canvas>
+					<ul class="d-md-flex desktop-tabs mt-3">
+						<li
+							:class="{ selected: activeSubTab === 'WeightGraph' }"
+							@click="activeSubTab = 'WeightGraph'"
+						>
+							<a href="#WeightGraph">Weight</a>
+						</li>
+						<li
+							:class="{ selected: activeSubTab === 'HeightGraph' }"
+							@click="activeSubTab = 'HeightGraph'"
+						>
+							<a href="#HeightGraph">Height</a>
+						</li>
+					</ul>
 				</div>
 			</div>
 		</div>
@@ -294,6 +325,7 @@ export default {
 	data() {
 		return {
 			activeTab: "GrowthTracker",
+			activeSubTab: "WeightGraph",
 			selectedDate: "",
 			selectedAge: "0-2 months",
 			selectedWeight: "",
@@ -302,7 +334,9 @@ export default {
 			selectedWords: "",
 			selectedRemarks: "",
 			posts: [],
-			loading:true,
+			loading: true,
+			weightChart: null,
+			heightChart: null,
 		};
 	},
 	methods: {
@@ -328,7 +362,90 @@ export default {
 				talk: this.selectedWords,
 				remarks: this.selectedRemarks,
 			};
-		const docRef = await addDoc(userPostsRefPost, newPost);
+			const docRef = await addDoc(userPostsRefPost, newPost);
+		},
+		createChartWeight() {
+			const ctx = document.getElementById("babyGrowthWeightChart").getContext("2d");
+			let dateData = this.posts.map((post) => post.date); // date in array
+			let weightData = this.posts.map((post) => post.weight); // weight in array
+			const data = {
+				labels: dateData,
+				datasets: [
+					{
+						label: "Weight (in kg)",
+						data: weightData,
+						fill: false,
+						borderColor: Utils.CHART_COLORS.red,
+						tension: 0.1,
+					},
+				],
+			};
+
+			const config = {
+				type: "line",
+				data: data,
+				options: {
+					responsive: true,
+					plugins: {
+						legend: {
+							position: "top",
+						},
+						title: {
+							display: true,
+							text: "Your Child's Weight over Time",
+						},
+					},
+				},
+			};
+
+			this.weightChart = new Chart(ctx, config);
+		},
+		createChartHeight(){
+			let heightData = this.posts.map((post) => post.height); // weight in array
+			let dateData = this.posts.map((post) => post.date); // date in array
+			console.log(document.getElementById("babyGrowthHeightChart"))
+			const ctx = document.getElementById("babyGrowthHeightChart").getContext("2d");
+			const data = {
+				labels: dateData,
+				datasets: [
+					{
+						label: "Height (in cm)",
+						data: heightData,
+						fill: false,
+						borderColor: Utils.CHART_COLORS.blue,
+						tension: 0.1,
+					},
+				],
+			};
+
+			const config = {
+				type: "line",
+				data: data,
+				options: {
+					responsive: true,
+					plugins: {
+						legend: {
+							position: "top",
+						},
+						title: {
+							display: true,
+							text: "Your Child's Height over Time",
+						},
+					},
+				},
+			};
+
+			this.heightChart = new Chart(ctx, config);
+		},
+		toggleCharts() {
+			// Toggle the visibility of the charts based on the active tab
+			if (this.activeSubTab === "WeightGraph") {
+				document.getElementById("babyGrowthWeightChart").style.display = "block";
+				document.getElementById("babyGrowthHeightChart").style.display = "none";
+			} else if (this.activeSubTab === "HeightGraph") {
+				document.getElementById("babyGrowthWeightChart").style.display = "none";
+				document.getElementById("babyGrowthHeightChart").style.display = "block";
+			}
 		},
 	},
 	created() {
@@ -341,15 +458,31 @@ export default {
 		const userPostsRefGet = collection(db, "users", "user2", "posts");
 		const snapshot = await getDocs(userPostsRefGet);
 		this.posts = snapshot.docs
-							.map(doc => ({ id: doc.id, ...doc.data() }))
-							.sort((a, b) => {
-								const dateA = new Date(a.date); 
-								const dateB = new Date(b.date); 
-								return dateA - dateB;
-            				});
+			.map((doc) => ({ id: doc.id, ...doc.data() }))
+			.sort((a, b) => {
+				const dateA = new Date(a.date);
+				const dateB = new Date(b.date);
+				return dateA - dateB;
+			});
+		this.loading = false;
+		await nextTick(() => {
+			this.createChartWeight();
+			this.createChartHeight();
+
+			// Initially hide the height chart
+			document.getElementById("babyGrowthHeightChart").style.display =
+				"none";
+		});
 	},
+	watch: {
+		// Watch the active tab and re-render the chart accordingly
+		activeSubTab(newTab) {
+			this.toggleCharts(); 
+		},
+	}
 };
 </script>
+
 <style scoped>
 li {
 	list-style-type: none;
