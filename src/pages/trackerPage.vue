@@ -12,11 +12,17 @@ import {
 import { nextTick } from "vue";
 import Chart from "chart.js/auto";
 import Utils from "../components/Utils.js";
+import CustomHeader from "../components/CustomHeader.vue";
+
 </script>
 
 <template>
 	<NavBar />
+	
 	<div class="container-fluid">
+		<div class="text-start">
+		<CustomHeader header="GrowthTracker" class="text-left"/>
+		</div>
 		<ul class="d-md-flex desktop-tabs mt-3">
 			<li
 				:class="{ selected: activeTab === 'GrowthTracker' }"
@@ -31,11 +37,7 @@ import Utils from "../components/Utils.js";
 				<a href="#Vaccine">Vaccination Tracker</a>
 			</li>
 		</ul>
-
-		<!-- <select v-model="activeTab" class="mobile-dropdown" @change="changeTab">
-      <option value="GrowthTracker">Growth Tracker</option>
-      <option value="Vaccine">Vaccination Tracker</option>
-    </select> -->
+		
 		<div v-if="activeTab === 'GrowthTracker'" class="container-fluid">
 			<table class="logging-table">
 				<tbody>
@@ -59,6 +61,16 @@ import Utils from "../components/Utils.js";
 							:key="n + posts.length"
 						></td>
 					</tr>
+					<!-- <tr>
+						<th>Sex</th>
+						<td v-for="post in posts" :key="post.id">
+							{{ post.sex || "" }}
+						</td>
+						<td
+							v-for="n in 6 - posts.length"
+							:key="n + posts.length"
+						></td>
+					</tr>					 -->
 					<tr>
 						<th>Weight (in kg)</th>
 						<td v-for="post in posts" :key="post.id">
@@ -79,7 +91,7 @@ import Utils from "../components/Utils.js";
 							:key="n + posts.length"
 						></td>
 					</tr>
-					<tr>
+					<!-- <tr>
 						<th>First steps</th>
 						<td v-for="n in 6" :key="n">
 							{{
@@ -104,7 +116,7 @@ import Utils from "../components/Utils.js";
 									: ""
 							}}
 						</td>
-					</tr>
+					</tr> -->
 					<tr>
 						<th>Remarks</th>
 						<td v-for="n in 6" :key="n">
@@ -155,6 +167,21 @@ import Utils from "../components/Utils.js";
 							</select>
 						</div>
 					</div>
+					<!-- <div class="form-group row p-1">
+						<div class="col-md-1"></div>
+						<label for="date" class="col-md-3 col-12 col-form-label"
+							>Sex</label
+						>
+						<div class="col-md-8 col-12">
+							<select 
+								for="age"
+								class="form-control"
+								v-model="selectedSex">
+								<option value="male">Male</option>
+								<option value="female">Female</option>
+							</select>
+						</div>
+					</div>					 -->
 					<div class="form-group row p-1">
 						<div class="col-md-1"></div>
 						<label for="date" class="col-md-3 col-12 col-form-label"
@@ -239,6 +266,7 @@ import Utils from "../components/Utils.js";
 									name="words"
 									id="yesWords"
 									value="yes"
+									v-model="selectedWords"
 								/>
 								<label
 									class="form-check-label"
@@ -253,7 +281,6 @@ import Utils from "../components/Utils.js";
 									name="words"
 									id="noWords"
 									value="no"
-									v-model="selectedWords"
 								/>
 								<label
 									class="form-check-label"
@@ -287,6 +314,7 @@ import Utils from "../components/Utils.js";
 								type="submit"
 								class="btn btn-primary"
 								@click="savePost"
+								
 							>
 								Submit
 							</button>
@@ -312,8 +340,12 @@ import Utils from "../components/Utils.js";
 							<a href="#HeightGraph">Height</a>
 						</li>
 					</ul>
+					<button @click="refreshCharts" class="btn btn-success">
+						Refresh Charts
+					</button>
 				</div>
 			</div>
+
 		</div>
 		<div v-else-if="activeTab === 'Vaccine'">bob2</div>
 	</div>
@@ -327,6 +359,7 @@ export default {
 			activeTab: "GrowthTracker",
 			activeSubTab: "WeightGraph",
 			selectedDate: "",
+			selectedSex: "male",
 			selectedAge: "0-2 months",
 			selectedWeight: "",
 			selectedHeight: "",
@@ -358,14 +391,40 @@ export default {
 				age: this.selectedAge,
 				weight: this.selectedWeight,
 				height: this.selectedHeight,
-				walk: this.selectedSteps,
-				talk: this.selectedWords,
+				sex: this.selectedSex,
+				walk: this.selectedSteps === "yes",
+				talk: this.selectedWords === "no",
 				remarks: this.selectedRemarks,
 			};
+			console.log(newPost["walk"])
 			const docRef = await addDoc(userPostsRefPost, newPost);
+			await this.fetchPosts()
+			// reset all values
+			this.selectedDate = "";
+			this.selectedSex = "male";
+			this.selectedAge = "0-2 months";
+			this.selectedWeight = "";
+			this.selectedHeight = "";
+			this.selectedSteps = "";
+			this.selectedWords = "null";
+			this.selectedRemarks = "";
+		},
+		async fetchPosts() {
+			const postsRef = collection(db, "users", "user2", "posts");
+			const snapshot = await getDocs(postsRef);
+			this.posts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));  // Update posts array
+			if (this.activeSubTab === "WeightGraph") {
+				this.createChartWeight();  // Only create the weight chart
+			} else if (this.activeSubTab === "HeightGraph") {
+				this.createChartHeight();  // Only create the height chart
+			}
 		},
 		createChartWeight() {
 			const ctx = document.getElementById("babyGrowthWeightChart").getContext("2d");
+			if (this.weightChart) {
+				this.weightChart.destroy();
+			}
+			// await this.fetchPosts();
 			let dateData = this.posts.map((post) => post.date); // date in array
 			let weightData = this.posts.map((post) => post.weight); // weight in array
 			const data = {
@@ -401,9 +460,11 @@ export default {
 			this.weightChart = new Chart(ctx, config);
 		},
 		createChartHeight(){
+			if (this.heightChart) {
+				this.heightChart.destroy();
+			}
 			let heightData = this.posts.map((post) => post.height); // weight in array
 			let dateData = this.posts.map((post) => post.date); // date in array
-			console.log(document.getElementById("babyGrowthHeightChart"))
 			const ctx = document.getElementById("babyGrowthHeightChart").getContext("2d");
 			const data = {
 				labels: dateData,
@@ -442,11 +503,25 @@ export default {
 			if (this.activeSubTab === "WeightGraph") {
 				document.getElementById("babyGrowthWeightChart").style.display = "block";
 				document.getElementById("babyGrowthHeightChart").style.display = "none";
+				if (!this.weightChart) {
+					this.createChartWeight();
+				}
 			} else if (this.activeSubTab === "HeightGraph") {
 				document.getElementById("babyGrowthWeightChart").style.display = "none";
 				document.getElementById("babyGrowthHeightChart").style.display = "block";
+				if (!this.heightChart) {
+					this.createChartHeight();
+				}
 			}
 		},
+		async refreshCharts() {
+			this.loading = true;  // Show a loading spinner if needed
+
+			// Fetch posts and update the charts
+			await this.fetchPosts();  // This will update the active chart
+
+			this.loading = false;  // Hide the loading spinner
+  		},
 	},
 	created() {
 		this.selectedDate = this.currentDate();
@@ -465,14 +540,8 @@ export default {
 				return dateA - dateB;
 			});
 		this.loading = false;
-		await nextTick(() => {
-			this.createChartWeight();
-			this.createChartHeight();
-
-			// Initially hide the height chart
-			document.getElementById("babyGrowthHeightChart").style.display =
-				"none";
-		});
+		await this.fetchPosts();
+		this.toggleCharts();
 	},
 	watch: {
 		// Watch the active tab and re-render the chart accordingly
@@ -502,14 +571,14 @@ li:not(.selected) {
 	opacity: 0.5;
 	cursor: pointer;
 }
+
 .container-fluid {
 	display: flex;
 	flex-direction: column;
-	align-items: center;
+	align-items: center;	
 	justify-content: center;
 	margin: auto;
 }
-
 .desktop-tabs {
 	display: block;
 }
@@ -531,6 +600,24 @@ tbody {
 	text-align: left;
 	padding: 10px;
 }
+.text-left {  
+	align-self: flex-start; 
+	width: 100%;
+}
+/* @media (max-width: 991px){
+	.container-fluid {
+	display: flex;
+	flex-direction: column;
+	align-items: center;	
+	justify-content: center;
+	margin: auto;
+}
+} */
+/* @media (min-width: 992px){
+	.text-left {  
+		align-self: flex-start; 
+	}
+} */
 
 @media (max-width: 768px) {
 	.desktop-tabs {
