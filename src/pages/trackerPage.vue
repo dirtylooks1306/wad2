@@ -13,6 +13,8 @@ import { nextTick } from "vue";
 import Chart from "chart.js/auto";
 import Utils from "../components/Utils.js";
 import CustomHeader from "../components/CustomHeader.vue";
+import FormComponent from "../components/form.vue";
+import TableTracker from "../components/TableTracker.vue";
 
 </script>
 
@@ -39,288 +41,11 @@ import CustomHeader from "../components/CustomHeader.vue";
 		</ul>
 		
 		<div v-if="activeTab === 'GrowthTracker'" class="container-fluid">
-			<table class="logging-table">
-				<tbody>
-					<tr>
-						<th>Date of Record</th>
-						<td v-for="(post, index) in posts" :key="index">
-							{{ post.date || "" }}
-						</td>
-						<td
-							v-for="n in 6 - posts.length"
-							:key="n + posts.length"
-						></td>
-					</tr>
-					<tr>
-						<th>Current age</th>
-						<td v-for="post in posts" :key="post.id">
-							{{ post.age || "" }}
-						</td>
-						<td
-							v-for="n in 6 - posts.length"
-							:key="n + posts.length"
-						></td>
-					</tr>
-					<!-- <tr>
-						<th>Sex</th>
-						<td v-for="post in posts" :key="post.id">
-							{{ post.sex || "" }}
-						</td>
-						<td
-							v-for="n in 6 - posts.length"
-							:key="n + posts.length"
-						></td>
-					</tr>					 -->
-					<tr>
-						<th>Weight (in kg)</th>
-						<td v-for="post in posts" :key="post.id">
-							{{ post.weight || "" }}
-						</td>
-						<td
-							v-for="n in 6 - posts.length"
-							:key="n + posts.length"
-						></td>
-					</tr>
-					<tr>
-						<th>Height / Length (in cm)</th>
-						<td v-for="post in posts" :key="post.id">
-							{{ post.height || "" }}
-						</td>
-						<td
-							v-for="n in 6 - posts.length"
-							:key="n + posts.length"
-						></td>
-					</tr>
-					<!-- <tr>
-						<th>First steps</th>
-						<td v-for="n in 6" :key="n">
-							{{
-								posts[n - 1] &&
-								typeof posts[n - 1].walk === "boolean"
-									? posts[n - 1].walk
-										? "Yes"
-										: "No"
-									: ""
-							}}
-						</td>
-					</tr>
-					<tr>
-						<th>First words</th>
-						<td v-for="n in 6" :key="n">
-							{{
-								posts[n - 1] &&
-								typeof posts[n - 1].talk === "boolean"
-									? posts[n - 1].talk
-										? "Yes"
-										: "No"
-									: ""
-							}}
-						</td>
-					</tr> -->
-					<tr>
-						<th>Remarks</th>
-						<td v-for="n in 6" :key="n">
-							{{ posts[n - 1] ? posts[n - 1].remarks : "" }}
-						</td>
-					</tr>
-				</tbody>
-			</table>
+			<TableTracker :posts="posts"/>
 
 			<div class="row pt-3">
 				<div class="input-container col-md-5 ps-5">
-					<div class="form-group row p-1">
-						<div class="col-md-1"></div>
-						<label for="date" class="col-md-3 col-12 col-form-label"
-							>Date of record</label
-						>
-						<div class="col-md-8 col-12">
-							<input
-								type="date"
-								class="form-control"
-								id="date"
-								v-model="selectedDate"
-							/>
-						</div>
-					</div>
-					<div class="form-group row p-1">
-						<div class="col-md-1"></div>
-						<label for="age" class="col-md-3 col-12 col-form-label"
-							>Current age</label
-						>
-						<div class="col-md-8 col-12">
-							<select
-								for="age"
-								class="form-control"
-								v-model="selectedAge"
-							>
-								<option value="0-2 months">0-2 months</option>
-								<option value="2-4 months">2-4 months</option>
-								<option value="4-6 months">4-6 months</option>
-								<option value="6-9 months">6-9 months</option>
-								<option value="9-12 months">9-12 months</option>
-								<option value="12-18 months">
-									12-18 months
-								</option>
-								<option value="18-24 months">
-									18-24 months
-								</option>
-							</select>
-						</div>
-					</div>
-					<!-- <div class="form-group row p-1">
-						<div class="col-md-1"></div>
-						<label for="date" class="col-md-3 col-12 col-form-label"
-							>Sex</label
-						>
-						<div class="col-md-8 col-12">
-							<select 
-								for="age"
-								class="form-control"
-								v-model="selectedSex">
-								<option value="male">Male</option>
-								<option value="female">Female</option>
-							</select>
-						</div>
-					</div>					 -->
-					<div class="form-group row p-1">
-						<div class="col-md-1"></div>
-						<label for="date" class="col-md-3 col-12 col-form-label"
-							>Weight</label
-						>
-						<div class="col-md-8 col-12">
-							<input
-								type="number"
-								class="form-control"
-								id="weight"
-								placeholder="11.4 kg"
-								v-model="selectedWeight"
-							/>
-						</div>
-					</div>
-					<div class="form-group row p-1">
-						<div class="col-md-1"></div>
-						<label for="date" class="col-md-3 col-12 col-form-label"
-							>Height/ Length</label
-						>
-						<div class="col-md-8 col-12">
-							<input
-								type="number"
-								class="form-control"
-								id="date"
-								placeholder="30 cm"
-								v-model="selectedHeight"
-							/>
-						</div>
-					</div>
-					<div class="form-group row ps-1">
-						<div class="col-md-1"></div>
-						<label
-							for="steps"
-							class="col-md-3 col-12 col-form-label"
-							>First Steps?</label
-						>
-						<div class="col-md-8 col-12 pt-2">
-							<div class="form-check form-check-inline">
-								<input
-									class="form-check-input"
-									type="radio"
-									name="steps"
-									id="yesSteps"
-									value="yes"
-									v-model="selectedSteps"
-								/>
-								<label
-									class="form-check-label"
-									for="inlineRadio1"
-									>Yes</label
-								>
-							</div>
-							<div class="form-check form-check-inline">
-								<input
-									class="form-check-input"
-									type="radio"
-									name="steps"
-									id="noSteps"
-									value="no"
-								/>
-								<label
-									class="form-check-label"
-									for="inlineRadio2"
-									>No</label
-								>
-							</div>
-						</div>
-					</div>
-					<div class="form-group row ps-1">
-						<div class="col-md-1"></div>
-						<label
-							for="words"
-							class="col-md-3 col-12 col-form-label"
-							>First Words?</label
-						>
-						<div class="col-md-8 col-12 pt-2">
-							<div class="form-check form-check-inline">
-								<input
-									class="form-check-input"
-									type="radio"
-									name="words"
-									id="yesWords"
-									value="yes"
-									v-model="selectedWords"
-								/>
-								<label
-									class="form-check-label"
-									for="inlineRadio1"
-									>Yes</label
-								>
-							</div>
-							<div class="form-check form-check-inline">
-								<input
-									class="form-check-input"
-									type="radio"
-									name="words"
-									id="noWords"
-									value="no"
-								/>
-								<label
-									class="form-check-label"
-									for="inlineRadio2"
-									>No</label
-								>
-							</div>
-						</div>
-					</div>
-					<div class="form-group row p-1">
-						<div class="col-md-1"></div>
-						<label
-							for="remarks"
-							class="col-md-3 col-12 col-form-label"
-							>Remarks</label
-						>
-						<div class="col-md-8 col-12">
-							<textarea
-								class="form-control"
-								id="remarks"
-								rows="2"
-								placeholder="Notes here"
-								v-model="selectedRemarks"
-							></textarea>
-						</div>
-					</div>
-					<div class="row pt-3">
-						<div class="col-md-4"></div>
-						<div class="col-md-4">
-							<button
-								type="submit"
-								class="btn btn-primary"
-								@click="savePost"
-								
-							>
-								Submit
-							</button>
-						</div>
-						<div class="col-md-4"></div>
-					</div>
+					<FormComponent @submit="savePost"/>
 				</div>
 
 				<div class="col-md-7 container-fluid" >
@@ -358,14 +83,6 @@ export default {
 		return {
 			activeTab: "GrowthTracker",
 			activeSubTab: "WeightGraph",
-			selectedDate: "",
-			selectedSex: "male",
-			selectedAge: "0-2 months",
-			selectedWeight: "",
-			selectedHeight: "",
-			selectedSteps: "",
-			selectedWords: "",
-			selectedRemarks: "",
 			posts: [],
 			loading: true,
 			weightChart: null,
@@ -374,40 +91,21 @@ export default {
 	},
 	methods: {
 		changeTab() {},
-		currentDate() {
-			// sets selectedDate default value to today's date
-			const today = new Date();
-			const day = String(today.getDate()).padStart(2, "0");
-			const month = String(today.getMonth() + 1).padStart(2, "0"); // January is 0!
-			const year = today.getFullYear();
-			let tdyDate = `${year}-${month}-${day}`;
-			return tdyDate;
-		},
-		async savePost() {
+		async savePost(formData) {
 			// posting user's tracking info data into firebase
 			const userPostsRefPost = collection(db, "users", "user2", "posts");
 			const newPost = {
-				date: this.selectedDate,
-				age: this.selectedAge,
-				weight: this.selectedWeight,
-				height: this.selectedHeight,
-				sex: this.selectedSex,
-				walk: this.selectedSteps === "yes",
-				talk: this.selectedWords === "no",
-				remarks: this.selectedRemarks,
+				date: formData.selectedDate,
+				age: formData.selectedAge,
+				weight: formData.selectedWeight,
+				height: formData.selectedHeight,
+				sex: formData.selectedSex,
+				walk: formData.selectedSteps === "yes",
+				talk: formData.selectedWords === "no",
+				remarks: formData.selectedRemarks,
 			};
-			console.log(newPost["walk"])
 			const docRef = await addDoc(userPostsRefPost, newPost);
 			await this.fetchPosts()
-			// reset all values
-			this.selectedDate = "";
-			this.selectedSex = "male";
-			this.selectedAge = "0-2 months";
-			this.selectedWeight = "";
-			this.selectedHeight = "";
-			this.selectedSteps = "";
-			this.selectedWords = "null";
-			this.selectedRemarks = "";
 		},
 		async fetchPosts() {
 			const postsRef = collection(db, "users", "user2", "posts");
@@ -523,9 +221,6 @@ export default {
 			this.loading = false;  // Hide the loading spinner
   		},
 	},
-	created() {
-		this.selectedDate = this.currentDate();
-	},
 	async mounted() {
 		window.vm = this;
 
@@ -586,38 +281,10 @@ li:not(.selected) {
 .mobile-dropdown {
 	display: none;
 }
-table,
-tr,
-td,
-th,
-thead,
-tbody {
-	border: 2px solid black;
-}
-.logging-table th,
-.logging-table td {
-	min-width: 100px;
-	text-align: left;
-	padding: 10px;
-}
 .text-left {  
 	align-self: flex-start; 
 	width: 100%;
 }
-/* @media (max-width: 991px){
-	.container-fluid {
-	display: flex;
-	flex-direction: column;
-	align-items: center;	
-	justify-content: center;
-	margin: auto;
-}
-} */
-/* @media (min-width: 992px){
-	.text-left {  
-		align-self: flex-start; 
-	}
-} */
 
 @media (max-width: 768px) {
 	.desktop-tabs {
@@ -628,7 +295,6 @@ tbody {
 		position: absolute;
 		top: 10%;
 		left: 50%;
-		/* transform: translateX(-50%); */
 		width: 90%;
 	}
 }
