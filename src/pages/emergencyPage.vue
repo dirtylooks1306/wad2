@@ -3,7 +3,7 @@ import NavBar from "../components/navBar.vue";
 import CustomHeader from "../components/CustomHeader.vue";
 import { GoogleMap, Marker } from 'vue3-google-map'
 import { useRoute } from 'vue-router';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { collection, query, getDocs } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';  // Correct Firestore imports
 import { db } from "../firebaseConfig.js";  // Import the Firestore instance (db)
 // Log the Firestore instance to ensure it's properly initialized
@@ -29,12 +29,18 @@ onMounted(fetchLocations);
 //console.log(locationList); -> Successfully retrieved hospital locations from Firebase
 //Segment end
 
-//Segment start for functions to help users find nearest distance to hospital
+//Segment for functions to help users find nearest distance to hospital
+/*
+Problem: Map doesn't properly initialise and functions don't work when webpage initialised the first time 
+Solution: v-if and v-else -> If user's location is found by geolocation prompt, initialise the map. Otherwise, put a "Initialise Map" button
+*/
 const userLat = ref(0);
 const userLng = ref(0);
+const locationReady = ref(false);
 var markerLat;
 var markerLng;
 var nearest;
+window.onload = getCurrentLocation;
 
 function getCurrentLocation() {
   if (navigator.geolocation) {
@@ -43,12 +49,18 @@ function getCurrentLocation() {
       userLng.value = position.coords.longitude
       markerLat = userLat;
       markerLng = userLng;
+      locationReady.value = true;
     })
   } else {
     alert("Error!")
   }
-}
-window.onload = getCurrentLocation;
+};
+watch([userLat, userLng],([newLat, newLng]) => {
+  if (newLat && newLng) {
+    userLat.value = newLat;
+    userLng.value = newLng;
+  }
+})
 
 function computeDist(lat1, lat2, lon1, lon2) {
   const R = 6371e3; // metres
@@ -102,34 +114,39 @@ function showPopUp() {
   </div>
 
   <!-- Map block divider -->
-  <div class="map-block p-3 position-relative">
+  <div class="map-block p-3 position-relative" >
     <CustomHeader header="FIND YOUR NEAREST A&E" />
     <!-- Help prompt to guide users on how to use the map -->
-    <div id="helpPrompt" class="position-absolute popup">
+    <div id="helpPrompt" class="position-absolute popup" v-if="locationReady">
       <button type="button" class="btn btn-primary px-4" id="help" @click="showPopUp"><span>Help</span></button>
       <span class="popuptext p-2" id="helpPopUp">
         1. Click on the "Find Nearest A&E" button to locate your nearest hospital<br>
         2. Click on the hospital's location marker and click "View on Google Maps" to start calibrating your navigation route!
+        <hr>
+        <strong>IMPORTANT</strong>: This feature requires you to allow the webpage to access your location.
       </span>
     </div>
-    <div id="map">
+    <div id="map" v-if="locationReady">
       <!-- Margin left and right set to auto to center map -->
       <GoogleMap 
         :api-key="apiKey" 
         style="width: 75%; height: 500px; margin-left: auto; margin-right: auto;"
         :center="{ lat: userLat, lng: userLng }" 
-        :zoom="15">
+        :zoom="16">
         <div class="markers"> 
           <!-- Shows users their current location, change marker location to nearest hospital when one is found -->
           <Marker :options="{ position: { lat: markerLat, lng: markerLng }, title: 'Current Location' }" :clickable="true"/> 
         </div>
       </GoogleMap>
     </div>
+    <div v-else>
+      <button type="button" class="btn btn-success m-2 p-1" @click="getCurrentLocation"><span>Initialise Map</span></button>
+    </div>
     <!-- When users click the button, the web will find nearest A&E location -->
-    <form id="searchLocation">
-      <button type="button" class="btn btn-success m-2 p-1" @click="findNearest()"><span>Find nearest A&E</span></button> <!-- To add function for button -->
+    <form id="searchLocation" v-if="locationReady">
+      <button type="button" class="btn btn-success m-2 p-1" @click="findNearest()"><span>Find nearest A&E</span></button>
     </form>
-    <span id="nearest">Nearest hospital: <strong>{{ nearest }}</strong></span>
+    <span id="nearest" v-if="locationReady">Nearest hospital: <strong>{{ nearest }}</strong></span>
   </div>
 
   <!-- Contact list divider -->
@@ -152,7 +169,7 @@ function showPopUp() {
           <td>AMBULANCE</td><td>995</td>
         </tr>
         <tr>
-          <td>PARENT COUNSELLINGING HOTLINE</td><td>1800 222 0000</td>
+          <td>PARENT COUNSELLING HOTLINE</td><td>1800 222 0000</td>
         </tr>
       </tbody>
     </table>
@@ -163,7 +180,6 @@ function showPopUp() {
 
 <script>
   export default {
-    name: 'emergencyPage',
     data() {
       return {
         apiKey: "AIzaSyATGD0drDahbJeZQOPtXkzm2Qid75e4Mww",
@@ -246,12 +262,7 @@ function showPopUp() {
   };
   /*
   To Do: 
-  - Start moving static storage of hospital locations into Firebase -> Figure out how to import Firebase data to use in functions (Do by Wed-Fri)
-
-  Plans for locating nearest A&E:
-  1) Gather all A&E locations and group all locations in object based on region -> locations = {LocA: [], LocB: [], ...}
-  2) Using latitude and longitude, calculate nearest A&E (min diff in lat and long)
-  3) Store a few A&E locations as static storage first; if it works, start storing dynamically (Do by next Wed)
+  - Port API key over to Firebase(?) for security purposes if necessary
   */
 </script> 
 
