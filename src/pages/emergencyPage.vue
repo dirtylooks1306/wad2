@@ -30,10 +30,6 @@ onMounted(fetchLocations);
 //Segment end
 
 //Segment for functions to help users find nearest distance to hospital
-/*
-Problem: Map doesn't properly initialise and functions don't work when webpage initialised the first time 
-Solution: v-if and v-else -> If user's location is found by geolocation prompt, initialise the map. Otherwise, put a "Initialise Map" button
-*/
 const userLat = ref(0);
 const userLng = ref(0);
 const locationReady = ref(false);
@@ -151,12 +147,6 @@ function showPopUp() {
 
   <!-- Contact list divider -->
   <div class="contacts p-3">
-    <CustomHeader header="CONTACTS" />
-    <!-- Contact numbers displayed inline in same row as respective services, each service type separated into newlines (To display as table) -->
-    <!--
-    <span class="service-type">AMBULANCE SERVICES:</span><p class="contact d-inline"> 995</p><br>
-    <span class="service-type">PARENT COUNSELLING HOTLINE:</span><p class="contact d-inline"> 1800 222 0000</p><br>
-    -->
     <table class="contacts-list w-100 mx-auto table-bordered">
       <thead>
         <tr>
