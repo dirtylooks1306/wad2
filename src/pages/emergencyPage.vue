@@ -129,10 +129,8 @@ function showPopUp() {
         style="width: 75%; height: 500px; margin-left: auto; margin-right: auto;"
         :center="{ lat: userLat, lng: userLng }" 
         :zoom="16">
-        <div class="markers"> 
-          <!-- Shows users their current location, change marker location to nearest hospital when one is found -->
-          <Marker :options="{ position: { lat: markerLat, lng: markerLng }, title: 'Current Location' }" :clickable="true"/> 
-        </div>
+        <!-- Shows users their current location, change marker location to nearest hospital when one is found -->
+        <Marker :options="{ position: { lat: markerLat, lng: markerLng }, title: 'Current Location' }" :clickable="true"/> 
       </GoogleMap>
     </div>
     <div v-else>
@@ -147,7 +145,8 @@ function showPopUp() {
 
   <!-- Contact list divider -->
   <div class="contacts p-3">
-    <table class="contacts-list w-100 mx-auto table-bordered">
+    <CustomHeader header="CONTACTS" />
+    <table class="w-75 mx-auto table-bordered">
       <thead>
         <tr>
           <th>SERVICE</th>
@@ -252,7 +251,7 @@ function showPopUp() {
   };
   /*
   To Do: 
-  - Port API key over to Firebase(?) for security purposes if necessary
+  - Transfer help prompt content into Google Maps as iframe; push geolocation prompt outside
   */
 </script> 
 
@@ -291,13 +290,13 @@ function showPopUp() {
     right: 0;
   }
 
-  .contacts-list, table, .enquiries, #nearest{
+  .enquiries, #nearest{
 	  color: #efba1d;
     font-family: "Cherry Bomb", sans-serif;
     font-size: 30px;
   }
     
-  .contact-link, th, strong{
+  .contact-link, strong{
     text-decoration: underline;
     text-decoration-color: #ff9689;
   }
