@@ -29,7 +29,8 @@ onMounted(fetchLocations);
 //console.log(locationList); -> Successfully retrieved hospital locations from Firebase
 //Segment end
 
-//Segment for functions to help users find nearest distance to hospital
+//Segment to help users find nearest distance to hospital
+//Part 1: Declaration of variables
 const userLat = ref(0);
 const userLng = ref(0);
 const locationReady = ref(false);
@@ -37,7 +38,9 @@ var markerLat;
 var markerLng;
 var nearest;
 window.onload = getCurrentLocation;
+//Part 1 End
 
+//Part 2: Functions for geolocation prompt and location finding
 function getCurrentLocation() {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition((position) => {
@@ -88,6 +91,7 @@ function findNearest() {
   markerLat.value = nearestHospital.lat;
   markerLng.value = nearestHospital.lng;
 };
+//Part 2 End
 //Segment end
 
 //Function for popup prompt
