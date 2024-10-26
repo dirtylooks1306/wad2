@@ -320,8 +320,9 @@ function showPopUp() {
     left: 50%;
     transform: translate(-50%, -50%);
     color: #ff9689;
-	  font-family: "Cherry Bomb", sans-serif;
+	font-family: "Cherry Bomb", sans-serif;
     font-size: 50px;
+	-webkit-text-stroke: 1px #555;
   }
 
   .map-block {
