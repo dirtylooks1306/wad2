@@ -28,10 +28,9 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  height: fit-content;
   background-color: #FBF4EB;
 }
 
@@ -72,13 +71,14 @@ button:focus-visible {
 #app {
   width: 100%;
   margin: 0 auto;
-  text-align: center;
+  
 }
 
 .small-icon-button{
 	background-color: transparent;
 	border: none;
 }
+
 
 @media (prefers-color-scheme: light) {
   :root {

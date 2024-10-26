@@ -96,22 +96,31 @@ function findNearest() {
 
 //Function for popup prompt
 function showPopUp() {
-  var popup = document.getElementById("helpPopUp");
-  popup.classList.toggle("show");
+	var popup = document.getElementById("helpPopUp");
+	popup.classList.toggle("show");
 }
 </script>
 
 <template>
 	<NavBar />
-  <!-- Image overlay divider -->
-  <div class="container-fluid p-0 position-relative"> <!-- Remove padding from side of image -->
-    <div class="row no-gutters">
-      <div class="col-12">
-        <img src="../assets/A&E test.png" class="img-fluid" id="background-image" alt=""> <!-- To change image -->
-        <h5 class="img-overlay-center position-absolute">Emergency Resources</h5> 
-      </div>
-    </div>
-  </div>
+	<!-- Image overlay divider -->
+	<div class="container-fluid p-0 position-relative">
+		<!-- Remove padding from side of image -->
+		<div class="row no-gutters">
+			<div class="col-12">
+				<img
+					src="../assets/A&E test.png"
+					class="img-fluid"
+					id="background-image"
+					alt=""
+				/>
+				<!-- To change image -->
+				<h5 class="img-overlay-center position-absolute">
+					Emergency Resources
+				</h5>
+			</div>
+		</div>
+	</div>
 
   <!-- Map block divider -->
   <div class="map-block p-3 position-relative" >
@@ -254,148 +263,173 @@ function showPopUp() {
     */
   };
   /*
+
   To Do: 
   - Transfer help prompt content into Google Maps as iframe; push geolocation prompt outside
   */
-</script> 
+</script>
 
 <style scoped>
-  #background-image {
-    width: 100%;
-    height: 400px;
-  }
+#background-image {
+  width: 100%;
+  height: 400px;
+}
 
-  button {
-    font-family: "Cherry Bomb", sans-serif;
-  }
-
-  button span {
-    cursor: pointer;
-    display: inline-block;
-    position: relative;
-    transition: 0.5s;
-  }
-
-  button span:after {
-    content: '\00bb'; /* Double arrow */
-    position: absolute;
-    opacity: 0;
-    top: 0;
-    right: -20px;
-    transition: 0.5s;
-  }
-
-  button:hover span {
-    padding-right: 25px;
-  }
-
-  button:hover span:after {
-    opacity: 1;
-    right: 0;
-  }
-
-  .enquiries, #nearest{
-	color: #efba1d;
-    font-family: "Cherry Bomb", sans-serif;
-    font-size: 30px;
-  }
-    
-  .contact-link, strong{
-    text-decoration: underline;
-    text-decoration-color: #ff9689;
-  }
-
-  #help {
-    transition: all 0.5s;
-    cursor: pointer;
-  }
-
-  #helpPrompt {
-    top: 10px;
-    right: 50px;
-  }
-  
-  .img-overlay-center {
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: #ff9689;
+button {
 	font-family: "Cherry Bomb", sans-serif;
-    font-size: 50px;
+}
+
+button span {
+	cursor: pointer;
+	display: inline-block;
+	position: relative;
+	transition: 0.5s;
+}
+
+button span:after {
+	content: "\00bb"; /* Double arrow */
+	position: absolute;
+	opacity: 0;
+	top: 0;
+	right: -20px;
+	transition: 0.5s;
+}
+
+button:hover span {
+	padding-right: 25px;
+}
+
+button:hover span:after {
+	opacity: 1;
+	right: 0;
+}
+
+
+.enquiries, #nearest{
+  color: #efba1d;
+  font-family: "Cherry Bomb", sans-serif;
+  font-size: 30px;
+}
+    
+.contact-link, strong{
+  text-decoration: underline;
+  text-decoration-color: #ff9689;
+}
+
+#help {
+	transition: all 0.5s;
+	cursor: pointer;
+}
+
+#helpPrompt {
+	top: 10px;
+	right: 50px;
+}
+
+.img-overlay-center {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #ff9689;
+	font-family: "Cherry Bomb", sans-serif;
+  font-size: 50px;
 	-webkit-text-stroke: 1px #555;
-  }
+}
 
-  .map-block {
-    background-color: #eed4d4;
-  }
-
-  #notification {
+#notification {
 	color: #efba1d;
-    font-family: "Cherry Bomb", sans-serif;
+  font-family: "Cherry Bomb", sans-serif;
 	font-size: 30px;
-  }
+}
 
-  .popup {
-    position: relative;
-    display: inline-block;
-    cursor: pointer;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-  }
+.popup {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
 
-  .popup .popuptext {
-    visibility: hidden;
-    width: 160px;
-    background-color: #555;
-    color: #fff;
-    text-align: center;
-    border-radius: 6px;
-    padding: 8% 0;
-    position: absolute;
-    z-index: 1;
-    top: 125%;
-    left: 50%;
-    margin-left: -80px;
-  }
+.map-block {
+	background-color: #eed4d4;
+}
+/*
+.centered-container {
+	width: fit-content;
+	margin: 0 auto;
+	text-align: center;
+}
+*/
+.popup {
+	position: relative;
+	display: inline-block;
+	cursor: pointer;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
 
-  /* Popup arrow */
-  .popup .popuptext::after {
-    content: "";
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    margin-left: -5px;
-    border-width: 5px;
-    border-style: solid;
-    border-color: transparent transparent #555 transparent;
-  }
+.popup .popuptext {
+	visibility: hidden;
+	width: 160px;
+	background-color: #555;
+	color: #fff;
+	text-align: center;
+	border-radius: 6px;
+	padding: 8% 0;
+	position: absolute;
+	z-index: 1;
+	top: 125%;
+	left: 50%;
+	margin-left: -80px;
+}
 
-  /* Toggle this class - hide and show the popup */
-  .popup .show {
-    visibility: visible;
-    -webkit-animation: fadeIn 1s;
-    animation: fadeIn 1s;
-  }
+/* Popup arrow */
+.popup .popuptext::after {
+	content: "";
+	position: absolute;
+	bottom: 100%;
+	left: 50%;
+	margin-left: -5px;
+	border-width: 5px;
+	border-style: solid;
+	border-color: transparent transparent #555 transparent;
+}
 
-  table {
-    border: 1px solid #ff9689
-  }
+/* Toggle this class - hide and show the popup */
+.popup .show {
+	visibility: visible;
+	-webkit-animation: fadeIn 1s;
+	animation: fadeIn 1s;
+}
 
-  tr:hover {
-    background-color: #eed4d4;
-  }
+table {
+	border: 1px solid #ff9689;
+}
 
-  /* Add animation (fade in the popup) */
-  @-webkit-keyframes fadeIn {
-    from {opacity: 0;} 
-    to {opacity: 1;}
-  }
+tr:hover {
+	background-color: #eed4d4;
+}
 
-  @keyframes fadeIn {
-    from {opacity: 0;}
-    to {opacity:1 ;}
-  }
+/* Add animation (fade in the popup) */
+@-webkit-keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
 
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
 </style>
