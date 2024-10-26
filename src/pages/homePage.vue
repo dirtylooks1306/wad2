@@ -51,67 +51,69 @@ const forumPosts = [
 
 <template>
 	<NavBar />
-	<header>
-		<div class="jumbotron header_class">
-			<div class="row">
-				<div class="col-md-6">
-					<div class="title-class">
-						<span class="line-1">Empowering Parents</span><br />
-						<span class="line-2">Nurturing Futures</span>
+	<body>
+		<header>
+			<div class="jumbotron header_class">
+				<div class="row">
+					<div class="col-md-6 header">
+						<div class="title-class">
+							<span class="line-1">Empowering Parents</span><br />
+							<span class="line-2">Nurturing Futures</span>
+						</div>
+						<br />
+						<router-link to="/diary">
+							<button class="btn btn-primary">Get Started</button>
+						</router-link>
 					</div>
-					<br />
-					<router-link to="/diary">
-						<button class="btn btn-primary">Get Started</button>
+					<div class="col-md-6">
+						<img src="../assets/HomeMasthead.svg" alt="baby" />
+					</div>
+				</div>
+			</div>
+		</header>
+		<div class="secondary-background p-3">
+			<div class="container-fluid">
+				<CustomHeader header="Article" />
+				<h2>TRENDING ARTICLES</h2>
+				<Carousel :items="carouselItems" />
+			</div>
+		</div>
+
+		<div class="container-fluid p-3">
+			<CustomHeader header="GrowthTracker" />
+			<div class="row">
+				<div class="col-md-1"></div>
+				<div class="col-md-4 col-12 text-start pb-3">
+					<div class="title-class">
+						Begin Your Little One's Journey to Healthy Growth!
+					</div>
+					<p>
+						Stay informed and engaged—check out the Growth Tracker
+						to celebrate every milestone!
+					</p>
+					<router-link to="/tracker">
+						<button class="btn btn-primary">GrowthTracker</button>
 					</router-link>
 				</div>
-				<div class="col-md-6">
-					<img src="../assets/HomeMasthead.svg" alt="baby" />
+				<div class="col-md-6 col-12">
+					<img
+						src="../assets/homepageBaby.jpg"
+						alt="Growth Tracker"
+						class="carousel-image"
+					/>
 				</div>
+				<div class="col-md-1"></div>
 			</div>
 		</div>
-	</header>
-	<div class="secondary-background p-3">
-		<div class="container-fluid">
-			<CustomHeader header="Article" />
-			<h2>TRENDING ARTICLES</h2>
-			<Carousel :items="carouselItems" />
-		</div>
-	</div>
 
-	<div class="container-fluid p-3">
-		<CustomHeader header="GrowthTracker" />
-		<div class="row">
-			<div class="col-md-1"></div>
-			<div class="col-md-4 col-12 text-start">
-				<div class="title-class">
-					Begin Your Little One's Journey to Healthy Growth!
-				</div>
-				<p>
-					Stay informed and engaged—check out the Growth Tracker to
-					celebrate every milestone!
-				</p>
-				<router-link to="/tracker">
-					<button class="btn btn-primary">GrowthTracker</button>
-				</router-link>
-			</div>
-			<div class="col-md-6 col-12">
-				<img
-					src="../assets/homepageBaby.jpg"
-					alt="Growth Tracker"
-					class="carousel-image"
-				/>
-			</div>
-			<div class="col-md-1"></div>
+		<div class="container-fluid secondary-background p-3">
+			<CustomHeader header="Forum" />
+			<Forum v-for="post in forumPosts" :key="post.id" :post="post" />
 		</div>
-	</div>
-
-	<div class="container-fluid secondary-background p-3">
-		<CustomHeader header="Forum" />
-		<Forum v-for="post in forumPosts" :key="post.id" :post="post" />
-	</div>
-	<footer>
-		<p>CradleCare © 2024</p>
-	</footer>
+		<footer>
+			<p class="text-center">CradleCare © 2024</p>
+		</footer>
+	</body>
 </template>
 
 <style scoped>
@@ -145,6 +147,12 @@ h1 .line-2 {
 	color: #ff9689;
 	font-family: "Cherry Bomb", sans-serif;
 }
+.header {
+	margin: auto;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
 img {
 	max-width: 100%;
 	height: auto;
@@ -162,5 +170,8 @@ img {
 
 footer {
 	margin-top: 40px;
+	padding: 20px 0px;
+
 }
+
 </style>
