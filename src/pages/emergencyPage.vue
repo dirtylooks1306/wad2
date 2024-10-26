@@ -144,22 +144,24 @@ function showPopUp() {
         <Marker :options="{ position: { lat: markerLat, lng: markerLng }, title: 'Current Location' }" :clickable="true"/> 
       </GoogleMap>
     </div>
-    <div v-else>
+    <div v-else class="centered-container">
       <button type="button" class="btn btn-success m-2 p-1" @click="getCurrentLocation"><span>Initialise Map</span></button>
-	  <br>
-	  <p id="notification"><strong>IMPORTANT</strong>: This feature requires you to allow the webpage to access your location.</p>
+	    <br>
+	    <p id="notification"><strong>IMPORTANT</strong>: This feature requires you to allow the webpage to access your location.</p>
     </div>
-    <!-- When users click the button, the web will find nearest A&E location -->
-    <form id="searchLocation" v-if="locationReady">
-      <button type="button" class="btn btn-success m-2 p-1" @click="findNearest()"><span>Find nearest A&E</span></button>
-    </form>
-    <span id="nearest" v-if="locationReady">Nearest hospital: <strong>{{ nearest }}</strong></span>
+    <div v-if="locationReady" class="centered-container">
+      <!-- When users click the button, the web will find nearest A&E location -->
+      <form id="searchLocation">
+        <button type="button" class="btn btn-success m-2 p-1" @click="findNearest()"><span>Find nearest A&E</span></button>
+      </form>
+      <span id="nearest">Nearest hospital: <strong>{{ nearest }}</strong></span>
+    </div>
   </div>
 
   <!-- Contact list divider -->
   <div class="contacts p-3">
     <CustomHeader header="CONTACTS" />
-    <table class="w-75 mx-auto table-bordered">
+    <table class="w-75 mx-auto table-bordered text-center">
       <thead>
         <tr>
           <th>SERVICE</th>
@@ -175,7 +177,7 @@ function showPopUp() {
         </tr>
       </tbody>
     </table>
-    <p class="enquiries">Other problems? Feel free to contact us <a class="contact-link" href="diary">here</a>.</p> <!-- href link is temporary, to change later if contact page is present -->
+    <p class="enquiries text-center">Other problems? Feel free to contact us <a class="contact-link" href="diary">here</a>.</p> <!-- href link is temporary, to change later if contact page is present -->
   </div>
 
 </template>
@@ -355,13 +357,13 @@ button:hover span:after {
 .map-block {
 	background-color: #eed4d4;
 }
-/*
+
 .centered-container {
 	width: fit-content;
 	margin: 0 auto;
 	text-align: center;
 }
-*/
+
 .popup {
 	position: relative;
 	display: inline-block;
@@ -412,6 +414,7 @@ table {
 
 tr:hover {
 	background-color: #eed4d4;
+  transition: all 1s;
 }
 
 /* Add animation (fade in the popup) */
