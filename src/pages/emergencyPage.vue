@@ -122,8 +122,6 @@ function showPopUp() {
       <span class="popuptext p-2" id="helpPopUp">
         1. Click on the "Find Nearest A&E" button to locate your nearest hospital<br>
         2. Click on the hospital's location marker and click "View on Google Maps" to start calibrating your navigation route!
-        <hr>
-        <strong>IMPORTANT</strong>: This feature requires you to allow the webpage to access your location.
       </span>
     </div>
     <div id="map" v-if="locationReady">
@@ -139,6 +137,8 @@ function showPopUp() {
     </div>
     <div v-else>
       <button type="button" class="btn btn-success m-2 p-1" @click="getCurrentLocation"><span>Initialise Map</span></button>
+	  <br>
+	  <p id="notification"><strong>IMPORTANT</strong>: This feature requires you to allow the webpage to access your location.</p>
     </div>
     <!-- When users click the button, the web will find nearest A&E location -->
     <form id="searchLocation" v-if="locationReady">
@@ -295,7 +295,7 @@ function showPopUp() {
   }
 
   .enquiries, #nearest{
-	  color: #efba1d;
+	color: #efba1d;
     font-family: "Cherry Bomb", sans-serif;
     font-size: 30px;
   }
@@ -327,6 +327,12 @@ function showPopUp() {
 
   .map-block {
     background-color: #eed4d4;
+  }
+
+  #notification {
+	color: #efba1d;
+    font-family: "Cherry Bomb", sans-serif;
+	font-size: 30px;
   }
 
   .popup {
