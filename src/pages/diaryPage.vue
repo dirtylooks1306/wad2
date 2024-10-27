@@ -1,5 +1,9 @@
 <script setup>
 import NavBar from "../components/navBar.vue";
+/*
+To Do:
+- Start work on diary
+*/
 </script>
 
 <template>
@@ -8,4 +12,8 @@ import NavBar from "../components/navBar.vue";
       <h1>Diary Page</h1>
       <p>Insert media and text about your parenting journey here.</p>
     </div>
-  </template>
+</template>
+
+<style scoped>
+
+</style>
