@@ -254,10 +254,22 @@ export default {
   min-width: 200px;
   max-width: 90%;
   background-color: rgb(232, 230, 207);
-  border: 1px solid black;
 }
-.inner-table > tr {
-  border: 1px solid black;
+.inner-table {
+  border: 1px solid rgb(205, 198, 198);
+}
+.inner-table tr {
+  border-bottom: 1px solid rgb(192, 184, 184); /* Adds horizontal line */
+}
+.inner-table th{
+  text-align: center ;
+}
+.inner-table td{
+  text-align: center;
+}
+
+.inner-table tr:last-child {
+  border-bottom: none; /* Remove border from the last row */
 }
 button {
   /* max-width: 100px; */
@@ -290,7 +302,9 @@ thead {
 		background-color: #FF9689;
 	}
 }
-
+#main {
+  overflow: auto;
+}
 #main > tbody  {
 	tr {
 		&:hover {

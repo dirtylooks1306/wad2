@@ -72,7 +72,7 @@
 	</div>
 	<div class="row pt-3">
 		<div class="col-md-4"></div>
-		<div class="col-md-4">
+		<div class="col-md-4 mb-3">
 			<button type="submit" class="btn btn-primary" @click="submitForm">Submit</button>
 		</div>
 		<div class="col-md-4"></div>

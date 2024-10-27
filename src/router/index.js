@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import homePage from '../pages/homePage.vue';
 import aboutPage from '../pages/aboutPage.vue';
-import trackerPage from '../pages/trackerPage.vue';
+import growthTrackerPage from '../pages/trackerPage.vue';
 import articlesPage from '../pages/articlesPage.vue';
 import diaryPage from '../pages/diaryPage.vue';
 import emergencyPage from '../pages/emergencyPage.vue';
@@ -10,7 +10,7 @@ import loginPage from '../pages/loginPage.vue';
 import registerPage from '../pages/registerPage.vue';
 import forgotpasswordPage from '../pages/forgotpasswordPage.vue';
 import profilePage from '../pages/profilePage.vue';
-
+import vaccineTrackerPage from '../pages/vaccineTrackerPage.vue';
 const routes = [
 
     {   path: '/', 
@@ -23,9 +23,14 @@ const routes = [
         component: aboutPage
     },
 
-    {   path: '/tracker',
+    {   path: '/growthtracker',
         name: 'GrowthTracker',
-        component: trackerPage
+        component: growthTrackerPage
+    },
+
+    {   path: '/vaccinetracker',
+        name: 'VaccineTracker',
+        component: vaccineTrackerPage
     },
 
     {

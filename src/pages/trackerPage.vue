@@ -25,7 +25,7 @@ import TableTracker from "../components/TableTracker.vue";
 	<div class="row">
 		<div class="col-3"></div>
 		<div class="col-2">
-			<CustomHeader header="GrowthTracker" />
+			
 		</div>
 		<div class="col-7"></div>
 	</div>
@@ -45,7 +45,10 @@ import TableTracker from "../components/TableTracker.vue";
 			</li>
 		</ul> -->
 
-		<div v-if="activeTab === 'GrowthTracker'" class="container-fluid">
+		<div class="container-fluid">
+			<div class="left-align">
+        		<CustomHeader header="GrowthTracker" />
+    		</div>
 			<TableTracker
 				:posts="posts"
 				@delete-post="handleDeletePost"
@@ -93,7 +96,7 @@ import TableTracker from "../components/TableTracker.vue";
 
 <script>
 export default {
-	name: "trackerPage",
+	name: "growthTrackerPage",
 	data() {
 		return {
 			activeTab: "GrowthTracker",
@@ -150,8 +153,8 @@ export default {
 			})); // Update posts array
 
 			const gender = "male"; // Hardcoded for now
-			this.currentChildAge = this.posts[this.posts.length - 1].age;
-
+			this.sortPosts(); // sort posts by date AGAIN
+			this.currentChildAge = await this.posts[this.posts.length-1].age;
 			const globalHeight = collection(
 				db,
 				"globalBabyData",
@@ -162,7 +165,7 @@ export default {
 			this.globalHeightArray = snapshotChart.docs.map((doc) => ({
 				id: doc.id,
 				...doc.data(),
-			}));
+			})); // height data for the chart based on AGE
 
 			const globalWeight = collection(
 				db,
@@ -174,15 +177,16 @@ export default {
 			this.globalWeightArray = snapshotChartWeight.docs.map((doc) => ({
 				id: doc.id,
 				...doc.data(),
-			}));
+			})); // weight data for the chart based on AGE
 
 			if (this.activeSubTab === "WeightGraph") {
-				this.createChartWeight(); // Only create the weight chart
+				this.createChartWeight(this.currentChildAge); // Only create the weight chart
 			} else if (this.activeSubTab === "HeightGraph") {
 				this.createChartHeight(this.currentChildAge); // Only create the height chart
 			}
 		},
 		createChartWeight(currentChildAge) {
+			console.log(currentChildAge)
 			if (this.weightChart) {
 				this.weightChart.destroy();
 			}
@@ -195,7 +199,7 @@ export default {
 				"12-18 months": 6,
 				"18-24 months": 7,
 			};
-			// await this.fetchPosts();
+
 			let dateData = this.posts.map((post) => post.date); // date in array
 			let weightData = this.posts.map((post) => post.weight); // weight in array
 			let averageWeight =
@@ -363,6 +367,7 @@ export default {
 				return dateA - dateB;
 			});
 		this.loading = false;
+		this.sortPosts();
 		await this.fetchPosts();
 		this.toggleCharts();
 	},
@@ -414,6 +419,9 @@ li:not(.selected) {
 	align-items: center;
 	justify-content: center;
 	margin: auto;
+}
+.left-align {
+	align-self: flex-start;
 }
 
 .desktop-tabs {

@@ -79,8 +79,18 @@ onMounted(() => {
           <li class="nav-item">
             <router-link to="/forum" class="nav-link" :class="{ 'active-item': route.path === '/forum' }">Forum</router-link>
           </li>
-          <li class="nav-item">
-            <router-link to="/tracker" class="nav-link" :class="{ 'active-item': route.path === '/tracker' }">GrowthTracker</router-link>
+          <li class="nav-item dropdown" :class="{ 'active': isExploreActive }">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Explore trackers
+            </a>
+            <ul class="dropdown-menu">
+              <li>
+                <router-link to="/growthtracker" class="nav-link" :class="{ 'active-item': route.path === '/growthtracker' }">GrowthTracker</router-link>
+              </li>
+              <li>
+                <router-link to="/vaccinetracker" class="nav-link" :class="{ 'active-item': route.path === '/vaccinetracker' }">Vaccine Tracker</router-link>
+              </li>
+            </ul>
           </li>
           <li class="nav-item">
             <router-link to="/emergency" class="nav-link" :class="{ 'active-item': route.path === '/emergency' }">Emergency</router-link>
