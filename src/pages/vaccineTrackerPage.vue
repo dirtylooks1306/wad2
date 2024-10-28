@@ -1,11 +1,11 @@
 <script setup>
 import NavBar from "../components/navBar.vue";
+import CalendarComponent from "../components/Calendar.vue";
 </script>
 
 <template>
 	<NavBar />
-    <div>
-      <h1>Diary Page</h1>
-      <p>Insert media and text about your parenting journey here.</p>
+    <div class="container">
+        <CalendarComponent />
     </div>
   </template>
