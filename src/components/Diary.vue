@@ -12,37 +12,37 @@ import Page from './page.vue';
             <div class="diary-block container-fluid"> <!-- Container fluid to accomodate different screen dimensions -->
                 <!-- Assumption: CradleCare is purely web application -->
                 <div class="row row-cols-xl-3 row-cols-lg-1 w-100 align-items-center">
-                <div class="col-xl-3 col-lg-12 text-xl-end text-center"> <!-- Column for 'Prev Page' button -->
-                    <!-- Prev Button; On top of diary on smaller screens, positioned on left page of diary when opened -->
-                    <button type="button" class="btn btn-secondary p-2" ref="prevBtn" @click="prevPage">
-                        Prev Page
-                    </button>
-                </div>
-                <div class="col-xl-6 col-lg-12 d-flex justify-content-center"> <!-- Column for diary -->
-                    <!-- Diary -->
-                    <div ref="diary" class="diary">
-                        <!-- Paper Component -->
-                        <Page 
-                        v-for="(pair, index) in pagedEntries"
-                        :key="index"
-                        :front="pair[0]"
-                        :back="pair[1]"
-                        :frontIndex="index * 2"
-                        :backIndex="(index * 2) + 1"
-                        :ref="`p${index+1}`"
-                        :style="{ zIndex: getZIndex(index) }"
-                        :isFlipped="isFlipped(index)"
-                        @deleteEntry="deleteEntry" 
-                        />
+                    <div class="col-xl-3 col-lg-12 text-xl-end text-center"> <!-- Column for 'Prev Page' button -->
+                        <!-- Prev Button; On top of diary on smaller screens, positioned on left page of diary when opened -->
+                        <button type="button" class="btn btn-secondary p-2" ref="prevBtn" @click="prevPage">
+                            Prev Page
+                        </button>
+                    </div>
+                    <div class="col-xl-6 col-lg-12 d-flex justify-content-center"> <!-- Column for diary -->
+                        <!-- Diary -->
+                        <div ref="diary" class="diary">
+                            <!-- Paper Component -->
+                            <Page 
+                            v-for="(pair, index) in pagedEntries"
+                            :key="index"
+                            :front="pair[0]"
+                            :back="pair[1]"
+                            :frontIndex="index * 2"
+                            :backIndex="(index * 2) + 1"
+                            :ref="`p${index+1}`"
+                            :style="{ zIndex: getZIndex(index) }"
+                            :isFlipped="isFlipped(index)"
+                            @deleteEntry="deleteEntry" 
+                            />
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-lg-12 text-xl-start text-center"> <!-- Column for 'Next Page' button -->
+                        <!-- Next Button; Below diary on smaller screens, positioned on right page of diary when opened -->
+                        <button type="button" class="btn btn-secondary p-2" ref="nextBtn" @click="nextPage">
+                            Next Page
+                        </button>
                     </div>
                 </div>
-                <div class="col-xl-3 col-lg-12 text-xl-start text-center"> <!-- Column for 'Next Page' button -->
-                    <!-- Next Button; Below diary on smaller screens, positioned on right page of diary when opened -->
-                    <button type="button" class="btn btn-secondary p-2" ref="nextBtn" @click="nextPage">
-                        Next Page
-                    </button>
-                </div>
-            </div>
             </div>
         </div>
     </div>
@@ -172,7 +172,7 @@ import Page from './page.vue';
                 right side assignment is for assigning indexes when user goes to previous page
                 */
             },
-            //Random
+            //Delete entry at specified index, change function to use dynamic storage
             deleteEntry(i) {
                 this.diary.entries.splice(i, 1)
             }
@@ -264,7 +264,7 @@ import Page from './page.vue';
 .diary {
   position: relative;
   width: 350px;
-  height: 500px;
+  height: 600px;
   transition: transform 0.5s;
 }
 

@@ -2,7 +2,7 @@
     <div :class="['paper', { flipped: isFlipped }]" :style="{ zIndex: zIndex }">
       <div class="front" :key="frontIndex" v-if="front">
         <div class="front-content d-block">
-            <h1 class=text-center>{{ front.header }}</h1>
+            <h3 class=text-center>{{ front.header }}</h3>
             <p class="text-center">{{ front.date }}</p>
             <hr>
             <p class="p-3">{{ front.body }}</p>
@@ -11,16 +11,16 @@
       </div>
       <div class="back" :key="backIndex" v-if="back">
         <div class="back-content d-block">
-            <h1 class=text-center>{{ back.header }}</h1>
+            <h3 class=text-center>{{ back.header }}</h3>
             <p class="text-center">{{ back.date }}</p>
             <hr>
             <p class="p-3">{{ back.body }}</p>
             <button type="button" class="btn btn-danger p-1 d-flex mx-auto" @click="deleteBackEntry">Delete Entry</button>
         </div>
       </div>
-      <div class="back d-flex align-items-center" v-if="!back">
+      <div class="back d-flex justify-content-center align-items-center" v-if="!back"> <!-- Center content of empty page -->
         <div class="back-content">
-          <h1 class="text-center">Log a new entry!</h1>
+          <h3 class="text-center">Log a new entry!</h3>
         </div>
       </div>
   </div>
@@ -36,6 +36,7 @@ export default {
     frontIndex: Number,
     backIndex: Number,
   },
+  emits: ['deleteEntry'],
   methods: {
     deleteFrontEntry() {
       this.$emit('deleteEntry', this.frontIndex) //Emit frontIndex on deletion

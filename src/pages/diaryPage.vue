@@ -1,14 +1,15 @@
 <script setup>
 import NavBar from "../components/navBar.vue";
 import CustomHeader from "../components/CustomHeader.vue";
-import Diary from "../components/Diary.vue"
+import Diary from "../components/Diary.vue";
+import DiaryForm from '../components/diaryForm.vue';
 /*
 To Do:
 - Work on static storage of diary contents (Done)
 - Figure out how to make flippable diary in Vue component (Done)
 - Make diary pages into a Vue component that changes its paper ID for each 2 new entries (Done)
 (E.g. Paper 1 has entries 1&2, Paper 2 has entries 3&4, etc.)
-- Make a form for users to submit new diary entries
+- Make a form for users to submit new diary entries (Done)
 - Turn storage of diaries into dynamic storage
 */
 
@@ -43,6 +44,10 @@ Plan:
         :key="i"/>
       </div>
     </div>
+    <div class="form-block container-fluid w-100">
+      <CustomHeader header="SUBMIT A NEW ENTRY"/>
+      <DiaryForm :entryData="newEntry" @submitEntry="submitEntry"/>
+    </div>
   </div>
 </template>
 
@@ -50,7 +55,8 @@ Plan:
   export default {
     name: 'diaryPage',
     components: {
-      Diary
+      Diary,
+      DiaryForm,
     },
     data() {
       return {
@@ -58,7 +64,7 @@ Plan:
         diaries: [
           { name: 'Jason', 
             entries: [
-              { header: 'day1', body: 'A', date: '10/5/2024' },
+              { header: 'Baby spoke his first words!', body: 'A', date: '10/5/2024' },
               { header: 'day2', body: 'B', date: '14/5/2024' },
               { header: 'day3', body: 'C', date: '16/5/2024' },
               { header: 'day4', body: 'D', date: '18/5/2024' },
@@ -75,9 +81,16 @@ Plan:
               { header: 'day2', body: 'no u', date: '10/8/2024' },
             ] 
           },
-        ]
+        ],
+        newEntry: {},
       }
     },
+    methods: {
+      submitEntry(formData) {
+        this.newEntry = formData
+        console.log(this.newEntry); //Ensure form data is successfully retrieved
+      }
+    }
   }
 </script>
 
