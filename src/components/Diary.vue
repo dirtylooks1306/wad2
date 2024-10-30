@@ -5,7 +5,7 @@ import Page from './page.vue';
 <template>
     <div class="diary-container">
         <button type="button" class="btn btn-secondary border-0 p-3 my-2 collapsible" :class="{ active: open }" @click="toggle">
-            {{ diary.name }}
+            {{ dbDiary.id }}
         </button>
         <!-- Collapsible component -->
         <div class="content" :style="contentStyle">
@@ -63,9 +63,7 @@ import Page from './page.vue';
         },
         //Diary component uses each diary object from diaryPage with its respective index
         props: {
-            diary: {
-                type: Object,
-            }
+            dbDiary: Object,
         },
         methods: {
             //Passes toggle event to diaryPage to open or close the collapsible
@@ -174,7 +172,7 @@ import Page from './page.vue';
             },
             //Delete entry at specified index, change function to use dynamic storage
             deleteEntry(i) {
-                this.diary.entries.splice(i, 1)
+                this.dbDiary.entries.splice(i, 1)
             }
         },
         computed: {
@@ -186,8 +184,8 @@ import Page from './page.vue';
             pagedEntries() {
                 //Group entries in pairs for each page (two entries per page)
                 const pages = [];
-                for (let i = 0; i < this.diary.entries.length; i += 2) {
-                    pages.push([this.diary.entries[i], this.diary.entries[i+1]]);
+                for (let i = 0; i < this.dbDiary.entries.length; i += 2) {
+                    pages.push([this.dbDiary.entries[i], this.dbDiary.entries[i+1]]);
                 }
                 return pages;
             },

@@ -3,6 +3,15 @@ import NavBar from "../components/navBar.vue";
 import CustomHeader from "../components/CustomHeader.vue";
 import Diary from "../components/Diary.vue";
 import DiaryForm from '../components/diaryForm.vue';
+import {
+	db,
+	collection,
+	getDocs,
+	addDoc,
+	doc,
+	deleteDoc,
+	setDoc,
+} from "../firebaseConfig.js";
 /*
 To Do:
 - Work on static storage of diary contents (Done)
@@ -39,8 +48,8 @@ Plan:
       <p>Insert media and text about your parenting journey here.</p>
       -->
       <div class="diaries">
-        <Diary v-for="(diary, i) in diaries" 
-        :diary="diary" 
+        <Diary v-for="(diary, i) in dbDiaries" 
+        :dbDiary="diary" 
         :key="i"/>
       </div>
     </div>
@@ -60,9 +69,11 @@ Plan:
     },
     data() {
       return {
+        dbDiaries: [],
         // Static storage of diaries, KEEP NAMING CONVENTIONS
+        /*
         diaries: [
-          { name: 'Jason', 
+          { name: 'Jason',   
             entries: [
               { header: 'Baby spoke his first words!', body: 'A', date: '10/5/2024' },
               { header: 'day2', body: 'B', date: '14/5/2024' },
@@ -82,15 +93,47 @@ Plan:
             ] 
           },
         ],
+        */
         newEntry: {},
       }
     },
     methods: {
       submitEntry(formData) {
-        this.newEntry = formData
+        this.newEntry = formData;
         console.log(this.newEntry); //Ensure form data is successfully retrieved
+      },
+      async getEntries(name) {
+        var entries = [];
+        const dbEntries = collection(db, "diary", name, "Entries");
+        const snapshot = await getDocs(dbEntries);
+        entries = snapshot.docs.map((doc) => ({
+          id: doc.id, 
+          ...doc.data(),
+          date: doc.data().date ? doc.data().date.toDate().toLocaleDateString() : 'No Date'
+        }))
+        //console.log(entries); //Entries successfully retrieved
+        return entries; // Returns value of entries array to be used in mounted function
       }
-    }
+    },
+    async mounted() {
+      window.vm = this;
+
+      const diaries = collection(db, "diary");
+      const snapshot = await getDocs(diaries);
+      this.dbDiaries = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        entries: [] //Ensures that entries array exists when database data is transferred over
+      }));
+      this.loading = false;
+      for (let d of this.dbDiaries) {
+        const entries = await this.getEntries(d.id);
+        d.entries = entries;
+      }
+      //console.log(this.dbDiaries); //Ensures the diaries database is populated
+      return this.dbDiaries //Ensure the return of populated database
+    },
+    watch: {}
   }
 </script>
 
