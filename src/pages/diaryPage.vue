@@ -20,7 +20,7 @@ Plan:
 2) Take data from Firebase
   - Contents of diary will be ported to Page component, diary owner's name will remain in Diary Conponent
 3) Form will take in new entries
-  - Form parameters are: Date of Entry, Entry Name (header), Entry Content (content)
+  - Form parameters are: Date of Entry, Entry Name (header), Entry Body (content) -> Body has max character limit of 395 characters
   - New entry info added into Firebase via addDocs function
 4) Button to delete existing entries
   - Tag each entry to a unique ID
