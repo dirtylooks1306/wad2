@@ -12,7 +12,6 @@ import {
 	deleteDoc,
 	setDoc,
 } from "../firebaseConfig.js";
-import { nextTick } from "vue";
 import Chart from "chart.js/auto";
 import Utils from "../components/Utils.js";
 import CustomHeader from "../components/CustomHeader.vue";
