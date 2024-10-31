@@ -51,6 +51,7 @@ import Page from './page.vue';
 <script>
     export default {
         name: 'Diary',
+        emits: ['deleteEntry'],
         data() {
             return {
                 open: false, //For collapsible
@@ -172,7 +173,7 @@ import Page from './page.vue';
             },
             //Delete entry at specified index, change function to use dynamic storage
             deleteEntry(i) {
-                this.dbDiary.entries.splice(i, 1)
+                this.$emit('deleteEntry', this.dbDiary.id, i)
             }
         },
         computed: {

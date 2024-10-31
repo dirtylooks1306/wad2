@@ -7,11 +7,12 @@ import {
 	db,
 	collection,
 	getDocs,
-	addDoc,
 	doc,
 	deleteDoc,
 	setDoc,
+  query,
 } from "../firebaseConfig.js";
+import { orderBy } from "firebase/firestore";
 /*
 To Do:
 - Work on static storage of diary contents (Done)
@@ -19,7 +20,12 @@ To Do:
 - Make diary pages into a Vue component that changes its paper ID for each 2 new entries (Done)
 (E.g. Paper 1 has entries 1&2, Paper 2 has entries 3&4, etc.)
 - Make a form for users to submit new diary entries (Done)
-- Turn storage of diaries into dynamic storage
+- Turn storage of diaries into dynamic storage (Done)
+
+- Figure out how to add subcollections to Firebase (Done, figure out how to remove placeholder)
+- Change button animations when webpage accessed from mobile (2nd priority) -> Try @media / Change JS functions to check if class is desktop or mobile
+- Add button animations for form component -> Refer to Emergency Page for button CSS
+- emergencyPage: Hide API Key
 */
 
 /*
@@ -50,12 +56,16 @@ Plan:
       <div class="diaries">
         <Diary v-for="(diary, i) in dbDiaries" 
         :dbDiary="diary" 
-        :key="i"/>
+        :key="i"
+        @deleteEntry="deleteEntry"/>
       </div>
     </div>
     <div class="form-block container-fluid w-100">
       <CustomHeader header="SUBMIT A NEW ENTRY"/>
-      <DiaryForm :entryData="newEntry" @submitEntry="submitEntry"/>
+      <DiaryForm :entryData="newEntry" 
+      @submitEntry="submitEntry"
+      @addDiary="addDiary"
+      @deleteDiary="deleteDiary"/>
     </div>
   </div>
 </template>
@@ -66,6 +76,8 @@ Plan:
     components: {
       Diary,
       DiaryForm,
+      NavBar,
+      CustomHeader,
     },
     data() {
       return {
@@ -98,25 +110,119 @@ Plan:
       }
     },
     methods: {
-      submitEntry(formData) {
-        this.newEntry = formData;
-        console.log(this.newEntry); //Ensure form data is successfully retrieved
+      async submitEntry(formData) {
+        //Part 1: Retrieve form data and assign variables
+        const diaryOwner = formData.name;
+        //console.log(this.newEntry); //Ensure form data is successfully retrieved
+        //Part 2: Update database with new entry
+        for (let d of this.dbDiaries) {
+          if (d.id === diaryOwner) {
+            //if-loop only when diary is first initialised -> Removes placeholder with actual entry
+            if (d.entries.length === 1 && d.entries[0].id === "Placeholder") {
+              const id = "Entry 001"
+              const entry = {
+                body: formData.body,
+                date: formData.date ? new Date(formData.date) : null,
+                header: formData.header
+              }
+              const newDiaryEntry = doc(db, "diary", diaryOwner, "Entries", id)
+              await setDoc(newDiaryEntry, entry)
+              this.deletePlaceholder(diaryOwner);
+              d.entries.push({
+                id: id,
+                ...this.entry,
+                date: this.newEntry.date ? this.newEntry.date.toLocaleDateString() : 'No Date',
+              })
+            }
+            else {
+              const entryId = String(d.entries.length + 1).padStart(3, '0'); //Firebase sorts path names ALPHABETICALLY
+              //Add new entry into Firebase
+              const newEntryRef = doc(db, "diary", diaryOwner, "Entries", `Entry ${entryId}`);
+              this.newEntry = {
+                body: formData.body,
+                date: formData.date ? new Date(formData.date) : null, //Convert date string to Timestamp object
+                header: formData.header,
+              };
+              await setDoc(newEntryRef, this.newEntry); //setDoc used instead of addDoc since there is custom ID set
+              this.getEntries(diaryOwner); //Re-fetch entries after insertion (optional)
+              //Part 3: Update entries array instantly
+              d.entries.push({
+                id: `Entry ${entryId}`,
+                ...this.newEntry,
+                date: this.newEntry.date ? this.newEntry.date.toLocaleDateString() : 'No Date',
+              }) //Bug happens when new entry is submitted while diary is in closed state -> Paper overlaps the Next Page button but works as per normal after button is pressed
+            }  
+          }
+        }
+      },
+      async deleteEntry(name, index) {
+        //console.log(name, index); //Ensure that name and entry is correct
+        for (let d of this.dbDiaries) {
+          if (d.id === name) {
+            //Delete entry from Firebase
+            const entryId = String(index + 1).padStart(3, '0');
+            const entryRef = doc(db, "diary", name, "Entries", `Entry ${entryId}`);
+            await deleteDoc(entryRef);
+            //Update entries array instantly
+            d.entries.splice(index, 1);
+          }
+        }
       },
       async getEntries(name) {
         var entries = [];
         const dbEntries = collection(db, "diary", name, "Entries");
-        const snapshot = await getDocs(dbEntries);
+        const orderedQuery = query(dbEntries, orderBy("date", "asc")) //Sort by date ascending
+        const snapshot = await getDocs(orderedQuery);
         entries = snapshot.docs.map((doc) => ({
           id: doc.id, 
-          ...doc.data(),
-          date: doc.data().date ? doc.data().date.toDate().toLocaleDateString() : 'No Date'
+          header: doc.data().header,
+          date: doc.data().date ? doc.data().date.toDate().toLocaleDateString() : 'No Date',
+          body: doc.data().body,
         }))
         //console.log(entries); //Entries successfully retrieved
         return entries; // Returns value of entries array to be used in mounted function
+      },
+      async addDiary(name) {
+        const newDiary = doc(db, "diary", name);
+        await setDoc(newDiary, { created: true }); //Create new path for new diary owner
+        
+        const newEntries = collection(newDiary, "Entries");
+        const placeholder = doc(newEntries, "Placeholder");
+        await setDoc(placeholder, { empty: true }) //Create subcollection with placeholder
+        //Update dbDiaries
+        this.dbDiaries.push({
+          id: name,
+          entries: [],
+        })
+      },
+      async deleteDiary(name) {
+        const toRemove = doc(db, "diary", name);
+        await deleteDoc(toRemove);
+        for (let i = 0; i < this.dbDiaries.length; i++) {
+          if (this.dbDiaries[i].id === name) {
+            this.dbDiaries.splice(i, 1);
+          }
+        }
+      },
+      async deletePlaceholder(name) {
+        for (let d of this.dbDiaries) {
+          if (d.id === name) {
+            const entries = d.entries;
+            for (let entry of entries) {
+              if (entry.id === 'Placeholder') {
+                d.entries.splice(d.entries.indexOf(entry), 1);
+                
+                const deletePlaceholder = doc(db, "diary", name, "Entries", entry.id);
+                await deleteDoc(deletePlaceholder);
+              }
+            }
+          }
+        }
       }
     },
     async mounted() {
       window.vm = this;
+      //alert("If you're using this feature from a mobile phone, it is recommended to view the page in landscape mode!"); // Temporary alert
 
       const diaries = collection(db, "diary");
       const snapshot = await getDocs(diaries);
@@ -124,16 +230,19 @@ Plan:
         id: doc.id,
         ...doc.data(),
         entries: [] //Ensures that entries array exists when database data is transferred over
-      }));
+      })).sort((a, b) => {
+				const dateA = new Date(a.date);
+				const dateB = new Date(b.date);
+				return dateA - dateB;
+			});
       this.loading = false;
       for (let d of this.dbDiaries) {
         const entries = await this.getEntries(d.id);
         d.entries = entries;
       }
-      //console.log(this.dbDiaries); //Ensures the diaries database is populated
+      console.log(this.dbDiaries); //Ensures the diaries database is populated
       return this.dbDiaries //Ensure the return of populated database
     },
-    watch: {}
   }
 </script>
 
