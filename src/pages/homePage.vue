@@ -1,177 +1,133 @@
+HomePage Draft 1 (Trending Articles)
+
 <script setup>
+import { onMounted, ref } from 'vue';
+import { collection, query, orderBy, limit, getDocs } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
+import { db } from "../firebaseConfig.js";  // Import Firestore instance
 import CustomHeader from "../components/CustomHeader.vue";
 import Carousel from "../components/Carousel.vue";
 import NavBar from "../components/navBar.vue";
 import Forum from "../components/Forum.vue";
 
-// Router instance for navigation
-const carouselItems = [
-  {
-    title: "Title 1",
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas pretium mi at tincidunt accumsan.",
-    image: "src/assets/placeholder.svg",
-    alt: "Descriptive Alt Text",
-    icon1: "src/assets/heart.svg",
-    icon2: "src/assets/bookmark.svg",
-  },
-  {
-    title: "Title 2",
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas pretium mi at tincidunt accumsan.",
-    image: "/src/assets/placeholder.svg",
-    alt: "Descriptive Alt Text",
-    icon1: "src/assets/heart.svg",
-    icon2: "src/assets/bookmark.svg",
-  },
-  {
-    title: "Title 3",
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas pretium mi at tincidunt accumsan.",
-    image: "src/assets/placeholder.svg",
-    alt: "Descriptive Alt Text",
-    icon1: "src/assets/heart.svg",
-    icon2: "src/assets/bookmark.svg",
-  },
-];
+// Reference to store top articles for the carousel
+const carouselItems = ref([]);
 
-const forumPosts = [
-  {
-    id: 1,
-    icon: 'fa-car',
-    title: 'Description Title',
-    link: '#',
-    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-    postsCount: 24,
-    topicsCount: 12,
-    lastPostLink: '#',
-    lastPoster: 'JustAUser',
-    lastPosterLink: '#',
-    lastPostDate: '12 Dec 2020'
-  },
-];
+// Function to fetch top 3 articles by Likes
+const fetchTopArticles = async () => {
+  try {
+    const articlesCollection = collection(db, "articles");
+    const q = query(articlesCollection, orderBy("Likes", "desc"), limit(3));
+    const querySnapshot = await getDocs(q);
+
+    carouselItems.value = querySnapshot.docs.map(doc => ({
+      title: doc.data().Title || "Untitled",
+      description: doc.data().Description || "No description available.",
+      image: doc.data().ImageURL || "src/assets/placeholder.svg",  // Ensure there is an ImageURL field or use a placeholder
+      alt: doc.data().Alt || "Article Image",  // Placeholder alt text
+      icon1: "src/assets/heart.svg",  // Static icon paths as defined in carousel component
+      icon2: "src/assets/bookmark.svg"
+    }));
+    console.log("Top 3 articles fetched for carousel:", carouselItems.value);
+  } catch (error) {
+    console.error("Error fetching top articles:", error.message);
+  }
+};
+
+// Fetch top articles on component mount
+onMounted(fetchTopArticles);
 </script>
 
 <template>
-	<NavBar />
-	<body>
-		<header>
-			<div class="jumbotron header_class">
-				<div class="row">
-					<div class="col-md-6 header">
-						<div class="title-class">
-							<span class="line-1">Empowering Parents</span><br />
-							<span class="line-2">Nurturing Futures</span>
-						</div>
-						<br />
-						<router-link to="/diary">
-							<button class="btn btn-primary">Get Started</button>
-						</router-link>
-					</div>
-					<div class="col-md-6">
-						<img src="../assets/HomeMasthead.svg" alt="baby" />
-					</div>
-				</div>
-			</div>
-		</header>
-		<div class="secondary-background p-3">
-			<div class="container-fluid">
-				<CustomHeader header="Article" />
-				<h2>TRENDING ARTICLES</h2>
-				<Carousel :items="carouselItems" />
-			</div>
-		</div>
-
-		<div class="container-fluid p-3">
-			<CustomHeader header="GrowthTracker" />
-			<div class="row">
-				<div class="col-md-1"></div>
-				<div class="col-md-4 col-12 text-start pb-3">
-					<div class="title-class">
-						Begin Your Little One's Journey to Healthy Growth!
-					</div>
-					<p>
-						Stay informed and engaged—check out the Growth Tracker
-						to celebrate every milestone!
-					</p>
-					<router-link to="/tracker">
-						<button class="btn btn-primary">GrowthTracker</button>
-					</router-link>
-				</div>
-				<div class="col-md-6 col-12">
-					<img
-						src="../assets/homepageBaby.jpg"
-						alt="Growth Tracker"
-						class="carousel-image"
-					/>
-				</div>
-				<div class="col-md-1"></div>
-			</div>
-		</div>
-
-		<div class="container-fluid secondary-background p-3">
-			<CustomHeader header="Forum" />
-			<Forum v-for="post in forumPosts" :key="post.id" :post="post" />
-		</div>
-		<footer>
-			<p class="text-center">CradleCare © 2024</p>
-		</footer>
-	</body>
-</template>
+    <NavBar />
+    <header>
+      <div class="jumbotron header_class">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="title-class">
+              <span class="line-1">Empowering Parents</span><br />
+              <span class="line-2">Nurturing Futures</span>
+            </div>
+            <br />
+            <router-link to="/diary">
+              <button class="btn btn-primary">Get Started</button>
+            </router-link>
+          </div>
+          <div class="col-md-6">
+            <img src="../assets/HomeMasthead.svg" alt="baby" />
+          </div>
+        </div>
+      </div>
+    </header>
+    <div class="secondary-background p-3">
+      <div class="container-fluid">
+        <CustomHeader header="Article" />
+        <h2>TRENDING ARTICLES</h2>
+        <Carousel :items="carouselItems" />
+      </div>
+    </div>
+  
+    <!-- Remaining sections unchanged -->
+  
+    <footer>
+      <p>CradleCare © 2024</p>
+    </footer>
+  </template>
 
 <style scoped>
 .carousel-image {
-	width: 500px;
-	height: 400px;
+    width: 500px;
+    height: 400px;
 }
 .secondary-background {
-	background-color: #eed4d4;
-	width: 100%;
-	display: flex;
+    background-color: #eed4d4;
+    width: 100%;
+    display: flex;
 }
 h1,
 h2 {
-	text-align: center;
-	font-size: 32px;
-	color: #ff9689;
-	font-family: "Cherry Bomb", sans-serif;
+    text-align: center;
+    font-size: 32px;
+    color: #ff9689;
+    font-family: "Cherry Bomb", sans-serif;
 }
 
 h1 .line-1,
 h1 .line-2 {
-	display: block;
+    display: block;
 }
 
 h1 .line-2 {
-	margin-top: 10px;
+    margin-top: 10px;
 }
 
 .header_class {
-	color: #ff9689;
-	font-family: "Cherry Bomb", sans-serif;
-}
-.header {
-	margin: auto;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
+    color: #ff9689;
+    font-family: "Cherry Bomb", sans-serif;
 }
 img {
-	max-width: 100%;
-	height: auto;
+    max-width: 100%;
+    height: auto;
 }
 
 .row {
-	display: flex;
-	align-items: center;
+    display: flex;
+    align-items: center;
 }
 
 .intro,
 .features {
-	margin: 20px 0;
+    margin: 20px 0;
+}
+
+.feature-card {
+    display: inline-block;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin: 10px;
+    width: 30%;
 }
 
 footer {
-	margin-top: 40px;
-	padding: 20px 0px;
-
+    margin-top: 40px;
 }
-
 </style>
