@@ -1,61 +1,40 @@
 <script setup>
 import { onMounted, ref, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import NavBar from "../components/navBar.vue";  // Ensure this component exists and works
-import { collection, query, where, getDocs, orderBy } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';  // Correct Firestore imports
-import { db } from "../firebaseConfig.js";  // Import the Firestore instance (db)
-import dayjs from 'dayjs';  // For date formatting
-
-// Log the Firestore instance to ensure it's properly initialized
-console.log("Firestore instance (db):", db);
+import NavBar from "../components/navBar.vue";
+import { collection, query, where, getDocs, orderBy, doc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
+import { db } from "../firebaseConfig.js";
+import dayjs from 'dayjs';
 
 const route = useRoute();
 const articles = ref([]);
 
-// Extract the category from the route parameters (or props)
+// Track user reactions to each article (like/dislike)
+const userReactions = ref({});
+
 const category = computed(() => route.params.category || '');
 
-// Function to capitalize the category name
 const capitalizeCategory = (cat) => {
   if (!cat) return '';
   return cat.charAt(0).toUpperCase() + cat.slice(1);
 };
 
-// Function to fetch articles from Firebase based on the category
 const fetchArticles = async () => {
   try {
     const articlesCollection = collection(db, "articles");
 
     if (category.value.toLowerCase() === 'new') {
-      console.log("Fetching articles from the last month...");
+      const oneMonthAgo = new Date();
+      oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
-      const oneMonthAgo = new Date();  // Current date
-      oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);  // Subtract 1 month dynamically
-      console.log("One month ago:", oneMonthAgo);
-
-      // Query for articles published in the last month using Firestore Timestamp
-      const q = query(
-        articlesCollection,
-        where("Date", ">=", oneMonthAgo)  // Querying directly on the Date field
-      );
-
+      const q = query(articlesCollection, where("Date", ">=", oneMonthAgo));
       const querySnapshot = await getDocs(q);
-      console.log("Number of articles fetched:", querySnapshot.docs.length);
-
-      if (!querySnapshot.empty) {
-        articles.value = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-          Date: doc.data().Date ? doc.data().Date.toDate().toLocaleDateString() : 'No Date'
-        }));
-
-        console.log("Fetched articles:", articles.value);
-      } else {
-        console.log("No new articles found.");
-        articles.value = [];  // No articles found
-      }
+      articles.value = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        Date: doc.data().Date ? doc.data().Date.toDate().toLocaleDateString() : 'No Date'
+      }));
     } else {
-      // Fetch for other categories (activities, education, nutrition)
       const q = query(articlesCollection, where("Filter", "==", capitalizeCategory(category.value)));
       const querySnapshot = await getDocs(q);
       articles.value = querySnapshot.docs.map(doc => ({
@@ -69,8 +48,58 @@ const fetchArticles = async () => {
   }
 };
 
+// Toggle like for an article
+const likeArticle = async (articleId) => {
+  try {
+    const articleRef = doc(db, "articles", articleId);
+    const article = articles.value.find(a => a.id === articleId);
 
-// Watch for changes in category and re-fetch articles
+    if (userReactions.value[articleId] === 'liked') {
+      // Unlike the article
+      await updateDoc(articleRef, { Likes: (article.Likes || 0) - 1 });
+      article.Likes -= 1;
+      userReactions.value[articleId] = null;
+    } else {
+      // Like the article and undo dislike if previously disliked
+      if (userReactions.value[articleId] === 'disliked') {
+        await updateDoc(articleRef, { Dislikes: (article.Dislikes || 0) - 1 });
+        article.Dislikes -= 1;
+      }
+      await updateDoc(articleRef, { Likes: (article.Likes || 0) + 1 });
+      article.Likes += 1;
+      userReactions.value[articleId] = 'liked';
+    }
+  } catch (error) {
+    console.error("Error updating likes:", error.message);
+  }
+};
+
+// Toggle dislike for an article
+const dislikeArticle = async (articleId) => {
+  try {
+    const articleRef = doc(db, "articles", articleId);
+    const article = articles.value.find(a => a.id === articleId);
+
+    if (userReactions.value[articleId] === 'disliked') {
+      // Undislike the article
+      await updateDoc(articleRef, { Dislikes: (article.Dislikes || 0) - 1 });
+      article.Dislikes -= 1;
+      userReactions.value[articleId] = null;
+    } else {
+      // Dislike the article and undo like if previously liked
+      if (userReactions.value[articleId] === 'liked') {
+        await updateDoc(articleRef, { Likes: (article.Likes || 0) - 1 });
+        article.Likes -= 1;
+      }
+      await updateDoc(articleRef, { Dislikes: (article.Dislikes || 0) + 1 });
+      article.Dislikes += 1;
+      userReactions.value[articleId] = 'disliked';
+    }
+  } catch (error) {
+    console.error("Error updating dislikes:", error.message);
+  }
+};
+
 watch(category, () => {
   fetchArticles();
 }, { immediate: true });
@@ -89,8 +118,22 @@ onMounted(fetchArticles);
           <p class="article-date">{{ article.Date }}</p>
           <p>{{ article.Description }}</p>
           <div class="article-meta">
-            <span class="likes">Likes: {{ article.Likes }}</span>
-            <span class="dislikes">Dislikes: {{ article.Dislikes }}</span>
+            <span class="likes">
+              <button 
+                @click="likeArticle(article.id)" 
+                :class="{ active: userReactions[article.id] === 'liked' }">
+                👍
+              </button>
+              Likes: {{ article.Likes }}
+            </span>
+            <span class="dislikes">
+              Dislikes: {{ article.Dislikes }}
+              <button 
+                @click="dislikeArticle(article.id)" 
+                :class="{ active: userReactions[article.id] === 'disliked' }">
+                👎
+              </button>
+            </span>
           </div>
         </div>
       </div>
@@ -148,5 +191,9 @@ h1 {
 p {
   font-size: 16px;
   margin-bottom: 10px;
+}
+.article-meta button.active {
+  font-weight: bold;
+  color: #007bff;
 }
 </style>
