@@ -112,13 +112,13 @@ button:focus-visible {
 }
 
 :root {
-  --background: #9c88ff;
+  --background: #FBF4EB;
   --forumbar-width: 256px;
   --forumbar-width-min: 80px;
-  --forumbar-dark-primary: #18283b;
-  --forumbar-dark-secondary: #2c3e50;
-  --forumbar-light-primary: #f5f6fa;
-  --forumbar-light-secondary: #8392a5;
+  --forumbar-dark-primary: #D9C5B2;
+  --forumbar-dark-secondary: #FF9689;
+  --forumbar-light-primary: #333333;
+  --forumbar-light-secondary: #333333;
 }
 
 html, body {
@@ -172,7 +172,7 @@ html, body {
   margin-top: 75px;
   left: 1vw;
   top: 1vw;
-  height: calc(100% - 6vw);
+  height: calc(100% - 10vw);
   background: var(--forumbar-dark-primary);
   border-radius: 16px;
   display: flex;
@@ -274,7 +274,7 @@ label[for=forum-toggle] {
 }
 #forum-content::-webkit-scrollbar-thumb {
   border-radius: 99px;
-  background-color: #D62929;
+  background-color: #333333;
 }
 
 #forum-content-highlight {
@@ -457,5 +457,5 @@ label[for=forum-footer-toggle] {
 }
 #forum-footer-content::-webkit-scrollbar-thumb {
   border-radius: 99px;
-  background-color: #D62929;
+  background-color: #333333;
 }

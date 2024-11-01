@@ -1,21 +1,32 @@
 <script setup>
+import { useRoute } from 'vue-router';
 import NavBar from "../components/navBar.vue";
 import ForumSidebar from "../components/forumsideBar.vue";
+import CreatePost from "../components/createPost.vue";
+import Posts from "../components/forumposts.vue";
+
+const route = useRoute();
+
+// Check if the current route is "/forum/createpost"
+const isCreatePostRoute = route.path === '/forum/createpost';
 </script>
 
 <template>
-    <NavBar />
-    <ForumSidebar />
-    <div class="forum-content">
-      <h1>Welcome to the Forum</h1>
-      <!-- Main forum content goes here -->
-    </div>
+  <NavBar />
+  <ForumSidebar />
+  <div class="forum-content">
+    <template v-if="isCreatePostRoute">
+      <CreatePost />
+    </template>
+    <template v-else>
+      <Posts />
+    </template>
+  </div>
 </template>
 
 <style scoped>
 .forum-content {
-  margin-left: 250px;
-  padding: 20px;
+  padding-left: 300px;
 }
 
 .forum-sidebar.collapsed + .forum-content {

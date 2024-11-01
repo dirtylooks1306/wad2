@@ -11,6 +11,9 @@ import registerPage from '../pages/registerPage.vue';
 import forgotpasswordPage from '../pages/forgotpasswordPage.vue';
 import profilePage from '../pages/profilePage.vue';
 import vaccineTrackerPage from '../pages/vaccineTrackerPage.vue';
+import createPost from '../components/createPost.vue';
+
+
 const routes = [
 
     {   path: '/', 
@@ -47,9 +50,10 @@ const routes = [
     },
 
     {
-        path: "/forum",
+        path: "/forum/:postId?",
         name: "Forum",
-        component: forumPage
+        component: forumPage,
+        props: true
     },
 
     {

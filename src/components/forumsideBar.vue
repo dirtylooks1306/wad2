@@ -6,14 +6,15 @@
     <hr/>
   </div>
   <div id="forum-content">
-    <div class="forum-button"><i class="fas fa-palette"></i><span>create</span></div>
+    <div class="forum-button">
+      <i class="fas fa-palette"></i>
+      <router-link to="/forum/createpost"><span>Create</span></router-link>
+    </div>
     <div class="forum-button"><i class="fas fa-images"></i><span>trending</span></div>
     <div class="forum-button"><i class="fas fa-thumbtack"></i><span>recent</span></div>
     <hr/>
     <div class="forum-button"><i class="fas fa-heart"></i><span>hello4</span></div>
     <div class="forum-button"><i class="fas fa-chart-line"></i><span>hello5</span></div>
-    <div class="forum-button"><i class="fas fa-fire"></i><span>hello6</span></div>
-    <div class="forum-button"><i class="fas fa-magic"></i><span>naonwdona</span></div>
     <hr/>
     <div class="forum-button"><i class="fas fa-gem"></i><span>first textttt</span></div>
     <div id="forum-content-highlight"></div>
