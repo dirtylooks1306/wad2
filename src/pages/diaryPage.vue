@@ -25,7 +25,7 @@ To Do:
 - Figure out how to add subcollections to Firebase (Done, figure out how to remove placeholder)
 - Change button animations when webpage accessed from mobile (2nd priority) -> Try @media / Change JS functions to check if class is desktop or mobile
 - Add button animations for form component -> Refer to Emergency Page for button CSS
-- emergencyPage: Hide API Key
+- emergencyPage: set location (Done)
 */
 
 /*
