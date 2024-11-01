@@ -68,12 +68,7 @@ onMounted(() => {
               <li>
                 <router-link class="dropdown-item" :class="{ 'active-item': activeCategory === 'nutrition' }" to="/articles/nutrition">Nutrition</router-link>
               </li>
-              <li>
-                <hr class="dropdown-divider">
-              </li>
-              <li>
-                <router-link class="dropdown-item" :class="{ 'active-item': activeCategory === 'recent' }" to="/articles/recent">Most recently visited</router-link>
-              </li>
+
             </ul>
           </li>
           <li class="nav-item">

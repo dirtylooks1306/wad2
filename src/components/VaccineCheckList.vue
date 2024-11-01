@@ -1,5 +1,8 @@
 <script setup>
 import { doc, setDoc, db, getDocs, collection } from "../firebaseConfig";
+import { ref, onMounted } from "vue";
+const user = ref(null);
+console.log(user);
 </script>
 <template>
 	<div>
