@@ -10,7 +10,7 @@ import { db } from "../firebaseConfig.js";  // Import the Firestore instance (db
 // Log the Firestore instance to ensure it's properly initialized
 console.log("Firestore instance (db):", db);
 
-//Segment to retrieve hospital locations and Google Maps API key from Firebase
+//Segment to retrieve hospital locations from Firebase
 const route = useRoute();
 const locationList = ref([]);
 const fetchLocations = async() => {
