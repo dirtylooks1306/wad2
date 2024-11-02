@@ -179,7 +179,7 @@ function clear() {
     </div>
     <div v-else class="centered-container">
       <div id="setUserLocation" class="d-flex justify-content-center align-items-center">
-        <input id="userLocation" type="text" class="rounded-2 p-1" placeholder="Enter location">
+        <input id="userLocation" type="text" class="rounded-2 p-1" placeholder="Enter location" @keyup.enter="setLocation">
         <button type="button" class="btn btn-primary m-2 p-1" @click="setLocation"><span>Set Current Location</span></button>
       </div>
       <button type="button" class="btn btn-success m-2 p-1" @click="getCurrentLocation"><span>Initialise Map</span></button>
@@ -192,6 +192,10 @@ function clear() {
         <button type="button" class="btn btn-success m-2 p-1" @click="findNearest()"><span>Find nearest A&E</span></button>
       </form>
       <span id="nearest">Nearest hospital: <strong>{{ nearest }}</strong></span>
+      <div id="changeLocation">
+        <input id="userLocation" type="text" class="rounded-2 p-1" placeholder="Change location" @keyup.enter="setLocation">
+        <button type="button" class="btn btn-primary m-2 p-1" @click="setLocation"><span>Change Location</span></button>
+      </div>
     </div>
   </div>
 
@@ -214,7 +218,7 @@ function clear() {
         </tr>
       </tbody>
     </table>
-    <p class="enquiries text-center">Other problems? Feel free to contact us <a class="contact-link" href="diary">here</a>.</p> <!-- href link is temporary, to change later if contact page is present -->
+    <p class="enquiries text-center">Other problems? Feel free to contact us <a class="contact-link" href="diary">here</a>.</p> <!-- href link is temporary, to change/remove later if contact page is present -->
   </div>
 
 </template>
@@ -223,7 +227,6 @@ function clear() {
   export default {
     data() {
       return {
-        apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
         /*
         lat: null,
         lng: null,
