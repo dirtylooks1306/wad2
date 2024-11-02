@@ -113,6 +113,9 @@ export default {
     this.fetchEvents(); // load  the existing events when the calendar is rendered
     
   },
+  watch: {
+    childId: "fetchEvents", // Refetch events whenever childId changes
+  },
   methods: {
     handleDateClick(info) {
       this.modalMode = 'add';
@@ -289,7 +292,7 @@ export default {
 }
 
 button {
-   background-color: #A3C4BC; /* Muted teal */
+   background-color: #A3C4BC; 
    color: #FFFFFF;
    padding: 8px 16px;
    margin: 3px;

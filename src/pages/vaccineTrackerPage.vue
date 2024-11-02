@@ -1,39 +1,57 @@
 <script setup>
 import { onAuthStateChanged } from "firebase/auth";
-import { ref,onMounted } from "vue";
-import { db, auth,collection, getDocs } from "../firebaseConfig";
+import { ref, onMounted, watch } from "vue";
+import { db, auth, collection, getDocs, doc } from "../firebaseConfig";
 import NavBar from "../components/NavBar.vue";
 import CustomHeader from "../components/CustomHeader.vue";
 import CalendarComponent from "../components/Calendar.vue";
 import VaccineCheckList from "../components/VaccineCheckList.vue";
+
 const children = ref([]);
 const isNewUser = ref(false);
-const selectedChildId = ref(null);
+const selectedChildId = ref(null); // Selected child ID
 const vaccineRecords = ref({});
+
+// Fetch user data including children
 const fetchUserData = async (currentUser) => {
   if (currentUser) {
     try {
-      // Correctly reference the 'children' collection under the user's document
       const childrenCollectionRef = collection(db, "users", currentUser.uid, "children");
-
-      // Fetch the user's children
       const childrenSnapshot = await getDocs(childrenCollectionRef);
       children.value = childrenSnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
-
-      // Set isNewUser based on whether there are any children records
       isNewUser.value = children.value.length === 0;
 
-      // Optionally log the children data for debugging
+      // Set the first child as default
+      if (children.value.length > 0) {
+        selectedChildId.value = children.value[0].id;
+      }
     } catch (error) {
       console.error("Error fetching user data:", error);
     }
   }
 };
 
-// Listen to auth state changes once on component mount
+// Watch for selectedChildId changes and trigger updates
+watch(selectedChildId, (newChildId) => {
+  fetchVaccineRecords(newChildId);
+});
+
+// Fetch vaccine records for the selected child
+const fetchVaccineRecords = async (childId) => {
+  if (childId) {
+    const childDocRef = doc(db, "users", auth.currentUser.uid, "children", childId);
+    const vaccineCollectionRef = collection(childDocRef, "vaccines");
+    const vaccineSnapshot = await getDocs(vaccineCollectionRef);
+    vaccineRecords.value = vaccineSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+  }
+};
+
 onMounted(() => {
   onAuthStateChanged(auth, (currentUser) => {
     if (currentUser) {
@@ -41,24 +59,25 @@ onMounted(() => {
     }
   });
 });
-
-
-
 </script>
-
 
 <template>
   <NavBar />
   <div class="row">
     <!-- Dropdown for selecting a child -->
-    <div class="col-12 mb-4">
-      <label for="childSelect">Select Child:</label>
-      <select v-model="selectedChildId" id="childSelect" class="form-control">
-        <option v-for="child in children" :key="child.id" :value="child.id">
-          {{ child.name }}
-        </option>
-      </select>
+    <div class="col-12 mb-4 d-flex justify-content-center">
+      <div class="dropdown-container">
+        <label for="childSelect" class="dropdown-label">Select Child:</label>
+        <select v-model="selectedChildId" id="childSelect" class="form-control dropdown-select">
+          <option v-for="child in children" :key="child.id" :value="child.id">
+            {{ child.name }}
+          </option>
+        </select>
+        <div v-if="errorMessage" class="dropdown-error">{{ errorMessage }}</div>
+      </div>
     </div>
+
+
 
     <!-- Vaccine Checklist Component for the Selected Child -->
     <div class="col-md-4 col-12">
@@ -69,15 +88,12 @@ onMounted(() => {
     <div class="col-md-8 col-12 calendar">
       <CustomHeader header="Vaccine Tracker" />
       <div class="calendar-size pb-2">
-        <CalendarComponent />
+        <CalendarComponent :childId="selectedChildId"/>
       </div>
     </div>
   </div>
 </template>
 
-### Styles (Optional)
-
-```css
 <style scoped>
 .calendar {
   background-color: rgba(173, 183, 146, 0.337);
@@ -94,4 +110,50 @@ onMounted(() => {
   border-radius: 4px;
   margin-top: 5px;
 }
+
+.dropdown-container {
+  max-width: 400px; /* Wider dropdown */
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dropdown-label {
+  font-weight: bold;
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.dropdown-select {
+  width: 100%;
+  padding: 12px;
+  font-size: 18px;
+  font-weight: bold; /* Bolder font for dropdown text */
+  border-radius: 10px;
+  border: 2px solid #a3c4bc;
+  background-color: #f0f4f8;
+  color: #333;
+  transition: border-color 0.3s ease;
+}
+
+.dropdown-select:hover,
+.dropdown-select:focus {
+  border-color: #6f9e9b; /* Darker color on hover/focus */
+  outline: none;
+}
+
+.dropdown-select option {
+  padding: 10px;
+}
+
+.dropdown-error {
+  color: #d9534f; /* Red color for error message */
+  font-weight: bold;
+  font-size: 16px;
+  margin-top: 8px;
+  text-align: center;
+}
+
 </style>
