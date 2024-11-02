@@ -34,6 +34,14 @@ import { onAuthStateChanged } from "firebase/auth";
 		<div class="container-fluid">
 			<div class="left-align">
         		<CustomHeader header="GrowthTracker" />
+				<div class="child-selector mb-3">
+					<label for="childDropdown" class="me-2">Select Child:</label>
+					<select id="childDropdown" v-model="selectedChildId" @change="handleChildSelection">
+						<option v-for="child in children" :key="child.id" :value="child.id">
+							{{ child.name }}
+						</option>
+					</select>
+				</div>
     		</div>
 			<TableTracker
 				:posts="posts"
@@ -85,7 +93,9 @@ export default {
 	data() {
 		return {
 			userId: null,
-			childrenNames: [],
+			children: [],
+			selectedChildId: null, 
+			selectedChildPosts: [],
 			activeTab: "GrowthTracker",
 			activeSubTab: "WeightGraph",
 			posts: [],
@@ -106,15 +116,35 @@ export default {
 				return dateA - dateB; // Sort in ascending order
 			});
 		},
+		async handleChildSelection() {
+		if (!this.selectedChildId) return;
+
+		const childPostsRef = collection(db, "users", this.userId, "children", this.selectedChildId, "posts");
+		const snapshot = await getDocs(childPostsRef);
+
+		this.selectedChildPosts = snapshot.docs.map((doc) => ({
+			id: doc.id,
+			...doc.data()
+		}));
+		// Optional: sort posts if needed
+		this.selectedChildPosts.sort((a, b) => new Date(a.date) - new Date(b.date));
+		},
 		async fetchChildrenNames() {
-			if (!this.userId) return;
+			try {
+				if (!this.userId) return;
 
-			const userChildrenRef = collection(db, "users", this.userId, "children");
-			const snapshot = await getDocs(userChildrenRef);
+				const userChildrenRef = collection(db, "users", this.userId, "children");
+				const snapshot = await getDocs(userChildrenRef);
 
-			// Map through each document to get the name field
-			this.childrenNames = snapshot.docs.map((doc) => doc.data().name);
-    	},
+				// Map through each document to get the `id` and `name` field
+				this.children = snapshot.docs.map((doc) => ({
+					id: doc.id,
+					name: doc.data().name
+				}));
+			} catch (error) {
+				console.error("Error fetching children names:", error);
+			}
+		},
 		async handleUpdatePost(updatedPost) {
 			const postRef = doc(db, "users", this.userId, "posts", updatedPost.id);
 			await setDoc(postRef, updatedPost); // Update post in Firebase
@@ -428,7 +458,7 @@ export default {
 	},
 	async mounted() {
 		window.vm = this;
-
+		
 		// Check user authentication on component mount
 		onAuthStateChanged(auth, async (user) => {
 			if (user) {
