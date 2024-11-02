@@ -62,7 +62,8 @@ Plan:
     </div>
     <div class="form-block container-fluid w-100">
       <CustomHeader header="SUBMIT A NEW ENTRY"/>
-      <DiaryForm :entryData="newEntry" 
+      <DiaryForm :entryData="newEntry"
+      :diaries="dbDiaries" 
       @submitEntry="submitEntry"
       @addDiary="addDiary"
       @deleteDiary="deleteDiary"/>
@@ -151,7 +152,8 @@ Plan:
                 ...this.newEntry,
                 date: this.newEntry.date ? this.newEntry.date.toLocaleDateString() : 'No Date',
               }) //Bug happens when new entry is submitted while diary is in closed state -> Paper overlaps the Next Page button but works as per normal after button is pressed
-            }  
+            }
+            alert("Entry successfully added!")    
           }
         }
       },

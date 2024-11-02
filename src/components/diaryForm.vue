@@ -4,8 +4,11 @@ import CustomHeader from "./CustomHeader.vue";
 <template>
     <div class="row row-cols-xl-2 row-cols-lg-1 pt-1">
         <div class="col-xl-4 col-lg-12 py-2">
-            <label for="name" class="col-form-label">Owner Name:</label>
-            <input type="text" class="form-control" id="name" placeholder="Who does this diary belong to?" v-model="formData.name">
+            <label for="name" class="col-form-label">Owner Name:</label><br>
+            <select id="name" class="form-select" aria-label="Default Select Example" v-model="formData.name">
+                <option value="Select a Child" selected>Select a Child</option>
+                <option v-for="(diary, i) in diaries" :value="diary.id">{{ diary.id }}</option>
+            </select>
         </div>
         <div class="col-xl-4 col-lg-12 py-2">
             <label for="header" class="col-form-label">Entry Header:</label>
@@ -36,8 +39,11 @@ import CustomHeader from "./CustomHeader.vue";
     <CustomHeader header="Add / Delete Diary"/> <!-- Form group to delete diaries from Firebase entirely -->
     <div class="row row-xl-cols-3 row-lg-cols-2">
         <div class="col-xl-6 col-lg-12">
-            <label for="diaryName" class="col-form-label">Owner Name:</label>
-            <input type="text" class="form-control" id="diaryName" placeholder="Who does this diary belong to?" v-model="diaryName">
+            <label for="diaryName" class="col-form-label">Owner Name:</label><br>
+            <select id="diaryName" class="form-select" aria-label="Default Select Example" v-model="diaryName">
+                <option value="Select a Child" selected>Select a Child</option>
+                <option v-for="(diary, i) in diaries" :value="diary.id">{{ diary.id }}</option>
+            </select>
         </div>
         <div class="col-xl-3 col-lg-6 mt-2 d-flex align-self-end justify-content-center">
             <br>
@@ -58,6 +64,7 @@ import CustomHeader from "./CustomHeader.vue";
         },
         props: {
             entryData: Object,
+            diaries: Array,
         },
         emits: ['submitEntry', 'addDiary', 'deleteDiary'],
         data() {
