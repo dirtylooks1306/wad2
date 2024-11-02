@@ -19,6 +19,10 @@ import CustomHeader from "./CustomHeader.vue";
             <input type="date" class="form-control" id="date" v-model="formData.date">
         </div>
     </div>
+    <div class="col-3">
+        <label for="imageFile" class="col-form-label">Select an Image:</label>
+        <input type="file" id="imageFile" @change="setImage">
+    </div>
     <div class="col-12 py-2">
         <label for="body" class="col-form-label">Entry Body:</label>
         <textarea class="form-control" id="body" rows="5" maxlength="525" 
@@ -101,14 +105,20 @@ import CustomHeader from "./CustomHeader.vue";
                     name: "",
                     header: "",
                     date: this.currentDate(),
+                    image: "",
                     body: "",
 			    };
+                document.getElementById('imageFile').value = "";
             },
             addDiary() {
                 this.$emit('addDiary', this.diaryName)
             },
             deleteDiary() {
                 this.$emit('deleteDiary', this.diaryName)
+            },
+            setImage() {
+                const fileInput = document.getElementById('imageFile').value;
+                this.formData.image = fileInput;
             }
         }
     }
