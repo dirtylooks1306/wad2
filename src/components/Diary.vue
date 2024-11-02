@@ -32,7 +32,18 @@ import Page from './page.vue';
                             :ref="`p${index+1}`"
                             :style="{ zIndex: getZIndex(index) }"
                             :isFlipped="isFlipped(index)"
-                            @deleteEntry="deleteEntry" 
+                            @deleteEntry="deleteEntry"
+                            v-if="isWideEnough" 
+                            />
+                            <Page
+                            v-else
+                            v-for="(entry, i) in dbDiary.entries"
+                            :entry="entry"
+                            :index="i"
+                            :ref="`p${i+1}`"
+                            :style="{ zIndex: getZIndex(i) }"
+                            :isFlipped="isFlipped(i)"
+                            @deleteEntry="deleteEntry"
                             />
                         </div>
                     </div>
@@ -57,6 +68,8 @@ import Page from './page.vue';
                 open: false, //For collapsible
                 currentLocation: 1,
                 flippedPapers: [], //Track flipped papers by indices
+                cycledEntries: [],
+                isWideEnough: window.innerWidth >= 768,
             }
         },
         components: {
@@ -70,6 +83,9 @@ import Page from './page.vue';
             //Passes toggle event to diaryPage to open or close the collapsible
             toggle() {
                 this.open = !this.open;
+            },
+            checkWidth() {
+                this.isWideEnough = window.innerWidth >= 768;
             },
             //Diary functions
             openBook() {
@@ -87,20 +103,28 @@ import Page from './page.vue';
                 this.$refs.nextBtn.style.transform = "translateX(0px)";
             },
             nextPage() {
-                if (this.currentLocation < this.pagedEntries.length + 1) {
-                    if (this.currentLocation === 1) {
-                        this.openBook();
-                    }
-                    if (!this.flippedPapers.includes(this.currentLocation)) {
-                        this.flippedPapers.push(this.currentLocation);
-                    }
-                    
-                    this.currentLocation++;
+                if (this.isWideEnough) {
+                    if (this.currentLocation < this.pagedEntries.length + 1) {
+                        if (this.currentLocation === 1) {
+                            this.openBook();
+                        }
+                        if (!this.flippedPapers.includes(this.currentLocation)) {
+                            this.flippedPapers.push(this.currentLocation);
+                        }
+                            
+                        this.currentLocation++;
 
-                    if (this.currentLocation === this.pagedEntries.length + 1) {
-                        this.closeBook(false);
+                        if (this.currentLocation === this.pagedEntries.length + 1) {
+                            this.closeBook(false);
+                        }
                     }
-                }
+                } else {
+                    if (this.currentLocation < this.dbDiary.entries.length + 1) {
+                        this.cycledEntries.push(this.currentLocation - 1);
+                        this.currentLocation++;
+                    }
+                }  
+                
                 /*
                 if (this.currentLocation < this.numPapers) {
                     switch(this.currentLocation) {
@@ -125,17 +149,25 @@ import Page from './page.vue';
                 */
             },
             prevPage() {
-                if (this.currentLocation > 1) {
-                    if (this.currentLocation === this.pagedEntries.length + 1) {
-                        this.openBook();
-                    }
+                if (this.isWideEnough) {
+                    if (this.currentLocation > 1) {
+                        if (this.currentLocation === this.pagedEntries.length + 1) {
+                            this.openBook();
+                        }
 
-                    const previous = this.currentLocation - 1;
-                    this.flippedPapers = this.flippedPapers.filter(page => page !== previous);
-                    this.currentLocation--
-                    
-                    if (this.currentLocation === 1) {
-                        this.closeBook(true);
+                        const previous = this.currentLocation - 1;
+                        this.flippedPapers = this.flippedPapers.filter(page => page !== previous);
+                        this.currentLocation--
+                            
+                        if (this.currentLocation === 1) {
+                            this.closeBook(true);
+                        }
+                    }
+                }
+                else {
+                    if (this.currentLocation > 1) {
+                        this.cycledEntries.pop(this.currentLocation - 1);
+                        this.currentLocation--;
                     }
                 }
                 /*
@@ -162,10 +194,20 @@ import Page from './page.vue';
                 */
             },
             isFlipped(index) {
-                return this.flippedPapers.includes(index + 1)
+                if (this.isWideEnough) {
+                    return this.flippedPapers.includes(index + 1);
+                }
+                else {
+                    return index in this.cycledEntries
+                }
             },
             getZIndex(index) {
-                return this.isFlipped(index) ? index - this.pagedEntries.length : this.pagedEntries.length - index;
+                if (this.isWideEnough) {
+                    return this.isFlipped(index) ? index - this.pagedEntries.length : this.pagedEntries.length - index;
+                } else {
+                    return this.dbDiary.entries.length - index;
+                }
+
                 /*
                 NOTE: Left side assignment is for assigning indexes when user goes to next page,
                 right side assignment is for assigning indexes when user goes to previous page
@@ -196,11 +238,15 @@ import Page from './page.vue';
             const diary = this.$refs.diary;
             const prevBtn = this.$refs.prevBtn;
             const nextBtn = this.$refs.nextBtn;
+            window.addEventListener('resize', this.checkWidth)
             /*
             //Event listeners
             prevBtn.addEventListener("click", this.prevPage);
             nextBtn.addEventListener("click", this.nextPage);
             */
+        },
+        beforeDestroy() {
+            window.removeEventListener('resize', this.checkWidth)
         }
     }
 </script>
@@ -292,4 +338,20 @@ button:focus {
   z-index: 1;
 }
 */
+
+@media (max-width: 768px) {
+    /* Diary */
+    .diary {
+        position: relative;
+        width: 350px;
+        height: 600px;
+    }
+
+    /* Controller buttons */
+    button {
+        border: none;
+        cursor: pointer;
+        margin: 10px;
+    }
+}
 </style>
