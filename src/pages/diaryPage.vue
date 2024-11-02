@@ -13,19 +13,13 @@ import {
   query,
 } from "../firebaseConfig.js";
 import { orderBy } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
 /*
 To Do:
-- Work on static storage of diary contents (Done)
-- Figure out how to make flippable diary in Vue component (Done)
-- Make diary pages into a Vue component that changes its paper ID for each 2 new entries (Done)
-(E.g. Paper 1 has entries 1&2, Paper 2 has entries 3&4, etc.)
-- Make a form for users to submit new diary entries (Done)
-- Turn storage of diaries into dynamic storage (Done)
-
 - Figure out how to add subcollections to Firebase (Done, figure out how to remove placeholder)
 - Change button animations when webpage accessed from mobile (2nd priority) -> Try @media / Change JS functions to check if class is desktop or mobile
 - Add button animations for form component -> Refer to Emergency Page for button CSS
-- emergencyPage: set location (Done)
+- Integrate login guard into diary page
 */
 
 /*
@@ -225,7 +219,36 @@ Plan:
     async mounted() {
       window.vm = this;
       //alert("If you're using this feature from a mobile phone, it is recommended to view the page in landscape mode!"); // Temporary alert
+      /*
+      // Check user authentication on component mount
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          this.userId = user.uid; // Set userId to the logged-in user’s UID
+          // Get the user's tracking info data from Firebase
+          await this.fetchChildrenNames();
+          const userPostsRefGet = collection(db, "users", this.userId, "posts");
+          const snapshot = await getDocs(userPostsRefGet);
 
+          // Map and sort the posts data
+          this.posts = snapshot.docs
+            .map((doc) => ({ id: doc.id, ...doc.data() }))
+            .sort((a, b) => {
+              const dateA = new Date(a.date);
+              const dateB = new Date(b.date);
+              return dateA - dateB;
+            });
+
+          // Set loading to false and initialize charts
+          this.loading = false;
+          this.sortPosts();
+          await this.fetchPosts();
+          this.toggleCharts();
+        } else {
+          // Redirect to login if no user is found
+          this.$router.push("/login");
+        }
+      });
+      */
       const diaries = collection(db, "diary");
       const snapshot = await getDocs(diaries);
       this.dbDiaries = snapshot.docs.map((doc) => ({
