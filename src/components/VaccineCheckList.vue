@@ -132,6 +132,10 @@ const fetchVaccineStatus = async () => {
   }
 };
 
+const toggleSidebar = () => {
+  isOpen.value = !isOpen.value;
+};
+
 // Watch for changes in `childId` and refetch vaccine data
 watch(
   () => props.childId,

@@ -25,15 +25,10 @@ import { onAuthStateChanged } from "firebase/auth";
 
 <template>
 	<NavBar />
-	<div class="row">
-		<div class="col-3"></div>
-		<div class="col-2"></div>
-		<div class="col-7"></div>
-	</div>
-	<div>
-		<div class="container-fluid">
+	<div class="page-container">
+		<div class="container-fluid header-section">
 			<div class="left-align">
-        		<CustomHeader header="GrowthTracker" />
+				<CustomHeader header="GrowthTracker" />
 				<div class="child-selector mb-3">
 					<label for="childDropdown" class="me-2">Select Child:</label>
 					<select id="childDropdown" v-model="selectedChildId" @change="handleChildSelection">
@@ -42,47 +37,45 @@ import { onAuthStateChanged } from "firebase/auth";
 						</option>
 					</select>
 				</div>
-    		</div>
-			<TableTracker
-				:posts="posts"
-				@delete-post="handleDeletePost"
-				@update-post="handleUpdatePost"
-				class="m-3"
-			/>
+			</div>
 		</div>
-			<div class="secondary-background container-fluid p-0">
-				<div class="row pt-3">
-					<div class="input-container col-md-5 ps-5">
-						<FormComponent @submit="savePost" />
-					</div>
 
-					<div class="col-md-7 container-fluid">
-						<canvas id="babyGrowthWeightChart"></canvas>
-						<canvas id="babyGrowthHeightChart"></canvas>
-						<ul class="d-md-flex desktop-tabs mt-3">
-							<li
-								:class="{
-									selected: activeSubTab === 'WeightGraph',
-								}"
-								@click="activeSubTab = 'WeightGraph'"
-							>
-								<a href="#WeightGraph">Weight</a>
-							</li>
-							<li
-								:class="{
-									selected: activeSubTab === 'HeightGraph',
-								}"
-								@click="activeSubTab = 'HeightGraph'"
-							>
-								<a href="#HeightGraph">Height</a>
-							</li>
-						</ul>
-						<button @click="refreshCharts" class="btn btn-success">
-							Refresh Charts
-						</button>
-					</div>
+		<div>
+			<div class="table-tracker text-center">
+				<div class="center">
+					<TableTracker
+					:posts="posts"
+					@delete-post="handleDeletePost"
+					@update-post="handleUpdatePost"
+					class="m-3"
+					/>
+				</div>
+			</div>
+
+			<div class="form-and-charts">
+				<div class="form-section">
+					<FormComponent @submit="savePost" />
 				</div>
 
+				<div class="charts-section">
+					<div class="chart-container">
+						<canvas id="babyGrowthWeightChart"></canvas>
+						<canvas id="babyGrowthHeightChart"></canvas>
+					</div>
+
+					<ul class="d-md-flex desktop-tabs mt-3">
+						<li :class="{ selected: activeSubTab === 'WeightGraph' }" @click="activeSubTab = 'WeightGraph'">
+							<a href="#WeightGraph">Weight</a>
+						</li>
+						<li :class="{ selected: activeSubTab === 'HeightGraph' }" @click="activeSubTab = 'HeightGraph'">
+							<a href="#HeightGraph">Height</a>
+						</li>
+					</ul>
+					<button @click="refreshCharts" class="btn refresh-button">
+						Refresh Charts
+					</button>
+				</div>
+			</div>
 		</div>
 	</div>
 </template>
@@ -234,7 +227,7 @@ export default {
 		async fetchGlobalDataByGender() {
 			const globalHeight = collection(db, "globalBabyData", this.gender, "height");
 			const globalWeight = collection(db, "globalBabyData", this.gender, "weight");
-
+			
 			let age = Math.floor((new Date() - new Date(date)) / (1000 * 60 * 60 * 24));
 			age = this.calculateAgeDisplay(age);
 
@@ -505,65 +498,142 @@ export default {
 </script>
 
 <style scoped>
-li {
-	list-style-type: none;
-	padding: 20px;
-	display: inline;
-	border: 1px solid transparent;
-	transition: all 0.3s ease;
-	border-radius: 20%;
-}
-
-.selected {
-	border-color: #f1f1f1;
-	background-color: lightgray;
-}
-
-li:not(.selected) {
-	opacity: 0.5;
-	cursor: pointer;
-}
-.secondary-background {
-	background-color: #eed4d4;
-	width: 100%;
-	display: flex;
+/* General Page Layout */
+.page-container {
+	max-width: 1200px;
 	margin: auto;
-	margin-left:-20px;
-	margin-right:-20px;
+	padding: 20px;
+	color: #333;
+	font-family: Arial, sans-serif;
 }
-.container-fluid {
+
+/* Header Section */
+.header-section {
+	margin-bottom: 20px;
+	padding: 20px;
+	background-color: #f8f9fa;
+	border-radius: 8px;
+	box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.child-selector {
+	display: flex;
+	align-items: center;
+	font-weight: bold;
+}
+
+#childDropdown {
+	padding: 10px;
+	border-radius: 8px;
+	border: 1px solid #ccc;
+	font-size: 1rem;
+}
+
+/* Table Tracker Section */
+.table-tracker {
+	background-color: #ffffff;
+	padding: 20px;
+	border-radius: 8px;
+	box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+	margin-bottom: 20px;
+	width: 100%;
+	text-align: center;
+}
+.center {
+	display: flex;
+	justify-content: center;
+}
+
+/* Form and Charts Section */
+.form-and-charts {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 20px;
+}
+
+.form-section {
+	background-color: #f9f9f9;
+	padding: 20px;
+	border-radius: 8px;
+	box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+	flex: 1 1 40%;
+}
+
+.charts-section {
+	flex: 1 1 55%;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	justify-content: center;
-	margin: auto;
-}
-.left-align {
-	align-self: flex-start;
 }
 
+/* Chart Container */
+.chart-container {
+	background-color: #ffffff;
+	padding: 20px;
+	border-radius: 8px;
+	box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+	margin-bottom: 20px;
+	overflow: hidden;
+}
+
+.chart-container canvas {
+	width: 100% !important; /* Ensures the canvas takes the full width of its container */
+	height: auto !important; /* Maintains aspect ratio */
+	max-width: 100%; /* Prevents overflow */
+}
+/* Tabs for Chart Selection */
 .desktop-tabs {
-	display: block;
+	display: flex;
+	gap: 10px;
+	margin-top: 15px;
 }
 
-.mobile-dropdown {
-	display: none;
-}
-.text-left {
-	align-self: flex-start;
-	width: 100%;
+.desktop-tabs li {
+	list-style-type: none;
+	padding: 10px 20px;
+	border-radius: 20px;
+	background-color: #e9ecef;
+	cursor: pointer;
+	transition: background-color 0.3s;
 }
 
+.desktop-tabs li:hover,
+.desktop-tabs li.selected {
+	background-color: #9e9e9e;
+	color: white;
+	font-weight: bold;
+}	
+
+/* Refresh Button */
+.refresh-button {
+	background-color: #28a745;
+	color: #fff;
+	padding: 10px 20px;
+	border: none;
+	border-radius: 8px;
+	font-size: 1rem;
+	margin-top: 10px;
+	cursor: pointer;
+	transition: background-color 0.3s;
+}
+
+.refresh-button:hover {
+	background-color: #218838;
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
-	.desktop-tabs {
-		display: none;
+	.form-and-charts {
+		flex-direction: column;
 	}
-	.mobile-dropdown {
-		display: block;
-		position: absolute;
-		top: 10%;
-		left: 50%;
-		width: 90%;
+
+	.chart-container {
+		max-height: 400px;
+	}
+
+	.desktop-tabs {
+		flex-direction: column;
+		align-items: center;
 	}
 }
 </style>

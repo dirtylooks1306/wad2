@@ -47,17 +47,23 @@ import { collection, addDoc, getDocs, deleteDoc, doc, db } from "../firebaseConf
 
 export default {
   name: 'CalendarComponent',
+  props: {
+    childId: {
+      type: String,
+      required: true
+    }
+  },
   data() {
     return {
       calendar: null,
       showModal: false,
-      modalMode: 'add', // 'add' or 'view' mode for the modal
+      modalMode: 'add',
       newEvent: {
         title: '',
         date: '',
         startTime: '',
         endTime: ''
-      },      
+      },
       errorMessage: '',
       timeOptions: [
         '00:00', '00:30', '01:00', '01:30', '02:00', '02:30', '03:00', '03:30',
@@ -92,7 +98,7 @@ export default {
         { date: '2025-10-20', name: 'Deepavali' },
         { date: '2025-12-25', name: 'Christmas Day' }
       ],
-      selectedEvent: null, // Stores selected event details
+      selectedEvent: null,
     };
   },
   mounted() {
@@ -105,16 +111,15 @@ export default {
       eventTimeFormat: { 
         hour: '2-digit',
         minute: '2-digit',
-        hour12: false // Set to 24-hour format
+        hour12: false
       }
     });
     this.calendar.render();
-    
-    this.fetchEvents(); // load  the existing events when the calendar is rendered
-    
+
+    this.fetchEvents();
   },
   watch: {
-    childId: "fetchEvents", // Refetch events whenever childId changes
+    childId: 'fetchEvents' // Refetch events whenever childId changes
   },
   methods: {
     handleDateClick(info) {
@@ -129,8 +134,6 @@ export default {
         day: 'numeric', 
         year: 'numeric' 
       });
-
-        // format the time
       const formattedTime = info.event.start.toLocaleTimeString('en-US', {
         hour: '2-digit',
         minute: '2-digit',
@@ -145,69 +148,58 @@ export default {
       this.showModal = true;
     },
     closeModal() {
-      // Reset event data and close modal
       this.newEvent = { title: '', date: '', time: '' };
       this.selectedEvent = null;
       this.showModal = false;
       this.errorMessage = '';
-    },async saveEvent() {
+    },
+    async saveEvent() {
       const { title, date, startTime, endTime } = this.newEvent;
-      if (title && startTime && endTime) {
-        // Create event object with combined date and time
+      if (title && startTime && endTime && this.childId) {
         const event = {
           title,
           start: `${date}T${startTime}`,
           end: `${date}T${endTime}`,
         };
 
-        // Add the event to the calendar
         const newCalendarEvent = this.calendar.addEvent(event);
 
-        // Save the event to Firebase
         try {
-          const userEventsRef = collection(db, "users", "user2", "events");
+          const userEventsRef = collection(db, "users", "user2", "children", this.childId, "events");
           const docRef = await addDoc(userEventsRef, event);
-
-          // Set the event's id in FullCalendar to match the Firebase doc id
           newCalendarEvent.setProp('id', docRef.id);
-
-          await this.fetchEvents(); // Optionally reload events
-
+          await this.fetchEvents();
         } catch (error) {
           console.error("Error adding event to database:", error);
         }
-
         this.closeModal();
       } else {
-        this.displayError("Please fill in all fields.");  
+        this.displayError("Please fill in all fields.");
       }
     },
     displayError(message) {
       this.errorMessage = message;
       setTimeout(() => {
-        this.errorMessage = ''; // Clear message after 3 seconds
+        this.errorMessage = '';
       }, 3000);
-  },
+    },
     async loadHolidays() {
-    this.singaporeHolidays.forEach(holiday => {
-      this.calendar.addEvent({
-        title: holiday.name,
-        start: holiday.date,
-        color: "#FFD700", // Use a soft orange color for holidays
-        borderColor: "#FF7043", // Border color for holidays
-        textColor: "#4A4A4A", // Dark text for holidays for readability
-        display: "block",
+      this.singaporeHolidays.forEach(holiday => {
+        this.calendar.addEvent({
+          title: holiday.name,
+          start: holiday.date,
+          color: "#FFD700",
+          borderColor: "#FF7043",
+          textColor: "#4A4A4A",
+          display: "block",
+        });
       });
-    });
     },
     async deleteEvent() {
-      if (this.selectedEvent) {
-        // Delete event from Firebase
+      if (this.selectedEvent && this.childId) {
         try {
-          const eventDocRef = doc(db, "users", "user2", "events", this.selectedEvent.id);
+          const eventDocRef = doc(db, "users", "user2", "children", this.childId, "events", this.selectedEvent.id);
           await deleteDoc(eventDocRef);
-
-          // Remove the event from FullCalendar
           const calendarEvent = this.calendar.getEventById(this.selectedEvent.id);
           if (calendarEvent) {
             calendarEvent.remove();
@@ -215,13 +207,14 @@ export default {
         } catch (error) {
           console.error("Error deleting event from database:", error);
         }
-
         this.closeModal();
       }
     },
     async fetchEvents() {
+      if (!this.childId) return;
+      
       try {
-        const userEventsRef = collection(db, "users", "user2", "events");
+        const userEventsRef = collection(db, "users", "user2", "children", this.childId, "events");
         const querySnapshot = await getDocs(userEventsRef);
         
         this.calendar.getEvents().forEach(event => event.remove());
@@ -229,12 +222,12 @@ export default {
         querySnapshot.forEach(doc => {
           const eventData = doc.data();
           this.calendar.addEvent({
-            id: doc.id, // Use Firestore doc id as event id
+            id: doc.id,
             title: eventData.title,
             start: eventData.start,
-            color: "#4A90E2", // Change to desired background color
-            borderColor: "#357ABD", // Add border color for better contrast
-            textColor: "#FFF", // Add text color for better visibility
+            color: "#4A90E2",
+            borderColor: "#357ABD",
+            textColor: "#FFF",
             display: "block",
           });
         });
@@ -245,28 +238,27 @@ export default {
   },
   computed: {
   // Returns all time options for the start time
-  timeOptions() {
-    return [
-      '00:00', '00:30', '01:00', '01:30', '02:00', '02:30', '03:00', '03:30',
-      '04:00', '04:30', '05:00', '05:30', '06:00', '06:30', '07:00', '07:30',
-      '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
-      '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30',
-      '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30',
-      '20:00', '20:30', '21:00', '21:30', '22:00', '22:30', '23:00', '23:30'
-    ];
-  },
+    timeOptions() {
+      return [
+        '00:00', '00:30', '01:00', '01:30', '02:00', '02:30', '03:00', '03:30',
+        '04:00', '04:30', '05:00', '05:30', '06:00', '06:30', '07:00', '07:30',
+        '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+        '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30',
+        '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30',
+        '20:00', '20:30', '21:00', '21:30', '22:00', '22:30', '23:00', '23:30'
+      ];
+    },
 
   // Filters end time options based on the selected start time
-  filteredEndTimeOptions() {
-    const startTimeIndex = this.timeOptions.indexOf(this.newEvent.startTime);
-    // If start time is selected, only show end times that are later than start time
-    return startTimeIndex === -1
-      ? this.timeOptions // No start time selected, return all times
-      : this.timeOptions.slice(startTimeIndex + 1); // Only times after start time
+    filteredEndTimeOptions() {
+      const startTimeIndex = this.timeOptions.indexOf(this.newEvent.startTime);
+      // If start time is selected, only show end times that are later than start time
+      return startTimeIndex === -1
+        ? this.timeOptions // No start time selected, return all times
+        : this.timeOptions.slice(startTimeIndex + 1); // Only times after start time
+    }
   }
-}
-
-}
+};
 </script>
 
 
@@ -378,9 +370,14 @@ select {
   font-size: 0.9em;
   font-weight: 500;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: start;
+  justify-content: start;
+  white-space: nowrap; /* Prevents text from wrapping */
+  overflow: hidden; /* Ensures overflow is hidden */
+  text-overflow: ellipsis; /* Adds an ellipsis (...) for overflowing text */
+  max-width: 100%; /* Ensures the box width is constrained */
 }
+
 
 @keyframes fadeOut {
   0% { opacity: 1; }

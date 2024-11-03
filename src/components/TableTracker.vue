@@ -2,11 +2,14 @@
 
 </script>
 <template>
-	<button type="button" class="btn btn-primary m-3" @click="openModal">
-		View All Logs
-	</button>
-
-		<table class="container m-3" id="main">
+	<div class="table-container">
+		<div class="center">
+			<button type="button" class="btn btn-primary m-3" @click="openModal">
+				View All Logs
+			</button>
+		</div>
+		<div class="center">
+			<table class="container m-3" id="main">
 			<tbody>
 				<tr>
 					<th>Date of Record</th>
@@ -63,6 +66,9 @@
 				</tr>
 			</tbody>
 		</table>
+		</div>
+	</div>
+		
 		<div v-if="showModal" class="modal">
 			<div class="modal-content">
         <span>
@@ -208,6 +214,13 @@ export default {
 </script>
 
 <style scoped>
+.table-container {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	margin-top: 20px;
+}
 .modal {
   display: flex;
   align-items: center;
@@ -283,7 +296,8 @@ table {
 	border-collapse: collapse;
 	overflow: hidden;
 	box-shadow: 0 0 20px rgba(0,0,0,0.1);
-  margin:auto;
+  	margin:auto;
+	
 }
 
 th,
@@ -291,6 +305,7 @@ td {
 	padding: 15px;
 	background-color: rgba(255,255,255,0.2);
 	color: black;
+	text-align: left;
 }
 
 th {
@@ -323,5 +338,11 @@ thead {
 				background-color: rgba(247, 7, 7, 0.3);
 		}
 	}
+}
+.center {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column; /* Stack items vertically */
 }
 </style>
