@@ -14,6 +14,14 @@ import vaccineTrackerPage from '../pages/vaccineTrackerPage.vue';
 import createPost from '../components/createPost.vue';
 
 
+import {auth } from '../firebaseConfig.js';
+import { onAuthStateChanged } from 'firebase/auth';
+import { reactive } from 'vue';
+
+export const appState = reactive({
+  loginMessage: '',
+});
+
 const routes = [
 
     {   path: '/', 
@@ -28,12 +36,14 @@ const routes = [
 
     {   path: '/growthtracker',
         name: 'GrowthTracker',
-        component: growthTrackerPage
+        component: growthTrackerPage,
+        meta: { requiresAuth: true }
     },
 
     {   path: '/vaccinetracker',
         name: 'VaccineTracker',
-        component: vaccineTrackerPage
+        component: vaccineTrackerPage,
+        meta: { requiresAuth: true }
     },
 
     {
@@ -46,7 +56,8 @@ const routes = [
     {
         path: '/diary',
         name: 'Diary',
-        component: diaryPage
+        component: diaryPage,
+        meta: { requiresAuth: true }
     },
 
     {
@@ -92,5 +103,21 @@ const router = createRouter({
     history: createWebHistory(),
     routes,
 });
+
+router.beforeEach((to, from, next) => {
+    if (to.meta.requiresAuth) {
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          appState.loginMessage = '';
+          next();
+        } else {
+          appState.loginMessage = 'Please log in to access this page.';
+          next({ name: 'Login' });
+        }
+      });
+    } else {
+      next();
+    }
+  });
 
 export default router;

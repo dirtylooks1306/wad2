@@ -4,9 +4,7 @@ import {
 	db,
 	collection,
 	getDocs,
-	ref,
-	set,
-	getDatabase,
+	auth,
 	addDoc,
 	doc,
 	deleteDoc,
@@ -17,36 +15,33 @@ import Utils from "../components/Utils.js";
 import CustomHeader from "../components/CustomHeader.vue";
 import FormComponent from "../components/form.vue";
 import TableTracker from "../components/TableTracker.vue";
+import { ref } from "vue";
+import { onAuthStateChanged } from "firebase/auth";
+// const childrenNames = ref([]);
+
+
+
 </script>
 
 <template>
 	<NavBar />
 	<div class="row">
 		<div class="col-3"></div>
-		<div class="col-2">
-			
-		</div>
+		<div class="col-2"></div>
 		<div class="col-7"></div>
 	</div>
 	<div>
-		<!-- <ul class="d-md-flex desktop-tabs mt-3">
-			<li
-				:class="{ selected: activeTab === 'GrowthTracker' }"
-				@click="activeTab = 'GrowthTracker'"
-			>
-				<a href="#GrowthTracker">Growth Tracker</a>
-			</li>
-			<li
-				:class="{ selected: activeTab === 'Vaccine' }"
-				@click="activeTab = 'Vaccine'"
-			>
-				<a href="#Vaccine">Vaccination Tracker</a>
-			</li>
-		</ul> -->
-
 		<div class="container-fluid">
 			<div class="left-align">
         		<CustomHeader header="GrowthTracker" />
+				<div class="child-selector mb-3">
+					<label for="childDropdown" class="me-2">Select Child:</label>
+					<select id="childDropdown" v-model="selectedChildId" @change="handleChildSelection">
+						<option v-for="child in children" :key="child.id" :value="child.id">
+							{{ child.name }}
+						</option>
+					</select>
+				</div>
     		</div>
 			<TableTracker
 				:posts="posts"
@@ -89,7 +84,6 @@ import TableTracker from "../components/TableTracker.vue";
 				</div>
 
 		</div>
-		<!-- <div v-else-if="activeTab === 'Vaccine'">bob2</div> -->
 	</div>
 </template>
 
@@ -98,12 +92,17 @@ export default {
 	name: "growthTrackerPage",
 	data() {
 		return {
+			userId: null,
+			children: [],
+			selectedChildId: null, 
+			selectedChildPosts: [],
 			activeTab: "GrowthTracker",
 			activeSubTab: "WeightGraph",
 			posts: [],
 			loading: true,
 			weightChart: null,
 			heightChart: null,
+			gender: "",
 			globalWeightArray: [],
 			globalHeightArray: [],
 			currentChildAge: "",
@@ -117,80 +116,183 @@ export default {
 				return dateA - dateB; // Sort in ascending order
 			});
 		},
+		async handleChildSelection() {
+		if (!this.selectedChildId) return;
+
+		const childPostsRef = collection(db, "users", this.userId, "children", this.selectedChildId, "posts");
+		const snapshot = await getDocs(childPostsRef);
+
+		this.selectedChildPosts = snapshot.docs.map((doc) => ({
+			id: doc.id,
+			...doc.data()
+		}));
+		// Optional: sort posts if needed
+		this.selectedChildPosts.sort((a, b) => new Date(a.date) - new Date(b.date));
+		},
+		async fetchChildrenNames() {
+			try {
+				if (!this.userId) return;
+
+				const userChildrenRef = collection(db, "users", this.userId, "children");
+				const snapshot = await getDocs(userChildrenRef);
+
+				// Map through each document to get the `id` and `name` field
+				this.children = snapshot.docs.map((doc) => ({
+					id: doc.id,
+					name: doc.data().name
+				}));
+			} catch (error) {
+				console.error("Error fetching children names:", error);
+			}
+		},
 		async handleUpdatePost(updatedPost) {
-			const postRef = doc(db, "users", "user2", "posts", updatedPost.id);
+			const postRef = doc(db, "users", this.userId, "posts", updatedPost.id);
 			await setDoc(postRef, updatedPost); // Update post in Firebase
 			this.fetchPosts(); // Re-fetch posts after update (optional)
 		},
 		async handleDeletePost(postId) {
-			const postRef = doc(db, "users", "user2", "posts", postId);
+			const postRef = doc(db, "users", this.userId, "posts", postId);
 			await deleteDoc(postRef); // Delete post from Firebase
 			this.fetchPosts(); // Re-fetch posts after deletion (optional)
 		},
 		async savePost(formData) {
 			// posting user's tracking info data into firebase
-			const userPostsRefPost = collection(db, "users", "user2", "posts");
+			const userPostsRefPost = collection(db, "users", this.userId, "posts");
 			const newPost = {
 				date: formData.selectedDate,
 				age: formData.selectedAge,
 				weight: formData.selectedWeight,
 				height: formData.selectedHeight,
-				sex: formData.selectedSex,
-				walk: formData.selectedSteps === "yes",
-				talk: formData.selectedWords === "no",
 				remarks: formData.selectedRemarks,
 			};
 			const docRef = await addDoc(userPostsRefPost, newPost);
 			await this.fetchPosts();
 		},
 		async fetchPosts() {
-			const postsRef = collection(db, "users", "user2", "posts");
-			const snapshot = await getDocs(postsRef);
-			this.posts = snapshot.docs.map((doc) => ({
-				id: doc.id,
-				...doc.data(),
-			})); // Update posts array
+			if (this.posts.length === 0) {
+				// Fetch initial post and set gender from `children` collection
+				await this.fetchInitialPostFromChildren();
+			} else {
+				// Check if gender is already set
+				if (!this.gender) {
+					// Set gender from `children` collection if not already set
+					await this.setGenderFromChildren();
+				}
+				// Fetch posts from user collection
+				await this.fetchPostsFromUserCollection();
+			}
 
-			const gender = "male"; // Hardcoded for now
-			this.sortPosts(); // sort posts by date AGAIN
-			this.currentChildAge = await this.posts[this.posts.length-1].age;
-			const globalHeight = collection(
-				db,
-				"globalBabyData",
-				gender,
-				"height"
-			);
-			const snapshotChart = await getDocs(globalHeight);
-			this.globalHeightArray = snapshotChart.docs.map((doc) => ({
-				id: doc.id,
-				...doc.data(),
-			})); // height data for the chart based on AGE
+			this.sortPosts(); // Sort posts by date
+			this.currentChildAge = this.getMappedAgeRange(this.posts[this.posts.length - 1].age);
+			
+			// Now that gender is set, fetch global data for charts
+			if (this.gender) {
+				await this.fetchGlobalDataByGender();
+			} else {
+				console.warn("Gender not defined, skipping global data fetch");
+			}
+			// Initialize the appropriate chart
+			if (this.activeSubTab === "WeightGraph") {
+				this.createChartWeight(this.currentChildAge);
+			} else if (this.activeSubTab === "HeightGraph") {
+				this.createChartHeight(this.currentChildAge);
+			}
+		},
 
-			const globalWeight = collection(
-				db,
-				"globalBabyData",
-				gender,
-				"weight"
-			);
+		async fetchInitialPostFromChildren() {
+			const childrenRef = collection(db, "users", this.userId, "children");
+			const childrenSnapshot = await getDocs(childrenRef);
+			const firstChild = childrenSnapshot.docs[0];
+			const firstChildData = firstChild.data();
+
+			// Set gender and initialize post data
+			this.gender = firstChildData.gender.toLowerCase();
+			const date = firstChildData.age;
+			const weight = firstChildData.weight;
+			const height = firstChildData.height;
+
+			let age = Math.floor((new Date() - new Date(date)) / (1000 * 60 * 60 * 24));
+			age = this.calculateAgeDisplay(age);
+
+			this.posts = [{ id: firstChild.id, date, age, weight, height }];
+
+			// Add this initial post to the `posts` collection in Firestore
+			const postRef = collection(db, "users", this.userId, "posts");
+			await addDoc(postRef, { date, age, weight, height });
+		},
+
+		async setGenderFromChildren() {
+			const childrenRef = collection(db, "users", this.userId, "children");
+			const childrenSnapshot = await getDocs(childrenRef);
+			const firstChildData = childrenSnapshot.docs[0]?.data();
+
+			if (firstChildData) {
+				this.gender = firstChildData.gender.toLowerCase();
+			}
+		},
+
+		async fetchGlobalDataByGender() {
+			const globalHeight = collection(db, "globalBabyData", this.gender, "height");
+			const globalWeight = collection(db, "globalBabyData", this.gender, "weight");
+
+			let age = Math.floor((new Date() - new Date(date)) / (1000 * 60 * 60 * 24));
+			age = this.calculateAgeDisplay(age);
+
+			const snapshotChartHeight = await getDocs(globalHeight);
+			this.globalHeightArray = snapshotChartHeight.docs.map((doc) => ({
+				id: doc.id,
+				age: doc.data().age,
+				...doc.data(),
+			}));
+
 			const snapshotChartWeight = await getDocs(globalWeight);
 			this.globalWeightArray = snapshotChartWeight.docs.map((doc) => ({
 				id: doc.id,
 				...doc.data(),
-			})); // weight data for the chart based on AGE
-
-			if (this.activeSubTab === "WeightGraph") {
-				this.createChartWeight(this.currentChildAge); // Only create the weight chart
-			} else if (this.activeSubTab === "HeightGraph") {
-				this.createChartHeight(this.currentChildAge); // Only create the height chart
-			}
+			}));
 		},
+		async fetchPostsFromUserCollection() {
+			const postsRef = collection(db, "users", this.userId, "posts");
+			const snapshot = await getDocs(postsRef);
+			this.posts = snapshot.docs.map((doc) => ({
+				id: doc.id,
+				...doc.data(),
+			}));
+    	},
+		calculateAgeDisplay(days) {
+        if (days < 2) return days + " day";
+        if (days < 31) return days + " days";
+        const months = Math.floor(days / 30);
+        return months < 2 ? months + " month" : months + " months";
+    	},
+		getMappedAgeRange(currentAge) {
+			// Split age into number and unit
+			const [amount, unit] = currentAge.split(" ");
+			const ageInDays = parseInt(amount);
+
+			let ageInMonths;
+
+			if (unit === "days" || unit === "day") {
+				// Convert days to approximate months (1 month ~ 30.44 days)
+				ageInMonths = Math.floor(ageInDays / 30.44);
+			} else if (unit === "months" || unit === "month") {
+				ageInMonths = ageInDays; // Already in months
+			}
+			// Map age to age range
+			if (ageInMonths <= 2) return "1-2 months";
+			else if (ageInMonths <= 4) return "2-4 months";
+			else if (ageInMonths <= 6) return "4-6 months";
+			else if (ageInMonths <= 9) return "6-9 months";
+			else if (ageInMonths <= 12) return "9-12 months";
+			else if (ageInMonths <= 18) return "12-18 months";
+			else return "18-24 months";
+			},
 		createChartWeight(currentChildAge) {
-			console.log(currentChildAge)
 			if (this.weightChart) {
 				this.weightChart.destroy();
 			}
 			const ageRangeMapping = {
-				"0-2 months": 1,
+				"1-2 months": 1,
 				"2-4 months": 2,
 				"4-6 months": 3,
 				"6-9 months": 4,
@@ -201,10 +303,12 @@ export default {
 
 			let dateData = this.posts.map((post) => post.date); // date in array
 			let weightData = this.posts.map((post) => post.weight); // weight in array
+			this.currentChildAge = this.getMappedAgeRange(this.currentChildAge);
 			let averageWeight =
 				this.globalWeightArray[0][
 					ageRangeMapping[this.currentChildAge]
 				];
+
 			let averageWeightArray = Array.from(
 				{ length: this.posts.length },
 				() => averageWeight
@@ -259,7 +363,7 @@ export default {
 				this.heightChart.destroy();
 			}
 			const ageRangeMapping = {
-				"0-2 months": 1,
+				"1-2 months": 1,
 				"2-4 months": 2,
 				"4-6 months": 3,
 				"6-9 months": 4,
@@ -354,22 +458,37 @@ export default {
 	},
 	async mounted() {
 		window.vm = this;
+		
+		// Check user authentication on component mount
+		onAuthStateChanged(auth, async (user) => {
+			if (user) {
+				this.userId = user.uid; // Set userId to the logged-in user’s UID
+				// Get the user's tracking info data from Firebase
+				await this.fetchChildrenNames();
+				const userPostsRefGet = collection(db, "users", this.userId, "posts");
+				const snapshot = await getDocs(userPostsRefGet);
 
-		// GET user;s tracking info data from firebase
-		const userPostsRefGet = collection(db, "users", "user2", "posts");
-		const snapshot = await getDocs(userPostsRefGet);
-		this.posts = snapshot.docs
-			.map((doc) => ({ id: doc.id, ...doc.data() }))
-			.sort((a, b) => {
-				const dateA = new Date(a.date);
-				const dateB = new Date(b.date);
-				return dateA - dateB;
-			});
-		this.loading = false;
-		this.sortPosts();
-		await this.fetchPosts();
-		this.toggleCharts();
-	},
+				// Map and sort the posts data
+				this.posts = snapshot.docs
+					.map((doc) => ({ id: doc.id, ...doc.data() }))
+					.sort((a, b) => {
+						const dateA = new Date(a.date);
+						const dateB = new Date(b.date);
+						return dateA - dateB;
+					});
+
+				// Set loading to false and initialize charts
+				this.loading = false;
+				this.sortPosts();
+				await this.fetchPosts();
+				this.toggleCharts();
+			} else {
+				// Redirect to login if no user is found
+				this.$router.push("/login");
+			}
+	});
+},
+
 	watch: {
 		// Watch the active tab and re-render the chart accordingly
 		activeSubTab(newTab) {

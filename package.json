@@ -20,6 +20,7 @@
     "firebase": "^10.14.0",
     "google-maps": "^4.3.3",
     "luxon": "^3.5.0",
+    "openai": "^4.69.0",
     "vue": "^3.5.10",
     "vue-chartjs": "^5.3.1",
     "vue-router": "^4.4.5",

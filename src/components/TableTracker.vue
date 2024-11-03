@@ -311,21 +311,6 @@ thead {
 			background-color: rgba(247, 7, 7, 0.3);
 		}
 	}
-	td {
-		position: relative;
-		&:hover {
-			&:before {
-				content: "";
-				position: absolute;
-				left: 0;
-				right: 0;
-				top: -9999px;
-				bottom: -9999px;
-				background-color: rgba(225, 11, 211, 0.2);
-				z-index: -1;
-			}
-		}
-	}
 }
 .inner-table > tbody {
 	tr {

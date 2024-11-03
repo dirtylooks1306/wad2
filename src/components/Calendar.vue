@@ -3,23 +3,24 @@
   <!-- Modal for adding or viewing event details -->
   <div v-if="showModal" class="modal">
     <div class="modal-content">
-      <h3>{{ modalMode === 'add' ? 'Add Event' : 'Event Details' }}</h3>
+      <h3>{{ modalMode === 'add' ? 'Add Appointment' : 'Appointment Details' }}</h3>
 
       <div v-if="modalMode === 'add'">
         <!-- Input fields for adding a new event -->
-        <label class="col-md-6 col-12">Event Title:</label>
+        <label class="col-md-6 col-12">Add vaccine appointment:</label>
         <input type="text" v-model="newEvent.title" class="col-md-6 col-12 mb-1"/>
 
-        <label class="col-md-6 col-12">Event Start Time:</label>
+        <label class="col-md-6 col-12">Appointment Start Time:</label>
+        <select v-model="newEvent.startTime" class="col-md-6 mb-1 col-12">
+          <option v-for="time in timeOptions" :key="time" :value="time">{{ time }}</option>
+        </select>
+
+        <label class="col-md-6 col-12">Appointment End Time:</label>
         <select v-model="newEvent.endTime" class="col-md-6 mb-1 col-12">
           <option v-for="time in filteredEndTimeOptions" :key="time" :value="time">{{ time }}</option>
         </select>
 
-        <label  class="col-md-6 col-12">Event End Time:</label>
-        <select v-model="newEvent.endTime"  class="col-md-6 mb-1 ">
-          <option v-for="time in filteredEndTimeOptions" :key="time" :value="time">{{ time }}</option>
-        </select>
-        
+        <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
         <button @click="saveEvent">Save Event</button>
         <button @click="closeModal">Cancel</button>
       </div>
@@ -57,6 +58,7 @@ export default {
         startTime: '',
         endTime: ''
       },      
+      errorMessage: '',
       timeOptions: [
         '00:00', '00:30', '01:00', '01:30', '02:00', '02:30', '03:00', '03:30',
         '04:00', '04:30', '05:00', '05:30', '06:00', '06:30', '07:00', '07:30',
@@ -111,6 +113,9 @@ export default {
     this.fetchEvents(); // load  the existing events when the calendar is rendered
     
   },
+  watch: {
+    childId: "fetchEvents", // Refetch events whenever childId changes
+  },
   methods: {
     handleDateClick(info) {
       this.modalMode = 'add';
@@ -144,17 +149,8 @@ export default {
       this.newEvent = { title: '', date: '', time: '' };
       this.selectedEvent = null;
       this.showModal = false;
-    },
-    async loadHolidays() {
-    this.singaporeHolidays.forEach(holiday => {
-      this.calendar.addEvent({
-        title: holiday.name,
-        start: holiday.date,
-        color: holiday.color
-      });
-    });
-  },
-    async saveEvent() {
+      this.errorMessage = '';
+    },async saveEvent() {
       const { title, date, startTime, endTime } = this.newEvent;
       if (title && startTime && endTime) {
         // Create event object with combined date and time
@@ -183,8 +179,26 @@ export default {
 
         this.closeModal();
       } else {
-        alert("Please enter an event title and time.");
+        this.displayError("Please fill in all fields.");  
       }
+    },
+    displayError(message) {
+      this.errorMessage = message;
+      setTimeout(() => {
+        this.errorMessage = ''; // Clear message after 3 seconds
+      }, 3000);
+  },
+    async loadHolidays() {
+    this.singaporeHolidays.forEach(holiday => {
+      this.calendar.addEvent({
+        title: holiday.name,
+        start: holiday.date,
+        color: "#FFD700", // Use a soft orange color for holidays
+        borderColor: "#FF7043", // Border color for holidays
+        textColor: "#4A4A4A", // Dark text for holidays for readability
+        display: "block",
+      });
+    });
     },
     async deleteEvent() {
       if (this.selectedEvent) {
@@ -218,8 +232,10 @@ export default {
             id: doc.id, // Use Firestore doc id as event id
             title: eventData.title,
             start: eventData.start,
-            color: eventData.color,
-            borderColor: eventData.borderColor
+            color: "#4A90E2", // Change to desired background color
+            borderColor: "#357ABD", // Add border color for better contrast
+            textColor: "#FFF", // Add text color for better visibility
+            display: "block",
           });
         });
       } catch (error) {
@@ -228,14 +244,28 @@ export default {
     }
   },
   computed: {
-    filteredEndTimeOptions() {
-      const startTimeIndex = this.timeOptions.indexOf(this.newEvent.startTime);
-      // If a start time is selected, filter end times to be equal or later than start time
-      return startTimeIndex === -1
-        ? this.timeOptions
-        : this.timeOptions.slice(startTimeIndex);
-    }
+  // Returns all time options for the start time
+  timeOptions() {
+    return [
+      '00:00', '00:30', '01:00', '01:30', '02:00', '02:30', '03:00', '03:30',
+      '04:00', '04:30', '05:00', '05:30', '06:00', '06:30', '07:00', '07:30',
+      '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+      '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30',
+      '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30',
+      '20:00', '20:30', '21:00', '21:30', '22:00', '22:30', '23:00', '23:30'
+    ];
+  },
+
+  // Filters end time options based on the selected start time
+  filteredEndTimeOptions() {
+    const startTimeIndex = this.timeOptions.indexOf(this.newEvent.startTime);
+    // If start time is selected, only show end times that are later than start time
+    return startTimeIndex === -1
+      ? this.timeOptions // No start time selected, return all times
+      : this.timeOptions.slice(startTimeIndex + 1); // Only times after start time
   }
+}
+
 }
 </script>
 
@@ -262,20 +292,100 @@ export default {
 }
 
 button {
-  margin-top: 10px;
+   background-color: #A3C4BC; 
+   color: #FFFFFF;
+   padding: 8px 16px;
+   margin: 3px;
+   border: none;
+   border-radius: 12px;
+   cursor: pointer;
 }
+
+button:hover {
+   background-color: #7BAAA3;
+}
+
+.cancel-button {
+   background-color: #F2A490; /* Soft orange for Cancel */
+   color: white;
+   margin-left: 10px;
+}
+
 
 #calendar {
   margin-top: 20px;
   
 }
-::v-deep .fc-daygrid-day-frame, .fc-col-header-cell{
-    border: 2px solid #353333;
-  }
-  ::v-deep .fc-event {
-    border: 2px solid #e30f0f;
-    border-radius: 4px;
-  }
+::v-deep .fc-daygrid-day-frame, .fc-col-header-cell {
+   border: 1px solid #d6c9bf; /* Soft border for grid */
+   background-color: #F4E8DE; /* Light, warm background for weekdays */
+}
+/* Border for each day cell */
+::v-deep .fc-daygrid-day-frame {
+   border: 1px solid #D6C9BF; /* Soft beige border */
+   border-radius: 6px; /* Rounded corners */
+   padding: 5px;
+   transition: background-color 0.3s; /* Smooth transition for hover */
+}
+
+/* Hover effect for each day */
+::v-deep .fc-daygrid-day-frame:hover {
+   background-color: #F5EDE2; /* Light peach for hover effect */
+   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow on hover */
+   cursor: pointer;
+}
+
+/* Target the day headers (Sunday, Monday, etc.) */
+::v-deep .fc-col-header-cell {
+   background-color: #F4E8DE; /* Light beige for headers */
+   color: #F4E8DE; /* Darker text for readability */
+   font-weight: bold;
+   padding: 10px;
+   border-bottom: 1px solid #d6c9bf; /* Optional border for separation */
+}
+
+/* Optional: Adjust text color on hover for a subtle effect */
+::v-deep .fc-col-header-cell:hover {
+   background-color: #E9DCCD; /* Slightly darker shade on hover */
+   cursor: pointer;
+}
+
+::v-deep .fc-day-sat .fc-daygrid-day-frame, 
+::v-deep .fc-day-sun .fc-daygrid-day-frame {
+   background-color: #FFE9D6; /* Soft pastel peach for weekends */
+}
+input[type="text"],
+select {
+   width: 100%;
+   padding: 8px;
+   margin-bottom: 10px;
+   border: 1px solid #d6c9bf;
+   border-radius: 4px;
+   background-color: #FFF9F5; /* Light beige input field */
+}
+
+.error-message {
+  color: red;
+  font-weight: bold;
+  margin-top: 10px;
+  animation: fadeOut 2s ease forwards;
+}
+::v-deep .fc-event {
+  border: 1px solid #357ABD !important; /* Defined border */
+  border-radius: 4px; /* Rounded corners */
+  padding: 3px 6px; /* Inner padding for better spacing */
+  color: #FFF !important; /* White text for contrast */
+  font-size: 0.9em;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes fadeOut {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
 @media screen and (min-width: 1400px) {
   .modal-content {
   background: white;

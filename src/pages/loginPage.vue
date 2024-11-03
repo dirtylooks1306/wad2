@@ -7,7 +7,7 @@ import {
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { onAuthStateChanged } from 'firebase/auth';
-
+import { appState } from '../router';
 // Form input state
 const email = ref("");
 const password = ref("");
@@ -25,6 +25,8 @@ onMounted(() => {
     }
   });
 });
+
+
 
 // Function to handle login
 const handleLogin = async () => {
@@ -52,6 +54,7 @@ const handleLogin = async () => {
 <template>
   <NavBar />
   <div class="login-container">
+    <p v-if="appState.loginMessage" class="login-message">{{ appState.loginMessage }}</p>
     <h1>Login to CradleCare</h1>
     <form @submit.prevent="handleLogin">
       <div class="form-group">
@@ -130,5 +133,10 @@ const handleLogin = async () => {
 .success {
   color: green;
   margin-top: 10px;
+}
+
+.login-message {
+  color: red;
+  margin-bottom: 10px;
 }
 </style>

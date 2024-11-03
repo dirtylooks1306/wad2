@@ -6,7 +6,7 @@
 			<input type="date" class="form-control" id="date" v-model="formData.selectedDate" />
 		</div>
 	</div>
-	<div class="form-group row p-1">
+	<!-- <div class="form-group row p-1">
 		<div class="col-md-1"></div>
 		<label for="age" class="col-md-3 col-12 col-form-label">Current age</label>
 		<div class="col-md-8 col-12">
@@ -20,7 +20,7 @@
 				<option value="18-24 months">18-24 months</option>
 			</select>
 		</div>
-	</div>
+	</div> -->
 	<div class="form-group row p-1">
 		<div class="col-md-1"></div>
 		<label for="date" class="col-md-3 col-12 col-form-label">Weight</label>
@@ -33,34 +33,6 @@
 		<label for="date" class="col-md-3 col-12 col-form-label">Height/ Length</label>
 		<div class="col-md-8 col-12">
 			<input type="number" class="form-control" id="date" placeholder="30 cm" v-model="formData.selectedHeight" />
-		</div>
-	</div>
-	<div class="form-group row ps-1">
-		<div class="col-md-1"></div>
-		<label for="steps" class="col-md-3 col-12 col-form-label">First Steps?</label>
-		<div class="col-md-8 col-12 pt-2">
-			<div class="form-check form-check-inline">
-				<input class="form-check-input" type="radio" name="steps" id="yesSteps" value="yes" v-model="formData.selectedSteps" />
-				<label class="form-check-label" for="inlineRadio1">Yes</label>
-			</div>
-			<div class="form-check form-check-inline">
-				<input class="form-check-input" type="radio" name="steps" id="noSteps" value="no" />
-				<label class="form-check-label" for="inlineRadio2">No</label>
-			</div>
-		</div>
-	</div>
-	<div class="form-group row ps-1">
-		<div class="col-md-1"></div>
-		<label for="words" class="col-md-3 col-12 col-form-label">First Words?</label>
-		<div class="col-md-8 col-12 pt-2">
-			<div class="form-check form-check-inline">
-				<input class="form-check-input" type="radio" name="words" id="yesWords" value="yes" v-model="formData.selectedWords" />
-				<label class="form-check-label" for="inlineRadio1">Yes</label>
-			</div>
-			<div class="form-check form-check-inline">
-				<input class="form-check-input" type="radio" name="words" id="noWords" value="no" />
-				<label class="form-check-label" for="inlineRadio2">No</label>
-			</div>
 		</div>
 	</div>
 	<div class="form-group row p-1">
@@ -91,8 +63,6 @@ export default {
 				selectedAge: "0-2 months",
 				selectedWeight: "",
 				selectedHeight: "",
-				selectedSteps: "",
-				selectedWords: "",
 				selectedRemarks: "",
 			},
 		};
@@ -113,11 +83,9 @@ export default {
             this.formData = {
                 selectedDate: this.currentDate(),
                 selectedSex: "male",
-                selectedAge: "0-2 months",
+                // selectedAge: "0-2 months",
                 selectedWeight: "",
                 selectedHeight: "",
-                selectedSteps: "",
-                selectedWords: "",
                 selectedRemarks: "",
             };
         },

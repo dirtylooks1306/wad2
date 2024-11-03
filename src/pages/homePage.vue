@@ -1,4 +1,3 @@
-HomePage Draft 1 (Trending Articles)
 
 <script setup>
 import { onMounted, ref } from 'vue';
@@ -42,8 +41,8 @@ onMounted(fetchTopArticles);
     <header>
       <div class="jumbotron header_class">
         <div class="row">
-          <div class="col-md-6">
-            <div class="title-class">
+          <div class="col-md-6 header">
+            <div class="title-class text-end">
               <span class="line-1">Empowering Parents</span><br />
               <span class="line-2">Nurturing Futures</span>
             </div>
@@ -69,7 +68,7 @@ onMounted(fetchTopArticles);
     <!-- Remaining sections unchanged -->
   
     <footer>
-      <p>CradleCare © 2024</p>
+      <p class="text-center">CradleCare © 2024</p>
     </footer>
   </template>
 
@@ -104,6 +103,12 @@ h1 .line-2 {
     color: #ff9689;
     font-family: "Cherry Bomb", sans-serif;
 }
+.header {
+	margin: auto;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
 img {
     max-width: 100%;
     height: auto;
@@ -129,5 +134,6 @@ img {
 
 footer {
     margin-top: 40px;
+    padding: 20px 0px;
 }
 </style>
