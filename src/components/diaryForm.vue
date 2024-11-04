@@ -35,7 +35,7 @@ import CustomHeader from "./CustomHeader.vue";
     <div class="row py-3">
         <div class="col-4"></div>
         <div class="col-4 d-flex justify-content-center">
-            <button type="submit" class="btn btn-primary" @click="submitEntry">Submit Entry</button>
+            <button type="submit" class="btn btn-primary" @click="submitEntry"><span>Submit Entry</span></button>
         </div>
         <div class="col-4"></div>
     </div>
@@ -50,7 +50,7 @@ import CustomHeader from "./CustomHeader.vue";
             </select>
         </div>
         <div class="col-xl-6 col-lg-12 mt-2 d-flex align-self-end justify-content-center">
-            <button type="button" class="btn btn-success align-bottom w-50" @click="addDiary">Add Diary</button>
+            <button type="button" id="add" class="btn btn-success align-bottom w-50" @click="addDiary"><span>Add Diary</span></button>
         </div>
     </div>
     <div class="row row-xl-cols-2 row-lg-cols-1">
@@ -62,7 +62,7 @@ import CustomHeader from "./CustomHeader.vue";
             </select>
         </div>
         <div class="col-xl-6 col-lg-12 mt-2 d-flex align-self-end justify-content-center">
-            <button type="button" class="btn btn-danger align-bottom w-50" @click="deleteDiary">Delete Diary</button>
+            <button type="button" id="delete" class="btn btn-danger align-bottom w-50" @click="deleteDiary"><span>Delete Diary</span></button>
         </div>
     </div>
     
@@ -150,5 +150,42 @@ import CustomHeader from "./CustomHeader.vue";
 <style scoped>
 label, button {
     font-family: "Cherry Bomb", sans-serif;
+}
+/* Form button animations */
+button {
+	font-family: "Cherry Bomb", sans-serif;
+}
+
+button span {
+	cursor: pointer;
+	display: inline-block;
+	position: relative;
+	transition: 0.5s;
+}
+
+button span:after {
+	content: "\00bb"; /* Double arrow */
+	position: absolute;
+	opacity: 0;
+	top: 0;
+	right: -20px;
+	transition: 0.5s;
+}
+
+#add span:after {
+    content: "\02795"; /* Plus Sign */
+}
+
+#delete span:after {
+    content: "\2796"; /* Minus Sign */
+}
+
+button:hover span {
+	padding-right: 25px;
+}
+
+button:hover span:after {
+	opacity: 1;
+	right: 0;
 }
 </style>
