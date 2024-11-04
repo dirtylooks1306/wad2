@@ -11,15 +11,17 @@ import {
 	deleteDoc,
 	setDoc,
   query,
+  storage,
+  auth,
 } from "../firebaseConfig.js";
-import { orderBy } from "firebase/firestore";
+import { orderBy, where } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 /*
 To Do:
-- Figure out how to add subcollections to Firebase (Done, figure out how to remove placeholder)
-- Change button animations when webpage accessed from mobile (2nd priority) -> Try @media / Change JS functions to check if class is desktop or mobile
-- Add button animations for form component -> Refer to Emergency Page for button CSS
-- Integrate login guard into diary page
+- Figure out how to add subcollections to Firebase (Done, figure out how to remove placeholder if possible)
+- Add button animations for form component -> Refer to Emergency Page for button CSS (Last priority)
+- Integrate login guard into diary page (Top priority)
+- Obtain list of children and make dropdown list for adding diary (2nd priority)
 */
 </script>
 
@@ -43,6 +45,7 @@ To Do:
       <CustomHeader header="SUBMIT A NEW ENTRY"/>
       <DiaryForm :entryData="newEntry"
       :diaries="dbDiaries" 
+      :children="children"
       @submitEntry="submitEntry"
       @addDiary="addDiary"
       @deleteDiary="deleteDiary"/>
@@ -62,6 +65,7 @@ To Do:
     data() {
       return {
         dbDiaries: [],
+        children: [],
         // Static storage of diaries, KEEP NAMING CONVENTIONS
         /*
         diaries: [
@@ -91,6 +95,7 @@ To Do:
     },
     methods: {
       async submitEntry(formData) {
+        console.log(formData); //Debugging image path
         //Part 1: Retrieve form data and assign variables
         const diaryOwner = formData.name;
         //console.log(this.newEntry); //Ensure form data is successfully retrieved
@@ -103,6 +108,7 @@ To Do:
               const entry = {
                 body: formData.body,
                 date: formData.date ? new Date(formData.date) : null,
+                image: formData.image,
                 header: formData.header
               }
               const newDiaryEntry = doc(db, "diary", diaryOwner, "Entries", id)
@@ -110,8 +116,8 @@ To Do:
               this.deletePlaceholder(diaryOwner);
               d.entries.push({
                 id: id,
-                ...this.entry,
-                date: this.newEntry.date ? this.newEntry.date.toLocaleDateString() : 'No Date',
+                ...entry,
+                date: entry.date ? entry.date.toLocaleDateString() : 'No Date',
               })
             }
             else {
@@ -121,6 +127,7 @@ To Do:
               this.newEntry = {
                 body: formData.body,
                 date: formData.date ? new Date(formData.date) : null, //Convert date string to Timestamp object
+                image: formData.image,
                 header: formData.header,
               };
               await setDoc(newEntryRef, this.newEntry); //setDoc used instead of addDoc since there is custom ID set
@@ -165,6 +172,11 @@ To Do:
       },
       async addDiary(name) {
         const newDiary = doc(db, "diary", name);
+        const dbEntries = collection(db, "diary");
+        const diaryCheck = query(dbEntries, where("Filter", "==", name))
+        const checkSnapshot = await getDocs(diaryCheck);
+        console.log(checkSnapshot)
+        /*
         await setDoc(newDiary, { created: true }); //Create new path for new diary owner
         
         const newEntries = collection(newDiary, "Entries");
@@ -175,6 +187,8 @@ To Do:
           id: name,
           entries: [],
         })
+        alert("Diary added successfully");
+        */
       },
       async deleteDiary(name) {
         const toRemove = doc(db, "diary", name);
@@ -184,6 +198,7 @@ To Do:
             this.dbDiaries.splice(i, 1);
           }
         }
+        alert("Diary deleted successfully!")
       },
       async deletePlaceholder(name) {
         for (let d of this.dbDiaries) {
@@ -203,7 +218,42 @@ To Do:
     },
     async mounted() {
       window.vm = this;
-      //alert("If you're using this feature from a mobile phone, it is recommended to view the page in landscape mode!"); // Temporary alert
+      console.log(storage); //Storage works
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          this.userId = user.uid;
+          //console.log(user.uid); //Check whether user ID is obtained
+          var childrenList = [];
+          const childrenRef = collection(db, "users", this.userId, "children");
+          const snapshot = await getDocs(childrenRef);
+          childrenList = snapshot.docs.map((doc) => ({
+            ...doc.data()
+          }))
+          for (let child of childrenList) {
+            this.children.push(child.name);
+          }
+          const diaries = collection(db, "diary");
+          const diarySnapshot = await getDocs(diaries);
+          this.dbDiaries = diarySnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+            entries: [] //Ensures that entries array exists when database data is transferred over
+          })).sort((a, b) => {
+            const dateA = new Date(a.date);
+            const dateB = new Date(b.date);
+            return dateA - dateB;
+          });
+          this.loading = false;
+          for (let d of this.dbDiaries) {
+            const entries = await this.getEntries(d.id);
+            d.entries = entries;
+          }
+          console.log(this.dbDiaries); //Ensures the diaries database is populated
+          return this.dbDiaries //Ensure the return of populated database
+        } else {
+          this.$router.push("/login");
+        }
+      })
       /*
       // Check user authentication on component mount
       onAuthStateChanged(auth, async (user) => {
@@ -234,24 +284,6 @@ To Do:
         }
       });
       */
-      const diaries = collection(db, "diary");
-      const snapshot = await getDocs(diaries);
-      this.dbDiaries = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        entries: [] //Ensures that entries array exists when database data is transferred over
-      })).sort((a, b) => {
-				const dateA = new Date(a.date);
-				const dateB = new Date(b.date);
-				return dateA - dateB;
-			});
-      this.loading = false;
-      for (let d of this.dbDiaries) {
-        const entries = await this.getEntries(d.id);
-        d.entries = entries;
-      }
-      console.log(this.dbDiaries); //Ensures the diaries database is populated
-      return this.dbDiaries //Ensure the return of populated database
     },
   }
 </script>

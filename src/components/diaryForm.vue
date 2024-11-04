@@ -21,7 +21,7 @@ import CustomHeader from "./CustomHeader.vue";
     </div>
     <div class="col-3">
         <label for="imageFile" class="col-form-label">Select an Image:</label>
-        <input type="file" id="imageFile" @change="setImage">
+        <input type="file" id="imageFile" class="form-control" @change="setImage">
     </div>
     <div class="col-12 py-2">
         <label for="body" class="col-form-label">Entry Body:</label>
@@ -41,21 +41,28 @@ import CustomHeader from "./CustomHeader.vue";
     </div>
     <hr>
     <CustomHeader header="Add / Delete Diary"/> <!-- Form group to delete diaries from Firebase entirely -->
-    <div class="row row-xl-cols-3 row-lg-cols-2">
+    <div class="row row-xl-cols-2 row-lg-cols-1">
         <div class="col-xl-6 col-lg-12">
-            <label for="diaryName" class="col-form-label">Owner Name:</label><br>
-            <select id="diaryName" class="form-select" aria-label="Default Select Example" v-model="diaryName">
+            <label for="newDiaryName" class="col-form-label">New Owner Name:</label><br>
+            <select id="newDiaryName" class="form-select" aria-label="Default Select Example" v-model="newDiaryName">
+                <option value="Select a Child" selected>Select a Child</option>
+                <option v-for="child of children" :value="child">{{ child }}</option> <!-- To Change based on user's children names -->
+            </select>
+        </div>
+        <div class="col-xl-6 col-lg-12 mt-2 d-flex align-self-end justify-content-center">
+            <button type="button" class="btn btn-success align-bottom w-50" @click="addDiary">Add Diary</button>
+        </div>
+    </div>
+    <div class="row row-xl-cols-2 row-lg-cols-1">
+        <div class="col-xl-6 col-lg-12">
+            <label for="existingDiaryName" class="col-form-label">Existing Owner Name:</label><br>
+            <select id="existingDiaryName" class="form-select" aria-label="Default Select Example" v-model="existingDiaryName">
                 <option value="Select a Child" selected>Select a Child</option>
                 <option v-for="(diary, i) in diaries" :value="diary.id">{{ diary.id }}</option>
             </select>
         </div>
-        <div class="col-xl-3 col-lg-6 mt-2 d-flex align-self-end justify-content-center">
-            <br>
-            <button type="button" class="btn btn-danger align-bottom" @click="deleteDiary">Delete Diary</button>
-        </div>
-        <div class="col-xl-3 col-lg-6 mt-2 d-flex align-self-end justify-content-center">
-            <br>
-            <button type="button" class="btn btn-success align-bottom" @click="addDiary">Add Diary</button>
+        <div class="col-xl-6 col-lg-12 mt-2 d-flex align-self-end justify-content-center">
+            <button type="button" class="btn btn-danger align-bottom w-50" @click="deleteDiary">Delete Diary</button>
         </div>
     </div>
     
@@ -69,6 +76,7 @@ import CustomHeader from "./CustomHeader.vue";
         props: {
             entryData: Object,
             diaries: Array,
+            children: Array,
         },
         emits: ['submitEntry', 'addDiary', 'deleteDiary'],
         data() {
@@ -77,10 +85,12 @@ import CustomHeader from "./CustomHeader.vue";
                     name: "",
                     header: "",
                     date: this.currentDate(),
+                    image: "",
                     body: "",
 			    },
-                maxChars: 525,
-                diaryName: "", //Diary to add or delete(if exists)
+                maxChars: 360,
+                newDiaryName: "", //Diary to add
+                existingDiaryName: "", //Diary to delete
             }
         },
         computed: {
@@ -111,10 +121,10 @@ import CustomHeader from "./CustomHeader.vue";
                 document.getElementById('imageFile').value = "";
             },
             addDiary() {
-                this.$emit('addDiary', this.diaryName)
+                this.$emit('addDiary', this.newDiaryName)
             },
             deleteDiary() {
-                this.$emit('deleteDiary', this.diaryName)
+                this.$emit('deleteDiary', this.existingDiaryName)
             },
             setImage() {
                 const fileInput = document.getElementById('imageFile').value;
