@@ -76,7 +76,6 @@ export default {
 			return `${year}-${month}-${day}`;
 		},
 		submitForm() {
-			console.log(this.formData)
             this.$emit("submit", this.formData);
             this.resetFormData();
 		},
