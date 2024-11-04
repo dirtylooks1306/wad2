@@ -6,7 +6,6 @@ import { db } from "../firebaseConfig.js";  // Import Firestore instance
 import CustomHeader from "../components/CustomHeader.vue";
 import Carousel from "../components/Carousel.vue";
 import NavBar from "../components/navBar.vue";
-import Forum from "../components/Forum.vue";
 
 // Reference to store top articles for the carousel
 const carouselItems = ref([]);

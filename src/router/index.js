@@ -5,13 +5,16 @@ import growthTrackerPage from '../pages/trackerPage.vue';
 import articlesPage from '../pages/articlesPage.vue';
 import diaryPage from '../pages/diaryPage.vue';
 import emergencyPage from '../pages/emergencyPage.vue';
-import forumPage from '../pages/forumPage.vue';
 import loginPage from '../pages/loginPage.vue';
 import registerPage from '../pages/registerPage.vue';
 import forgotpasswordPage from '../pages/forgotpasswordPage.vue';
 import profilePage from '../pages/profilePage.vue';
 import vaccineTrackerPage from '../pages/vaccineTrackerPage.vue';
-import createPost from '../components/createPost.vue';
+import ForumHome from '../pages/forumHome.vue';
+import CreatePost from '../pages/createPost.vue';
+import UserProfile from '../pages/userProfile.vue';
+import ThreadPost from '../pages/threadPost.vue';
+import EditPost from '../pages/editPost.vue';
 
 
 import {auth } from '../firebaseConfig.js';
@@ -61,10 +64,31 @@ const routes = [
     },
 
     {
-        path: "/forum/:postId?",
-        name: "Forum",
-        component: forumPage,
-        props: true
+        path: '/forum/:category?',
+        component: ForumHome,
+        props: true,
+    },
+
+    {
+        path: '/forum/thread/:id',
+        component: ThreadPost,
+    },
+
+    {
+        path: '/forum/create-post',
+        component: CreatePost,
+        meta: { requiresAuth: true }
+    },
+
+    {
+        path: '/forum/edit-post/:id',
+        component: EditPost,
+        meta: { requiresAuth: true }
+    },
+
+    {
+        path: '/forum/user/:id',
+        component: UserProfile,
     },
 
     {
