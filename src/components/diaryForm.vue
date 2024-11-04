@@ -6,7 +6,7 @@ import CustomHeader from "./CustomHeader.vue";
         <div class="col-xl-4 col-lg-12 py-2">
             <label for="name" class="col-form-label">Owner Name:</label><br>
             <select id="name" class="form-select" aria-label="Default Select Example" v-model="formData.name">
-                <option value="Select a Child" selected>Select a Child</option>
+                <option value="" selected>Select a Child</option>
                 <option v-for="(diary, i) in diaries" :value="diary.id">{{ diary.id }}</option>
             </select>
         </div>
@@ -45,7 +45,7 @@ import CustomHeader from "./CustomHeader.vue";
         <div class="col-xl-6 col-lg-12">
             <label for="newDiaryName" class="col-form-label">New Owner Name:</label><br>
             <select id="newDiaryName" class="form-select" aria-label="Default Select Example" v-model="newDiaryName">
-                <option value="Select a Child" selected>Select a Child</option>
+                <option value="" selected>Select a Child</option>
                 <option v-for="child of children" :value="child">{{ child }}</option> <!-- To Change based on user's children names -->
             </select>
         </div>
@@ -57,7 +57,7 @@ import CustomHeader from "./CustomHeader.vue";
         <div class="col-xl-6 col-lg-12">
             <label for="existingDiaryName" class="col-form-label">Existing Owner Name:</label><br>
             <select id="existingDiaryName" class="form-select" aria-label="Default Select Example" v-model="existingDiaryName">
-                <option value="Select a Child" selected>Select a Child</option>
+                <option value="" selected>Select a Child</option>
                 <option v-for="(diary, i) in diaries" :value="diary.id">{{ diary.id }}</option>
             </select>
         </div>
@@ -107,6 +107,9 @@ import CustomHeader from "./CustomHeader.vue";
                 return `${year}-${month}-${day}`;
             },
             submitEntry() {
+                if (this.formData.name === '') {
+                    alert("Name field cannot be empty!");
+                }
                 this.$emit('submitEntry', this.formData);
                 this.resetFormData();
             },
@@ -121,9 +124,15 @@ import CustomHeader from "./CustomHeader.vue";
                 document.getElementById('imageFile').value = "";
             },
             addDiary() {
+                if (this.newDiaryName === '') {
+                    alert("New owner name must be selected!")
+                }
                 this.$emit('addDiary', this.newDiaryName)
             },
             deleteDiary() {
+                if (this.existingDiaryName === '') {
+                    alert("Existing owner name must be selected!")
+                }
                 this.$emit('deleteDiary', this.existingDiaryName)
             },
             setImage() {
