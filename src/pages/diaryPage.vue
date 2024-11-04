@@ -13,15 +13,19 @@ import {
   query,
   storage,
   auth,
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
 } from "../firebaseConfig.js";
-import { orderBy, where } from "firebase/firestore";
+import { orderBy } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 /*
 To Do:
 - Figure out how to add subcollections to Firebase (Done, figure out how to remove placeholder if possible)
 - Add button animations for form component -> Refer to Emergency Page for button CSS (Last priority)
-- Integrate login guard into diary page (Top priority)
-- Obtain list of children and make dropdown list for adding diary (2nd priority)
+- Integrate login guard into diary page (Done)
+- Obtain list of children and make dropdown list for adding diary (Done)
+- Figure out how to add images to diary (Top priority)
 */
 </script>
 
@@ -102,6 +106,12 @@ To Do:
         //Part 2: Update database with new entry
         for (let d of this.dbDiaries) {
           if (d.id === diaryOwner) {
+            //Test for uploading files logic
+            const storageRef = ref(storage, `/DiaryImages/${diaryOwner}`);
+            const uploadTask = await uploadBytesResumable(storageRef, formData.image)
+            if (formData.image) {
+              console.log("image exists");
+            }
             //if-loop only when diary is first initialised -> Removes placeholder with actual entry
             if (d.entries.length === 1 && d.entries[0].id === "Placeholder") {
               const id = "Entry 001"
@@ -138,8 +148,8 @@ To Do:
                 ...this.newEntry,
                 date: this.newEntry.date ? this.newEntry.date.toLocaleDateString() : 'No Date',
               }) //Bug happens when new entry is submitted while diary is in closed state -> Paper overlaps the Next Page button but works as per normal after button is pressed
-            }
-            alert("Entry successfully added!")    
+            };
+            alert("Entry successfully added!");   
           }
         }
       },
@@ -166,17 +176,21 @@ To Do:
           header: doc.data().header,
           date: doc.data().date ? doc.data().date.toDate().toLocaleDateString() : 'No Date',
           body: doc.data().body,
+          image: doc.data().image,
         }))
         //console.log(entries); //Entries successfully retrieved
         return entries; // Returns value of entries array to be used in mounted function
       },
       async addDiary(name) {
+        //Check first if diary already exists for the selected person
+        for (let d of this.dbDiaries) {
+          if (d.id === name) {
+            alert("Diary already exists!")
+            return; //Exit the function if diary exists, stops repeated addition of identical diaries
+          }
+        }
+        //If diary does not exist, proceed with creating the new diary
         const newDiary = doc(db, "diary", name);
-        const dbEntries = collection(db, "diary");
-        const diaryCheck = query(dbEntries, where("Filter", "==", name))
-        const checkSnapshot = await getDocs(diaryCheck);
-        console.log(checkSnapshot)
-        /*
         await setDoc(newDiary, { created: true }); //Create new path for new diary owner
         
         const newEntries = collection(newDiary, "Entries");
@@ -188,7 +202,6 @@ To Do:
           entries: [],
         })
         alert("Diary added successfully");
-        */
       },
       async deleteDiary(name) {
         const toRemove = doc(db, "diary", name);
@@ -218,7 +231,7 @@ To Do:
     },
     async mounted() {
       window.vm = this;
-      console.log(storage); //Storage works
+      //console.log(storage); //Storage works
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           this.userId = user.uid;
@@ -248,42 +261,12 @@ To Do:
             const entries = await this.getEntries(d.id);
             d.entries = entries;
           }
-          console.log(this.dbDiaries); //Ensures the diaries database is populated
+          //console.log(this.dbDiaries); //Ensures the diaries database is populated
           return this.dbDiaries //Ensure the return of populated database
         } else {
           this.$router.push("/login");
         }
       })
-      /*
-      // Check user authentication on component mount
-      onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          this.userId = user.uid; // Set userId to the logged-in user’s UID
-          // Get the user's tracking info data from Firebase
-          await this.fetchChildrenNames();
-          const userPostsRefGet = collection(db, "users", this.userId, "posts");
-          const snapshot = await getDocs(userPostsRefGet);
-
-          // Map and sort the posts data
-          this.posts = snapshot.docs
-            .map((doc) => ({ id: doc.id, ...doc.data() }))
-            .sort((a, b) => {
-              const dateA = new Date(a.date);
-              const dateB = new Date(b.date);
-              return dateA - dateB;
-            });
-
-          // Set loading to false and initialize charts
-          this.loading = false;
-          this.sortPosts();
-          await this.fetchPosts();
-          this.toggleCharts();
-        } else {
-          // Redirect to login if no user is found
-          this.$router.push("/login");
-        }
-      });
-      */
     },
   }
 </script>

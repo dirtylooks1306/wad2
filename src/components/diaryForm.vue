@@ -21,7 +21,7 @@ import CustomHeader from "./CustomHeader.vue";
     </div>
     <div class="col-3">
         <label for="imageFile" class="col-form-label">Select an Image:</label>
-        <input type="file" id="imageFile" class="form-control" @change="setImage">
+        <input type="file" id="imageFile" ref="file" class="form-control" @change="setImage" accept=".pdf,.jpg,.jpeg,.png">
     </div>
     <div class="col-12 py-2">
         <label for="body" class="col-form-label">Entry Body:</label>
@@ -85,7 +85,7 @@ import CustomHeader from "./CustomHeader.vue";
                     name: "",
                     header: "",
                     date: this.currentDate(),
-                    image: "",
+                    imageURL: null,
                     body: "",
 			    },
                 maxChars: 360,
@@ -118,10 +118,9 @@ import CustomHeader from "./CustomHeader.vue";
                     name: "",
                     header: "",
                     date: this.currentDate(),
-                    image: "",
+                    imageURL: null,
                     body: "",
 			    };
-                document.getElementById('imageFile').value = "";
             },
             addDiary() {
                 if (this.newDiaryName === '') {
@@ -136,8 +135,13 @@ import CustomHeader from "./CustomHeader.vue";
                 this.$emit('deleteDiary', this.existingDiaryName)
             },
             setImage() {
-                const fileInput = document.getElementById('imageFile').value;
-                this.formData.image = fileInput;
+                const fileInput = document.getElementById('imageFile');
+                //console.log(fileInput.files); Debugging for file upload
+                const reader = new FileReader();
+                reader.onload = () => {
+                    this.formData.imageURL = reader.result;
+                }
+                reader.readAsDataURL(fileInput.files[0]);
             }
         }
     }

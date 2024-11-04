@@ -5,7 +5,7 @@
             <h3 class=text-center>{{ front.header }}</h3>
             <p class="text-center">{{ front.date }}</p>
             <hr>
-            <img src="" class="border rounded-1 d-block mx-auto" style="max-width: 300px; height: 150px;">
+            <img :src="front.image" class="border rounded-1 d-block mx-auto" style="max-width: 300px; height: 150px;">
             <p class="p-3">{{ front.body }}</p>
             <button type="button" class="btn btn-danger p-1 d-flex mx-auto" @click="deleteFrontEntry">Delete Entry</button>
         </div>
@@ -15,7 +15,7 @@
             <h3 class=text-center>{{ back.header }}</h3>
             <p class="text-center">{{ back.date }}</p>
             <hr>
-            <img src="" class="border rounded-1 d-block mx-auto" style="max-width: 300px; height: 150px;">
+            <img :src="back.image" class="border rounded-1 d-block mx-auto" style="max-width: 300px; height: 150px;">
             <p class="p-3">{{ back.body }}</p>
             <button type="button" class="btn btn-danger p-1 d-flex mx-auto" @click="deleteBackEntry">Delete Entry</button>
         </div>
