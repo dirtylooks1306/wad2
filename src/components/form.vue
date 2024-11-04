@@ -6,7 +6,7 @@
 			<input type="date" class="form-control" id="date" v-model="formData.selectedDate" />
 		</div>
 	</div>
-	<!-- <div class="form-group row p-1">
+	<div class="form-group row p-1">
 		<div class="col-md-1"></div>
 		<label for="age" class="col-md-3 col-12 col-form-label">Current age</label>
 		<div class="col-md-8 col-12">
@@ -20,7 +20,7 @@
 				<option value="18-24 months">18-24 months</option>
 			</select>
 		</div>
-	</div> -->
+	</div>
 	<div class="form-group row p-1">
 		<div class="col-md-1"></div>
 		<label for="date" class="col-md-3 col-12 col-form-label">Weight</label>
@@ -76,6 +76,7 @@ export default {
 			return `${year}-${month}-${day}`;
 		},
 		submitForm() {
+			console.log(this.formData)
             this.$emit("submit", this.formData);
             this.resetFormData();
 		},
@@ -83,7 +84,7 @@ export default {
             this.formData = {
                 selectedDate: this.currentDate(),
                 selectedSex: "male",
-                // selectedAge: "0-2 months",
+                selectedAge: "0-2 months",
                 selectedWeight: "",
                 selectedHeight: "",
                 selectedRemarks: "",

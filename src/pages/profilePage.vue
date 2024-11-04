@@ -209,9 +209,8 @@ const handleLogout = async () => {
               <input v-model="child.height" type="number" class="form-control" />
               <label class="m-1">Child's Gender:</label>
               <select v-model="child.gender" class="form-control">
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
               </select>
               <button @click="updateChildData(child)" class="btn btn-save">Save</button>
               <button @click="toggleEditMode(null)" class="btn btn-cancel">Cancel</button>
@@ -260,7 +259,6 @@ const handleLogout = async () => {
             <option value="">Select Gender</option>
             <option value="Male">Male</option>
             <option value="Female">Female</option>
-            <option value="Other">Other</option>
           </select>
         </div>
 

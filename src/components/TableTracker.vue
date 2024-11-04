@@ -182,31 +182,29 @@ export default {
 			this.showModal = false;
 		},
 		async savePost(postId) {
-      if (!this.editingPost) return;
-			// Find the post in the array and update it with the modified values
-      try {
-			const index = this.posts.findIndex((p) => p.id === postId)
-			if (index !== -1) {
-        console.log(5)
-				this.$emit('update-post', { ...this.editingPost }); // Emit the event to the parent to update post
+			if (!this.editingPost) return;
+					// Find the post in the array and update it with the modified values
+			try {
+					const index = this.posts.findIndex((p) => p.id === postId)
+					if (index !== -1) {
+				console.log(5)
+						this.$emit('update-post', { ...this.editingPost }); // Emit the event to the parent to update post
+					}
+			this.editingPost = null;
+					this.closeModal();
+			} catch (error) {
+			console.error(error);
 			}
-      this.editingPost = null;
-			this.closeModal();
-    } catch (error) {
-      console.error(error);
-    }
+				},
+		editPost(post) {
+			this.editingPost = { ...post };
 		},
-    editPost(post) {
-      // Start editing this post by creating a shallow copy
-      this.editingPost = { ...post };
-    },
-    cancelEdit() {
-      // Cancel editing and reset editingPost
-      this.editingPost = null;
-    },
+		cancelEdit() {
+		// Cancel editing and reset editingPost
+			this.editingPost = null;
+		},
 		deletePost(postId) {
 			// Emit the delete event to the parent component
-      console.log(postId);
 			this.$emit("delete-post", postId);
 		},
 	},
