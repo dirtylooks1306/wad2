@@ -146,7 +146,7 @@ export default {
   }
   .flipped .front,
   .flipped .back {
-    transform: translateZ(180deg);
+    transform: translateX(-400px);
     transition: transform 0.5s;
   } /* Test */
 }
