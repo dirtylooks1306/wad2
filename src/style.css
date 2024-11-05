@@ -1,5 +1,8 @@
+/* Import Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Cherry+Bomb&display=swap');
-:root {
+
+/* Base styles, assuming dark mode as default */
+/* :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -12,11 +15,23 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+} */
+
+:root {
+  --background: #FBF4EB;
+  --forumbar-width: 256px;
+  --forumbar-width-min: 80px;
+  --forumbar-dark-primary: #D9C5B2;
+  --forumbar-dark-secondary: #FF9689;
+  --forumbar-light-primary: #333333;
+  --forumbar-light-secondary: #333333;
 }
+
+
 .container {
   overflow-x: hidden;
 }
- 
+
 a {
   font-weight: 500;
   color: #646cff;
@@ -26,12 +41,12 @@ a:hover {
   color: #535bf2;
 }
 
-body {
+html, body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
   height: fit-content;
-  background-color: #FBF4EB;
+  background-color: #242424;
 }
 
 h1 {
@@ -47,12 +62,15 @@ button {
   font-weight: 500;
   font-family: inherit;
   background-color: #1a1a1a;
+  color: #fff;
   cursor: pointer;
   transition: border-color 0.25s;
 }
+
 button:hover {
   border-color: #646cff;
 }
+
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
@@ -61,34 +79,50 @@ button:focus-visible {
 .card {
   padding: 2em;
 }
-.title-class{
-  font-size:44px;
+
+.title-class {
+  font-size: 44px;
   font-family: 'Cherry Bomb', cursive;
-  color:#FF9689;
+  color: #FF9689;
   line-height: 1.0;
 }
 
 #app {
   width: 100%;
   margin: 0 auto;
-  
 }
 
-.small-icon-button{
-	background-color: transparent;
-	border: none;
+.small-icon-button {
+  background-color: transparent;
+  border: none;
 }
 
-
+/* Light mode overrides */
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
-    background-color: #ffffff;
+    background-color: #FBF4EB;
   }
+  
+  a {
+    color: #414cff;
+  }
+  
   a:hover {
     color: #747bff;
   }
+  
   button {
     background-color: #f9f9f9;
+    color: #213547;
   }
+  
+  html, body {
+    background-color: #FBF4EB;
+  }
+}
+
+html, body {
+  margin: 0;
+  background: var(--background);
 }

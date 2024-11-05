@@ -1,443 +1,295 @@
 <script setup>
-import NavBar from "../components/navBar.vue";
-import {
-	db,
-	collection,
-	getDocs,
-	ref,
-	set,
-	getDatabase,
-	addDoc,
-	doc,
-	deleteDoc,
-	setDoc,
-} from "../firebaseConfig.js";
-import { nextTick } from "vue";
-import Chart from "chart.js/auto";
-import Utils from "../components/Utils.js";
 import CustomHeader from "../components/CustomHeader.vue";
 import FormComponent from "../components/form.vue";
 import TableTracker from "../components/TableTracker.vue";
+import NavBar from "../components/navBar.vue";
+import GrowthCharts from "../components/GrowthCharts.vue";
+import { ref } from "vue";
+import { onAuthStateChanged } from "firebase/auth";
+import { db, collection, getDocs, setDoc, deleteDoc, doc, auth, addDoc, getDoc } from "../firebaseConfig";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+// Reactive variables
+const posts = ref([]);
+const userId = ref(null);
+const selectedChildId = ref(null);
+const children = ref([]);
+const gender = ref(null);
+const error = ref("");
+// Fetch posts for the selected child
+const sortPosts = () => {
+    posts.value = posts.value.sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return dateA - dateB; // Sort in ascending order by date
+    });
+};
+
+const fetchPosts = async () => {
+
+	const childDocRef = doc(db, "users", userId.value, "children", selectedChildId.value);
+	const childSnapshot = await getDoc(childDocRef);
+	gender.value = childSnapshot.data().gender;
+
+	const childPostsRef = collection(db, "users", userId.value, "children", selectedChildId.value, "posts");
+	const snapshot = await getDocs(childPostsRef);
+	posts.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+	sortPosts();
+};
+
+// Handle child selection change
+const handleChildSelection = async () => {
+  	await fetchPosts();
+};
+
+// Handle updating a post
+const handleUpdatePost = async (updatedPost) => {
+	const postRef = doc(db, "users", userId.value, "children", selectedChildId.value, "posts", updatedPost.id);
+	await setDoc(postRef, updatedPost, { merge: true });
+	await fetchPosts();
+};
+
+// Handle deleting a post
+const handleDeletePost = async (postId) => {
+	const postRef = doc(db, "users", userId.value, "children", selectedChildId.value, "posts", postId);
+	await deleteDoc(postRef);
+	await fetchPosts();
+};
+
+const savePost = async (formData) => {
+	const postRef = collection(db, "users", userId.value, "children", selectedChildId.value, "posts");
+
+	// Use formData passed from FormComponent
+	const newPost = {
+		date: formData.selectedDate || new Date(), // Default to current date if not provided
+		age: formData.selectedAge,
+		weight: formData.selectedWeight,
+		height: formData.selectedHeight,
+		remarks: formData.selectedRemarks,
+	};
+
+	await addDoc(postRef, newPost); // Automatically generates document ID
+	await fetchPosts(); // Refresh the posts
+};
+
+
+const redirectToProfile = () => {
+  // Navigate to the profile page
+  	router.push("/profile");
+};
+
+const fetchChildren = async () => {
+  if (!userId.value) return;
+
+  const childrenRef = collection(db, "users", userId.value, "children");
+  const snapshot = await getDocs(childrenRef);
+  children.value = snapshot.docs.map((doc) => ({ id: doc.id, name: doc.data().name }));
+
+  if (children.value.length > 0) {
+    selectedChildId.value = children.value[0].id;
+    await fetchPosts();
+  } else {
+    error.value = "No children found, please add a child to get started.";
+  }
+};
+
+
+// Set user ID on authentication
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    userId.value = user.uid;
+    await fetchChildren();
+	sortPosts();
+  }
+});
+
 </script>
 
 <template>
 	<NavBar />
-	<div class="row">
-		<div class="col-3"></div>
-		<div class="col-2">
-			<CustomHeader header="GrowthTracker" />
+	<div class="page-container">
+	  <div class="container-fluid header-section">
+		<div class="left-align">
+		  <CustomHeader header="GrowthTracker" />
+		  <div class="child-selector mb-3">
+			<label for="childDropdown" class="me-2">Select Child:</label>
+			<select id="childDropdown" v-model="selectedChildId" @change="handleChildSelection">
+			  <option v-for="child in children" :key="child.id" :value="child.id">
+				{{ child.name }}
+			  </option>
+			</select>
+		  </div>
 		</div>
-		<div class="col-7"></div>
+	  </div>
+  
+	  <!-- Modal for no children found -->
+	<div v-if="error" class="modal-overlay">
+		<div class="modal-content">
+			<h2 class="modal-title">No Children Registered</h2>
+			<p class="modal-message">It looks like you haven't registered any children yet.</p>
+			<p class="modal-subtext">Please visit your profile page to add a child and start tracking growth information.</p>
+			<button class="modal-button" @click="redirectToProfile">Go to Profile Page</button>
+		</div>
 	</div>
-	<div>
-		<!-- <ul class="d-md-flex desktop-tabs mt-3">
-			<li
-				:class="{ selected: activeTab === 'GrowthTracker' }"
-				@click="activeTab = 'GrowthTracker'"
-			>
-				<a href="#GrowthTracker">Growth Tracker</a>
-			</li>
-			<li
-				:class="{ selected: activeTab === 'Vaccine' }"
-				@click="activeTab = 'Vaccine'"
-			>
-				<a href="#Vaccine">Vaccination Tracker</a>
-			</li>
-		</ul> -->
-
-		<div v-if="activeTab === 'GrowthTracker'" class="container-fluid">
+  
+	  <div>
+		<div class="table-tracker text-center">
+		  <div class="center">
 			<TableTracker
-				:posts="posts"
-				@delete-post="handleDeletePost"
-				@update-post="handleUpdatePost"
-				class="m-3"
+			  :posts="posts"
+			  @delete-post="handleDeletePost"
+			  @update-post="handleUpdatePost"
+			  class="m-3"
 			/>
+		  </div>
 		</div>
-			<div class="secondary-background container-fluid p-0">
-				<div class="row pt-3">
-					<div class="input-container col-md-5 ps-5">
-						<FormComponent @submit="savePost" />
-					</div>
-
-					<div class="col-md-7 container-fluid">
-						<canvas id="babyGrowthWeightChart"></canvas>
-						<canvas id="babyGrowthHeightChart"></canvas>
-						<ul class="d-md-flex desktop-tabs mt-3">
-							<li
-								:class="{
-									selected: activeSubTab === 'WeightGraph',
-								}"
-								@click="activeSubTab = 'WeightGraph'"
-							>
-								<a href="#WeightGraph">Weight</a>
-							</li>
-							<li
-								:class="{
-									selected: activeSubTab === 'HeightGraph',
-								}"
-								@click="activeSubTab = 'HeightGraph'"
-							>
-								<a href="#HeightGraph">Height</a>
-							</li>
-						</ul>
-						<button @click="refreshCharts" class="btn btn-success">
-							Refresh Charts
-						</button>
-					</div>
-				</div>
-
+  
+		<div class="form-and-charts">
+		  <div class="form-section">
+			<FormComponent @submit="savePost" />
+		  </div>
+  
+		  <div class="charts-section">
+			<GrowthCharts :posts="posts" :gender="gender"/>
+		  </div>
 		</div>
-		<!-- <div v-else-if="activeTab === 'Vaccine'">bob2</div> -->
+	  </div>
 	</div>
-</template>
-
-<script>
-export default {
-	name: "trackerPage",
-	data() {
-		return {
-			activeTab: "GrowthTracker",
-			activeSubTab: "WeightGraph",
-			posts: [],
-			loading: true,
-			weightChart: null,
-			heightChart: null,
-			globalWeightArray: [],
-			globalHeightArray: [],
-			currentChildAge: "",
-		};
-	},
-	methods: {
-		sortPosts() {
-			this.posts = this.posts.sort((a, b) => {
-				const dateA = new Date(a.date);
-				const dateB = new Date(b.date);
-				return dateA - dateB; // Sort in ascending order
-			});
-		},
-		async handleUpdatePost(updatedPost) {
-			const postRef = doc(db, "users", "user2", "posts", updatedPost.id);
-			await setDoc(postRef, updatedPost); // Update post in Firebase
-			this.fetchPosts(); // Re-fetch posts after update (optional)
-		},
-		async handleDeletePost(postId) {
-			const postRef = doc(db, "users", "user2", "posts", postId);
-			await deleteDoc(postRef); // Delete post from Firebase
-			this.fetchPosts(); // Re-fetch posts after deletion (optional)
-		},
-		async savePost(formData) {
-			// posting user's tracking info data into firebase
-			const userPostsRefPost = collection(db, "users", "user2", "posts");
-			const newPost = {
-				date: formData.selectedDate,
-				age: formData.selectedAge,
-				weight: formData.selectedWeight,
-				height: formData.selectedHeight,
-				sex: formData.selectedSex,
-				walk: formData.selectedSteps === "yes",
-				talk: formData.selectedWords === "no",
-				remarks: formData.selectedRemarks,
-			};
-			const docRef = await addDoc(userPostsRefPost, newPost);
-			await this.fetchPosts();
-		},
-		async fetchPosts() {
-			const postsRef = collection(db, "users", "user2", "posts");
-			const snapshot = await getDocs(postsRef);
-			this.posts = snapshot.docs.map((doc) => ({
-				id: doc.id,
-				...doc.data(),
-			})); // Update posts array
-
-			const gender = "male"; // Hardcoded for now
-			this.currentChildAge = this.posts[this.posts.length - 1].age;
-
-			const globalHeight = collection(
-				db,
-				"globalBabyData",
-				gender,
-				"height"
-			);
-			const snapshotChart = await getDocs(globalHeight);
-			this.globalHeightArray = snapshotChart.docs.map((doc) => ({
-				id: doc.id,
-				...doc.data(),
-			}));
-
-			const globalWeight = collection(
-				db,
-				"globalBabyData",
-				gender,
-				"weight"
-			);
-			const snapshotChartWeight = await getDocs(globalWeight);
-			this.globalWeightArray = snapshotChartWeight.docs.map((doc) => ({
-				id: doc.id,
-				...doc.data(),
-			}));
-
-			if (this.activeSubTab === "WeightGraph") {
-				this.createChartWeight(); // Only create the weight chart
-			} else if (this.activeSubTab === "HeightGraph") {
-				this.createChartHeight(this.currentChildAge); // Only create the height chart
-			}
-		},
-		createChartWeight(currentChildAge) {
-			if (this.weightChart) {
-				this.weightChart.destroy();
-			}
-			const ageRangeMapping = {
-				"0-2 months": 1,
-				"2-4 months": 2,
-				"4-6 months": 3,
-				"6-9 months": 4,
-				"9-12 months": 5,
-				"12-18 months": 6,
-				"18-24 months": 7,
-			};
-			// await this.fetchPosts();
-			let dateData = this.posts.map((post) => post.date); // date in array
-			let weightData = this.posts.map((post) => post.weight); // weight in array
-			let averageWeight =
-				this.globalWeightArray[0][
-					ageRangeMapping[this.currentChildAge]
-				];
-			let averageWeightArray = Array.from(
-				{ length: this.posts.length },
-				() => averageWeight
-			);
-			const ctx = document
-				.getElementById("babyGrowthWeightChart")
-				.getContext("2d");
-			const data = {
-				labels: dateData,
-				datasets: [
-					{
-						label: "Weight (in kg)",
-						data: weightData,
-						fill: false,
-						borderColor: Utils.CHART_COLORS.red,
-						tension: 0.1,
-					},
-					{
-						label:
-							"Average SG baby Weight at " +
-							`${this.currentChildAge}` +
-							" (in kg)",
-						data: averageWeightArray,
-						fill: false,
-						borderColor: Utils.CHART_COLORS.green,
-						tension: 0.1,
-					},
-				],
-			};
-
-			const config = {
-				type: "line",
-				data: data,
-				options: {
-					responsive: true,
-					plugins: {
-						legend: {
-							position: "top",
-						},
-						title: {
-							display: true,
-							text: "Your Child's Weight over Time",
-						},
-					},
-				},
-			};
-
-			this.weightChart = new Chart(ctx, config);
-		},
-		createChartHeight(currentChildAge) {
-			if (this.heightChart) {
-				this.heightChart.destroy();
-			}
-			const ageRangeMapping = {
-				"0-2 months": 1,
-				"2-4 months": 2,
-				"4-6 months": 3,
-				"6-9 months": 4,
-				"9-12 months": 5,
-				"12-18 months": 6,
-				"18-24 months": 7,
-			};
-			let heightData = this.posts.map((post) => post.height); // height in array
-			let dateData = this.posts.map((post) => post.date); // date in array
-			let averageHeight =
-				this.globalHeightArray[0][
-					ageRangeMapping[this.currentChildAge]
-				];
-			let averageHeightArray = Array.from(
-				{ length: this.posts.length },
-				() => averageHeight
-			);
-
-			const ctx = document
-				.getElementById("babyGrowthHeightChart")
-				.getContext("2d");
-			const data = {
-				labels: dateData,
-				datasets: [
-					{
-						label: "Height (in cm)",
-						data: heightData,
-						fill: false,
-						borderColor: Utils.CHART_COLORS.blue,
-						tension: 0.1,
-					},
-					{
-						label:
-							"Average SG baby Height at " +
-							`${this.currentChildAge}` +
-							" (in cm)",
-						data: averageHeightArray,
-						fill: false,
-						borderColor: Utils.CHART_COLORS.green,
-						tension: 0.1,
-					},
-				],
-			};
-
-			const config = {
-				type: "line",
-				data: data,
-				options: {
-					responsive: true,
-					plugins: {
-						legend: {
-							position: "top",
-						},
-						title: {
-							display: true,
-							text: "Your Child's Height over Time",
-						},
-					},
-				},
-			};
-
-			this.heightChart = new Chart(ctx, config);
-		},
-		toggleCharts() {
-			// Toggle the visibility of the charts based on the active tab
-			if (this.activeSubTab === "WeightGraph") {
-				document.getElementById("babyGrowthWeightChart").style.display =
-					"block";
-				document.getElementById("babyGrowthHeightChart").style.display =
-					"none";
-				if (!this.weightChart) {
-					this.createChartWeight();
-				}
-			} else if (this.activeSubTab === "HeightGraph") {
-				document.getElementById("babyGrowthWeightChart").style.display =
-					"none";
-				document.getElementById("babyGrowthHeightChart").style.display =
-					"block";
-				if (!this.heightChart) {
-					this.createChartHeight();
-				}
-			}
-		},
-		async refreshCharts() {
-			this.loading = true; // Show a loading spinner if needed
-
-			// Fetch posts and update the charts
-			await this.fetchPosts(); // This will update the active chart
-
-			this.loading = false; // Hide the loading spinner
-		},
-	},
-	async mounted() {
-		window.vm = this;
-
-		// GET user;s tracking info data from firebase
-		const userPostsRefGet = collection(db, "users", "user2", "posts");
-		const snapshot = await getDocs(userPostsRefGet);
-		this.posts = snapshot.docs
-			.map((doc) => ({ id: doc.id, ...doc.data() }))
-			.sort((a, b) => {
-				const dateA = new Date(a.date);
-				const dateB = new Date(b.date);
-				return dateA - dateB;
-			});
-		this.loading = false;
-		await this.fetchPosts();
-		this.toggleCharts();
-	},
-	watch: {
-		// Watch the active tab and re-render the chart accordingly
-		activeSubTab(newTab) {
-			this.toggleCharts();
-		},
-		posts: {
-			handler() {
-				this.sortPosts();
-			},
-			deep: true, // Deep watch to track changes in the posts array
-		},
-	},
-};
-</script>
-
+  </template>
+  
 <style scoped>
-li {
-	list-style-type: none;
-	padding: 20px;
-	display: inline;
-	border: 1px solid transparent;
-	transition: all 0.3s ease;
-	border-radius: 20%;
-}
-
-.selected {
-	border-color: #f1f1f1;
-	background-color: lightgray;
-}
-
-li:not(.selected) {
-	opacity: 0.5;
-	cursor: pointer;
-}
-.secondary-background {
-	background-color: #eed4d4;
-	width: 100%;
-	display: flex;
+/* General Page Layout */
+.page-container {
+	max-width: 1200px;
 	margin: auto;
-	margin-left:-20px;
-	margin-right:-20px;
+	padding: 20px;
+	color: #333;
+	font-family: Arial, sans-serif;
 }
-.container-fluid {
+
+/* Header Section */
+.header-section {
+	margin-bottom: 20px;
+	padding: 20px;
+	background-color: #f8f9fa;
+	border-radius: 8px;
+	box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.child-selector {
+	display: flex;
+	align-items: center;
+	font-weight: bold;
+}
+
+#childDropdown {
+	padding: 10px;
+	border-radius: 8px;
+	border: 1px solid #ccc;
+	font-size: 1rem;
+}
+
+/* Table Tracker Section */
+.table-tracker {
+	background-color: #ffffff;
+	padding: 20px;
+	border-radius: 8px;
+	box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+	margin-bottom: 20px;
+	width: 100%;
+	text-align: center;
+}
+.center {
+	display: flex;
+	justify-content: center;
+}
+
+/* Form and Charts Section */
+.form-and-charts {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 20px;
+}
+
+.form-section {
+	background-color: #f9f9f9;
+	padding: 20px;
+	border-radius: 8px;
+	box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+	flex: 1 1 40%;
+}
+
+.charts-section {
+	flex: 1 1 55%;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	justify-content: center;
-	margin: auto;
 }
 
-.desktop-tabs {
-	display: block;
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
 }
 
-.mobile-dropdown {
-	display: none;
-}
-.text-left {
-	align-self: flex-start;
-	width: 100%;
+.modal-content {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2); /* Softer shadow */
+    padding: 30px;
+    max-width: 400px;
+    text-align: center;
+    animation: fadeIn 0.3s ease; /* Subtle fade-in animation */
 }
 
-@media (max-width: 768px) {
-	.desktop-tabs {
-		display: none;
-	}
-	.mobile-dropdown {
-		display: block;
-		position: absolute;
-		top: 10%;
-		left: 50%;
-		width: 90%;
-	}
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 10px;
 }
+
+.modal-message {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #555;
+    margin-bottom: 15px;
+}
+
+.modal-subtext {
+    font-size: 0.9rem;
+    color: #777;
+    margin-bottom: 20px;
+}
+
+.modal-button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.modal-button:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+
 </style>

@@ -52,35 +52,53 @@ onMounted(() => {
             <router-link to="/diary" class="nav-link" :class="{ 'active-item': route.path === '/diary' }">Diary</router-link>
           </li>
           <li class="nav-item dropdown" :class="{ 'active': isExploreActive }">
-            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              Explore articles
-            </a>
-            <ul class="dropdown-menu">
-              <li>
-                <router-link class="dropdown-item" :class="{ 'active-item': activeCategory === 'new' }" to="/articles/new">New!</router-link>
-              </li>
-              <li>
-                <router-link class="dropdown-item" :class="{ 'active-item': activeCategory === 'activities' }" to="/articles/activities">Activities</router-link>
-              </li>
-              <li>
-                <router-link class="dropdown-item" :class="{ 'active-item': activeCategory === 'education' }" to="/articles/education">Education</router-link>
-              </li>
-              <li>
-                <router-link class="dropdown-item" :class="{ 'active-item': activeCategory === 'nutrition' }" to="/articles/nutrition">Nutrition</router-link>
-              </li>
-              <li>
-                <hr class="dropdown-divider">
-              </li>
-              <li>
-                <router-link class="dropdown-item" :class="{ 'active-item': activeCategory === 'recent' }" to="/articles/recent">Most recently visited</router-link>
-              </li>
-            </ul>
-          </li>
+  <a
+    class="nav-link dropdown-toggle"
+    href="#"
+    id="exploreDropdown"
+    role="button"
+    data-bs-toggle="dropdown"
+    aria-expanded="false"
+  >
+    Explore articles
+  </a>
+  <ul class="dropdown-menu" aria-labelledby="exploreDropdown">
+    <li>
+      <router-link class="dropdown-item" :class="{ 'active-item': activeCategory === 'new' }" to="/articles/new">New!</router-link>
+    </li>
+    <li>
+      <router-link class="dropdown-item" :class="{ 'active-item': activeCategory === 'activities' }" to="/articles/activities">Activities</router-link>
+    </li>
+    <li>
+      <router-link class="dropdown-item" :class="{ 'active-item': activeCategory === 'education' }" to="/articles/education">Education</router-link>
+    </li>
+    <li>
+      <router-link class="dropdown-item" :class="{ 'active-item': activeCategory === 'nutrition' }" to="/articles/nutrition">Nutrition</router-link>
+    </li>
+    <li>
+      <hr class="dropdown-divider">
+    </li>
+    <li>
+      <router-link class="dropdown-item" :class="{ 'active-item': activeCategory === 'recent' }" to="/articles/recent">Most recently visited</router-link>
+    </li>
+  </ul>
+</li>
+
           <li class="nav-item">
             <router-link to="/forum" class="nav-link" :class="{ 'active-item': route.path === '/forum' }">Forum</router-link>
           </li>
-          <li class="nav-item">
-            <router-link to="/tracker" class="nav-link" :class="{ 'active-item': route.path === '/tracker' }">GrowthTracker</router-link>
+          <li class="nav-item dropdown" :class="{ 'active': isExploreActive }">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Explore trackers
+            </a>
+            <ul class="dropdown-menu">
+              <li>
+                <router-link to="/growthtracker" class="nav-link" :class="{ 'active-item': route.path === '/growthtracker' }">GrowthTracker</router-link>
+              </li>
+              <li>
+                <router-link to="/vaccinetracker" class="nav-link" :class="{ 'active-item': route.path === '/vaccinetracker' }">Vaccine Tracker</router-link>
+              </li>
+            </ul>
           </li>
           <li class="nav-item">
             <router-link to="/emergency" class="nav-link" :class="{ 'active-item': route.path === '/emergency' }">Emergency</router-link>

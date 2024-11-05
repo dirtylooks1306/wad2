@@ -2,11 +2,14 @@
 
 </script>
 <template>
-	<button type="button" class="btn btn-primary m-3" @click="openModal">
-		View All Logs
-	</button>
-
-		<table class="container m-3" id="main">
+	<div class="table-container">
+		<div class="center">
+			<button type="button" class="btn btn-primary m-3" @click="openModal">
+				View All Logs
+			</button>
+		</div>
+		<div class="center">
+			<table class="container m-3" id="main">
 			<tbody>
 				<tr>
 					<th>Date of Record</th>
@@ -63,6 +66,9 @@
 				</tr>
 			</tbody>
 		</table>
+		</div>
+	</div>
+		
 		<div v-if="showModal" class="modal">
 			<div class="modal-content">
         <span>
@@ -176,31 +182,29 @@ export default {
 			this.showModal = false;
 		},
 		async savePost(postId) {
-      if (!this.editingPost) return;
-			// Find the post in the array and update it with the modified values
-      try {
-			const index = this.posts.findIndex((p) => p.id === postId)
-			if (index !== -1) {
-        console.log(5)
-				this.$emit('update-post', { ...this.editingPost }); // Emit the event to the parent to update post
+			if (!this.editingPost) return;
+					// Find the post in the array and update it with the modified values
+			try {
+					const index = this.posts.findIndex((p) => p.id === postId)
+					if (index !== -1) {
+				console.log(5)
+						this.$emit('update-post', { ...this.editingPost }); // Emit the event to the parent to update post
+					}
+			this.editingPost = null;
+					this.closeModal();
+			} catch (error) {
+			console.error(error);
 			}
-      this.editingPost = null;
-			this.closeModal();
-    } catch (error) {
-      console.error(error);
-    }
+				},
+		editPost(post) {
+			this.editingPost = { ...post };
 		},
-    editPost(post) {
-      // Start editing this post by creating a shallow copy
-      this.editingPost = { ...post };
-    },
-    cancelEdit() {
-      // Cancel editing and reset editingPost
-      this.editingPost = null;
-    },
+		cancelEdit() {
+		// Cancel editing and reset editingPost
+			this.editingPost = null;
+		},
 		deletePost(postId) {
 			// Emit the delete event to the parent component
-      console.log(postId);
 			this.$emit("delete-post", postId);
 		},
 	},
@@ -208,6 +212,13 @@ export default {
 </script>
 
 <style scoped>
+.table-container {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	margin-top: 20px;
+}
 .modal {
   display: flex;
   align-items: center;
@@ -254,10 +265,22 @@ export default {
   min-width: 200px;
   max-width: 90%;
   background-color: rgb(232, 230, 207);
-  border: 1px solid black;
 }
-.inner-table > tr {
-  border: 1px solid black;
+.inner-table {
+  border: 1px solid rgb(205, 198, 198);
+}
+.inner-table tr {
+  border-bottom: 1px solid rgb(192, 184, 184); /* Adds horizontal line */
+}
+.inner-table th{
+  text-align: center ;
+}
+.inner-table td{
+  text-align: center;
+}
+
+.inner-table tr:last-child {
+  border-bottom: none; /* Remove border from the last row */
 }
 button {
   /* max-width: 100px; */
@@ -271,7 +294,8 @@ table {
 	border-collapse: collapse;
 	overflow: hidden;
 	box-shadow: 0 0 20px rgba(0,0,0,0.1);
-  margin:auto;
+  	margin:auto;
+	
 }
 
 th,
@@ -279,6 +303,7 @@ td {
 	padding: 15px;
 	background-color: rgba(255,255,255,0.2);
 	color: black;
+	text-align: left;
 }
 
 th {
@@ -290,26 +315,13 @@ thead {
 		background-color: #FF9689;
 	}
 }
-
+#main {
+  overflow: auto;
+}
 #main > tbody  {
 	tr {
 		&:hover {
 			background-color: rgba(247, 7, 7, 0.3);
-		}
-	}
-	td {
-		position: relative;
-		&:hover {
-			&:before {
-				content: "";
-				position: absolute;
-				left: 0;
-				right: 0;
-				top: -9999px;
-				bottom: -9999px;
-				background-color: rgba(225, 11, 211, 0.2);
-				z-index: -1;
-			}
 		}
 	}
 }
@@ -324,5 +336,11 @@ thead {
 				background-color: rgba(247, 7, 7, 0.3);
 		}
 	}
+}
+.center {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column; /* Stack items vertically */
 }
 </style>

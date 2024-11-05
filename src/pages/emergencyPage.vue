@@ -8,7 +8,7 @@ import { onMounted, ref, watch } from 'vue';
 import { collection, query, getDocs } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';  // Correct Firestore imports
 import { db } from "../firebaseConfig.js";  // Import the Firestore instance (db)
 // Log the Firestore instance to ensure it's properly initialized
-console.log("Firestore instance (db):", db);
+
 
 //Segment to retrieve hospital locations from Firebase
 const route = useRoute();
