@@ -41,13 +41,14 @@
               <li>
                 <router-link class="dropdown-item" :class="{ 'active-item': activeCategory === 'nutrition' }" to="/articles/nutrition">Nutrition</router-link>
               </li>
-              
+
               <!-- Clear, visible partition line -->
               <li><div class="custom-divider"></div></li>
 
+              <!-- Updated 'Favourite' to 'Saved' -->
               <li>
-                <router-link class="dropdown-item" :class="{ 'active-item': activeCategory === 'favourite' }" to="/articles/favourite">
-                  Favourite
+                <router-link class="dropdown-item" :class="{ 'active-item': activeCategory === 'saved' }" to="/articles/saved">
+                  Saved
                 </router-link>
               </li>
             </ul>
@@ -105,7 +106,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 const route = useRoute();
 
 const user = ref(null);
-const isExploreActive = computed(() => route.path.startsWith('/articles') || route.path === '/bookmarked');
+const isExploreActive = computed(() => route.path.startsWith('/articles') || route.path === '/saved');
 const isTrackerActive = computed(() => route.path.startsWith('/growthtracker') || route.path.startsWith('/vaccinetracker'));
 const activeCategory = computed(() => route.params.category || '');
 
@@ -200,5 +201,4 @@ onMounted(() => {
   width: 100%;
   margin: 0;
 }
-
 </style>
