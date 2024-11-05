@@ -114,8 +114,8 @@ export default {
     font-family: "Cherry Bomb", sans-serif;
     font-size: 16px;
     color: #fff;
-    align-self: flex-start; /* Align to bottom left */
-    margin-top: auto; /* Pushes the button to the bottom */
+    align-self: flex-start;
+    margin-top: auto;
 }
 
 .small-icon-button img.active {
