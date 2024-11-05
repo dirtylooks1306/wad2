@@ -1,15 +1,16 @@
 <script setup>
 import NavBar from "../components/navBar.vue";
 import CustomHeader from "../components/CustomHeader.vue";
-import { GoogleMap, Marker } from 'vue3-google-map'
+import { GoogleMap, Marker } from 'vue3-google-map';
 import { useRoute } from 'vue-router';
+import axios from 'axios';
 import { onMounted, ref, watch } from 'vue';
 import { collection, query, getDocs } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';  // Correct Firestore imports
 import { db } from "../firebaseConfig.js";  // Import the Firestore instance (db)
 // Log the Firestore instance to ensure it's properly initialized
 
 
-//Segment to retrieve hospital locations and Google Maps API key from Firebase
+//Segment to retrieve hospital locations from Firebase
 const route = useRoute();
 const locationList = ref([]);
 const fetchLocations = async() => {
@@ -31,6 +32,7 @@ onMounted(fetchLocations);
 
 //Segment to help users find nearest distance to hospital
 //Part 1: Declaration of variables
+const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 const userLat = ref(0);
 const userLng = ref(0);
 const locationReady = ref(false);
@@ -99,6 +101,37 @@ function showPopUp() {
 	var popup = document.getElementById("helpPopUp");
 	popup.classList.toggle("show");
 }
+
+//Function to set user location
+function setLocation() {
+  var location = document.getElementById("userLocation").value
+  axios.get('https://maps.googleapis.com/maps/api/geocode/json', {
+    params: {
+      address: location,
+      key: apiKey
+    }
+  })
+  .then(response => {
+    //console.log(response.data)
+    //console.log(response.data.results[0].geometry.location);
+    let coordinates = response.data.results[0].geometry.location;
+    userLat.value = coordinates.lat;
+    userLng.value = coordinates.lng;
+    locationReady.value = true;
+    markerLat = userLat;
+    markerLng = userLng;
+    alert("Location set successfully!");
+  })
+  .catch(error => {
+    //console.log(error.message);
+    alert("Please enter a valid location.")
+  })
+  clear()
+}
+
+function clear() {
+  document.getElementById("userLocation").value = "";
+}
 </script>
 
 <template>
@@ -145,9 +178,13 @@ function showPopUp() {
       </GoogleMap>
     </div>
     <div v-else class="centered-container">
+      <div id="setUserLocation" class="d-flex justify-content-center align-items-center">
+        <input id="userLocation" type="text" class="rounded-2 p-1" placeholder="Enter location" @keyup.enter="setLocation">
+        <button type="button" class="btn btn-primary m-2 p-1" @click="setLocation"><span>Set Current Location</span></button>
+      </div>
       <button type="button" class="btn btn-success m-2 p-1" @click="getCurrentLocation"><span>Initialise Map</span></button>
 	    <br>
-	    <p id="notification"><strong>IMPORTANT</strong>: This feature requires you to allow the webpage to access your location.</p>
+	    <p id="notification">If location access is blocked, feel free to set your location manually. Otherwise, just click 'Initialise Map' and you're good to go!</p>
     </div>
     <div v-if="locationReady" class="centered-container">
       <!-- When users click the button, the web will find nearest A&E location -->
@@ -155,6 +192,10 @@ function showPopUp() {
         <button type="button" class="btn btn-success m-2 p-1" @click="findNearest()"><span>Find nearest A&E</span></button>
       </form>
       <span id="nearest">Nearest hospital: <strong>{{ nearest }}</strong></span>
+      <div id="changeLocation">
+        <input id="userLocation" type="text" class="rounded-2 p-1" placeholder="Change location" @keyup.enter="setLocation">
+        <button type="button" class="btn btn-primary m-2 p-1" @click="setLocation"><span>Change Location</span></button>
+      </div>
     </div>
   </div>
 
@@ -177,7 +218,7 @@ function showPopUp() {
         </tr>
       </tbody>
     </table>
-    <p class="enquiries text-center">Other problems? Feel free to contact us <a class="contact-link" href="diary">here</a>.</p> <!-- href link is temporary, to change later if contact page is present -->
+    <p class="enquiries text-center">Other problems? Feel free to contact us <a class="contact-link" href="diary">here</a>.</p> <!-- href link is temporary, to change/remove later if contact page is present -->
   </div>
 
 </template>
@@ -186,7 +227,6 @@ function showPopUp() {
   export default {
     data() {
       return {
-        apiKey: "AIzaSyATGD0drDahbJeZQOPtXkzm2Qid75e4Mww",
         /*
         lat: null,
         lng: null,
@@ -264,11 +304,6 @@ function showPopUp() {
     }
     */
   };
-  /*
-
-  To Do: 
-  - Transfer help prompt content into Google Maps as iframe; push geolocation prompt outside
-  */
 </script>
 
 <style scoped>

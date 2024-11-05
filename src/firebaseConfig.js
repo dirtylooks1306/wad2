@@ -3,7 +3,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.0/fireba
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword , sendPasswordResetEmail, signOut} from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js';
 import { getFirestore, collection, addDoc, doc, setDoc, getDoc, updateDoc, deleteDoc, getDocs, query, where,onSnapshot  } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL, uploadBytes } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-storage.js";
-// import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+
 // import { getAnalytics } from "firebase/analytics";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -51,5 +51,8 @@ export {
   uploadBytes,
   getDownloadURL,
   onSnapshot,
-  addDoc
+  addDoc,
+  storage,
+  uploadBytesResumable,
+  getDownloadURL
 };
