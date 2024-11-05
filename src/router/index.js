@@ -3,6 +3,7 @@ import homePage from '../pages/homePage.vue';
 import aboutPage from '../pages/aboutPage.vue';
 import growthTrackerPage from '../pages/trackerPage.vue';
 import articlesPage from '../pages/articlesPage.vue';
+import articleDetailsPage from '../pages/articleDetailsPage.vue';
 import diaryPage from '../pages/diaryPage.vue';
 import emergencyPage from '../pages/emergencyPage.vue';
 import loginPage from '../pages/loginPage.vue';
@@ -32,7 +33,7 @@ const routes = [
         component: homePage
     },
 
-    {    path: '/about',
+    {   path: '/about',
         name: 'About',
         component: aboutPage
     },
@@ -53,7 +54,13 @@ const routes = [
         path: '/articles/:category?',
         name: 'Articles',
         component: articlesPage,
-        props: true, // Pass the route parameters as props to the component
+        props: true,
+    },
+
+    {   path: '/article/:id',
+        name: 'ArticleDetails',
+        component: articleDetailsPage, 
+        props: true 
     },
 
     {
