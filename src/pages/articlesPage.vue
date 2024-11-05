@@ -3,7 +3,7 @@ import { onMounted, ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import NavBar from "../components/navBar.vue";
 import CustomHeader from "../components/CustomHeader.vue";
-import { collection, query, where, getDocs, doc, updateDoc, increment, runTransaction } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
+import { collection, addDoc, query, where, getDocs, doc, updateDoc, increment, runTransaction } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
 import { db, auth } from "../firebaseConfig.js";
 
 const route = useRoute();
@@ -11,9 +11,20 @@ const router = useRouter();
 const articles = ref([]);
 const userReactions = ref({});
 const userId = ref(null);
+const showArticleForm = ref(false); // Controls form visibility
+const newArticle = ref({
+  Title: '',
+  Author: '',
+  Category: '',
+  Description: '',
+  Paragraphs: [''], // Start with one paragraph
+});
 
 const category = computed(() => route.params.category || '');
-const isFavouriteView = computed(() => category.value.toLowerCase() === 'favourite');
+const isSavedView = computed(() => category.value.toLowerCase() === 'saved');
+
+// List of categories for the dropdown
+const categories = ['Activities', 'Education', 'Nutrition'];
 
 // Listen for authentication state changes
 auth.onAuthStateChanged((user) => {
@@ -33,8 +44,8 @@ const fetchArticles = async () => {
     const articlesCollection = collection(db, "articles");
     let q;
 
-    if (isFavouriteView.value) {
-      q = query(articlesCollection, where("Favourited", "==", true));
+    if (isSavedView.value) {
+      q = query(articlesCollection, where("Saved", "==", true));
     } else {
       q = category.value.toLowerCase() === 'new'
         ? query(articlesCollection, where("Date", ">=", new Date(new Date().setMonth(new Date().getMonth() - 1))))
@@ -52,20 +63,58 @@ const fetchArticles = async () => {
   }
 };
 
-const toggleFavourite = async (articleId) => {
+// Function to publish a new article
+const publishArticle = async () => {
+  if (!userId.value || !newArticle.value.Title || !newArticle.value.Author || !newArticle.value.Category || !newArticle.value.Description || !newArticle.value.Paragraphs[0]) return;
+
+  try {
+    const articlesCollection = collection(db, "articles");
+    const articleData = {
+      Title: newArticle.value.Title,
+      Author: newArticle.value.Author,
+      Filter: newArticle.value.Category,
+      Description: newArticle.value.Description,
+      Date: new Date(),
+      Likes: 0,
+      Dislikes: 0,
+      Saved: false,
+    };
+    // Dynamically add paragraphs
+    newArticle.value.Paragraphs.forEach((paragraph, index) => {
+      if (paragraph) {
+        articleData[`Para${index + 1}`] = paragraph;
+      }
+    });
+
+    await addDoc(articlesCollection, articleData);
+    newArticle.value = { Title: '', Author: '', Category: '', Description: '', Paragraphs: [''] }; // Reset form fields
+    showArticleForm.value = false; // Close the form
+    fetchArticles(); // Refresh articles list
+  } catch (error) {
+    console.error("Error publishing article:", error.message);
+  }
+};
+
+// Add a new paragraph field
+const addParagraph = () => {
+  newArticle.value.Paragraphs.push('');
+};
+
+// Toggle save status
+const toggleSaved = async (articleId) => {
   if (!userId.value) return;
 
   try {
     const articleRef = doc(db, "articles", articleId);
     const article = articles.value.find(a => a.id === articleId);
-    const newFavouriteStatus = !article.Favourited;
+    const newSavedStatus = !article.Saved;
 
-    await updateDoc(articleRef, { Favourited: newFavouriteStatus });
-    article.Favourited = newFavouriteStatus;
+    await updateDoc(articleRef, { Saved: newSavedStatus });
+    article.Saved = newSavedStatus;
 
-    if (isFavouriteView.value) fetchArticles();
+    if (isSavedView.value) fetchArticles();
   } catch (error) {
-    console.error("Error toggling favourite:", error.message);
+    console.error("Error toggling saved status:", error.message);
   }
 };
 
@@ -146,6 +195,30 @@ onMounted(fetchArticles);
   <NavBar />
   <div class="articles-container">
     <h1 class="article-title">{{ capitalizeCategory(category) }} Articles</h1>
+    
+    <!-- Article Form -->
+    <div v-if="showArticleForm" class="article-form">
+      <CustomHeader header="Write a New Article"/>
+      <input v-model="newArticle.Title" placeholder="Article Title" required />
+      <input v-model="newArticle.Author" placeholder="Author Name" required />
+      
+      <select v-model="newArticle.Category" required>
+        <option disabled value="">Select Category</option>
+        <option v-for="cat in categories" :key="cat">{{ cat }}</option>
+      </select>
+      
+      <textarea v-model="newArticle.Description" placeholder="Brief Description" rows="3" required></textarea>
+      
+      <!-- Paragraphs Section -->
+      <div v-for="(paragraph, index) in newArticle.Paragraphs" :key="index">
+        <textarea v-model="newArticle.Paragraphs[index]" :placeholder="'Paragraph ' + (index + 1)" rows="4" required></textarea>
+      </div>
+      
+      <button @click="addParagraph" class="btn article-form-button">Add Paragraph</button>
+      <button @click="publishArticle" class="btn article-form-button">Publish Article</button>
+      <button @click="showArticleForm = false" class="btn article-form-button">Cancel</button>
+    </div>
+    
     <div v-if="articles.length">
       <div class="articles-grid">
         <div
@@ -174,8 +247,8 @@ onMounted(fetchArticles);
               <button @click.stop="dislikeArticle(article.id)" :class="{ active: userReactions[article.id] === 'disliked' }">👎</button>
               <span>{{ article.Dislikes ?? 0 }}</span>
             </span>
-            <span class="favourite">
-              <button @click.stop="toggleFavourite(article.id)" :class="{ favourited: article.Favourited }">⭐</button>
+            <span class="saved">
+              <button @click.stop="toggleSaved(article.id)" :class="{ saved: article.Saved }">🔖</button>
             </span>
           </div>
         </div>
@@ -184,6 +257,9 @@ onMounted(fetchArticles);
     <div v-else>
       <p>No articles found in {{ capitalizeCategory(category) }}.</p>
     </div>
+
+    <!-- Write Article Button -->
+    <button @click="showArticleForm = true" class="write-article-button">Write Article</button>
   </div>
 </template>
 
@@ -247,13 +323,12 @@ onMounted(fetchArticles);
   font-size: 0.9em;
 }
 
-/* Partition Line Styling */
 .partition-line {
   width: 100%;
   height: 2px;
   background-color: #ff9689;
-  margin-top: 0.5em; /* Minimized space above the partition line */
-  margin-bottom: 0.5em; /* Minimized space below the partition line */
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
   border-radius: 2px;
 }
 
@@ -274,13 +349,12 @@ onMounted(fetchArticles);
   margin-right: 10px;
 }
 
-.favourite {
+.saved {
   margin-left: auto;
   display: flex;
   align-items: center;
 }
 
-/* Button styling */
 button {
   background-color: transparent;
   border: 1px solid #ccc;
@@ -296,7 +370,7 @@ button.active {
   background-color: #e6f0ff;
 }
 
-button.favourited {
+button.saved {
   color: #FFD700;
   background-color: #e6f0ff;
 }
@@ -304,4 +378,62 @@ button.favourited {
 button:hover {
   background-color: #f0f0f0;
 }
+
+.write-article-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 12px;
+  cursor: pointer;
+  font-size: 16px;
+  font-family: "Cherry Bomb", sans-serif;
+}
+
+.write-article-button:hover {
+  background-color: #0056b3;
+}
+
+.article-form {
+  background-color: transparent;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.article-form input,
+.article-form textarea,
+.article-form select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  color: inherit;
+}
+
+.article-form input::placeholder,
+.article-form textarea::placeholder,
+.article-form select::placeholder {
+  color: inherit;
+}
+
+.article-form button {
+  margin-right: 10px;
+}
+
+.article-form button.article-form-button {
+  color: #fff; /* Visible color for both themes */
+  background-color: #007bff; /* Blue background for contrast */
+  border: none;
+  font-size: 16px;
+  font-family: "Cherry Bomb", sans-serif;
+}
+
+.article-form button.article-form-button:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+}
+
 </style>
