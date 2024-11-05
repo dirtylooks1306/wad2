@@ -49,6 +49,8 @@
 		</div>
 		<div class="col-md-4"></div>
 	</div>
+	<p v-if="errorMessage" class="error-message text-center">{{ errorMessage }}</p>
+	
 </template>
 
 <script>
@@ -65,6 +67,7 @@ export default {
 				selectedHeight: "",
 				selectedRemarks: "",
 			},
+			errorMessage: "",
 		};
 	},
 	methods: {
@@ -76,6 +79,13 @@ export default {
 			return `${year}-${month}-${day}`;
 		},
 		submitForm() {
+			if (!this.formData.selectedWeight || !this.formData.selectedHeight) {
+				this.errorMessage = "Please fill in both the Weight and Height fields.";
+				setTimeout(() => {
+					this.errorMessage = "";
+				}, 1000);
+				return;
+			}
             this.$emit("submit", this.formData);
             this.resetFormData();
 		},
@@ -92,3 +102,11 @@ export default {
 	},
 };
 </script>
+
+<style scoped>
+.error-message {
+  color: red;
+  font-weight: bold;
+  margin-top: 10px;
+}
+</style>
