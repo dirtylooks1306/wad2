@@ -18,7 +18,7 @@ const childHeight = ref("");
 const childGender = ref("");
 const children = ref([]); // Array to store the list of children
 const successMessage = ref("");
-
+const errorMessage = ref("");
 // Track expanded and edit mode for each child
 const expandedChildId = ref(null); // ID of the currently expanded child
 const editModeChildId = ref(null); // ID of the child being edited
@@ -69,7 +69,7 @@ const fetchUserData = async () => {
 // Function to handle form submission and save child data to Firestore
 const saveChildData = async () => {
   if (!childName.value || !childAge.value || !childWeight.value || !childGender.value) {
-    alert("Please fill in all the details.");
+    errorMessage.value = "Please fill in all the details.";
     return;
   }
 
@@ -82,6 +82,7 @@ const saveChildData = async () => {
       name: childName.value,
       age: childAge.value,
       weight: childWeight.value,
+      height: childHeight.value,
       gender: childGender.value
     });
 
@@ -224,7 +225,9 @@ const handleLogout = async () => {
               <button @click="deleteChild(child.id)" class="btn btn-delete">Delete</button>
             </div>
           </div>
+          
         </div>
+        
       </div>
     <div v-if="isNewUser || children.length === 0">
       <h2>Please add your child's details:</h2>
@@ -257,11 +260,11 @@ const handleLogout = async () => {
           <label for="childGender">Gender:</label>
           <select v-model="childGender" id="childGender" class="form-control" required>
             <option value="">Select Gender</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
           </select>
         </div>
-
+        <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
         <button type="submit" class="btn btn-primary">Save Details</button>
       </form>
       <div v-if="successMessage" class="success-message">{{ successMessage }}</div>
@@ -271,6 +274,7 @@ const handleLogout = async () => {
 
 
     <button @click="handleLogout" class="btn btn-danger">Logout</button>
+  
   </div>
 </template>
 
@@ -354,6 +358,11 @@ const handleLogout = async () => {
 .success-message {
   color: green;
   font-size: 14px;
+  margin-top: 10px;
+}
+.error-message {
+  color: red;
+  font-weight: bold;
   margin-top: 10px;
 }
 

@@ -62,7 +62,6 @@ const fetchGlobalDataByGender = async () => {
 		age: doc.data().age,
 		...doc.data(),
 	}));
-
 	// Fetch global weight data
 	const snapshotChartWeight = await getDocs(globalWeightRef);
 	globalWeightArray.value = snapshotChartWeight.docs.map((doc) => ({
@@ -108,7 +107,7 @@ const createChartWeight = () => {
 					fill: false,
 				},
 				{
-					label: `Avg Weight at ${currentAge}`,
+					label: `Avg Weight at ${currentAge} for ${props.gender}s`,
 					data: averageWeightArray,
 					borderColor: "green",
 					fill: false,
@@ -182,7 +181,7 @@ const createChartHeight = () => {
 					fill: false,
 				},
 				{
-					label: `Avg Height at ${currentAge}`,
+					label: `Avg Height at ${currentAge} for ${props.gender}s`,
 					data: averageHeightArray,
 					borderColor: "green",
 					fill: false,

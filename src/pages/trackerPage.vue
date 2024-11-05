@@ -17,6 +17,7 @@ const selectedChildId = ref(null);
 const children = ref([]);
 const gender = ref(null);
 const error = ref("");
+const todayDate = ref("");
 // Fetch posts for the selected child
 const sortPosts = () => {
     posts.value = posts.value.sort((a, b) => {
@@ -25,17 +26,61 @@ const sortPosts = () => {
         return dateA - dateB; // Sort in ascending order by date
     });
 };
+function calculateAgeRange(dob) {
+	const today = new Date();
+	const birthDate = new Date(dob);
+
+	const year = today.getFullYear();
+	const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+	const day = String(today.getDate()).padStart(2, '0');
+
+	todayDate.value = `${year}-${month}-${day}`;
+	// Calculate the difference in years and convert it to months, then add the difference in months
+	let months = (today.getFullYear() - birthDate.getFullYear()) * 12;
+	months -= birthDate.getMonth();
+	months += today.getMonth();
+
+	// Adjust for any days difference within the current month
+	if (today.getDate() < birthDate.getDate()) {
+		months--;
+	}
+
+  // Determine the age range based on the number of months
+	if (months >= 0 && months <= 2) return "0-2 months";
+	else if (months > 2 && months <= 4) return "2-4 months";
+	else if (months > 4 && months <= 6) return "4-6 months";
+	else if (months > 6 && months <= 9) return "6-9 months";
+	else if (months > 9 && months <= 12) return "9-12 months";
+	else if (months > 12 && months <= 18) return "12-18 months";
+	else if (months > 18 && months <= 24) return "18-24 months";
+}
 
 const fetchPosts = async () => {
+  const childDocRef = doc(db, "users", userId.value, "children", selectedChildId.value);
+  const childSnapshot = await getDoc(childDocRef);
+  gender.value = childSnapshot.data().gender;
 
-	const childDocRef = doc(db, "users", userId.value, "children", selectedChildId.value);
-	const childSnapshot = await getDoc(childDocRef);
-	gender.value = childSnapshot.data().gender;
+  const childPostsRef = collection(db, "users", userId.value, "children", selectedChildId.value, "posts");
+  const snapshot = await getDocs(childPostsRef);
 
-	const childPostsRef = collection(db, "users", userId.value, "children", selectedChildId.value, "posts");
-	const snapshot = await getDocs(childPostsRef);
-	posts.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-	sortPosts();
+  if (snapshot.empty) { // If no posts exist in Firestore, add the first post
+    let ageVal = calculateAgeRange(childSnapshot.data().age);
+    const firstPost = {
+      date: todayDate.value,
+      age: ageVal,
+      weight: childSnapshot.data().weight,
+      height: childSnapshot.data().height,
+    };
+    await addDoc(childPostsRef, firstPost); // Save first post to Firestore
+    posts.value = [firstPost];
+    console.log("Added initial post to Firestore");
+  } else {
+    // Load existing posts from Firestore if they exist
+    posts.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    console.log("Loaded existing posts from Firestore");
+  }
+
+  sortPosts();
 };
 
 // Handle child selection change
@@ -59,7 +104,7 @@ const handleDeletePost = async (postId) => {
 
 const savePost = async (formData) => {
 	const postRef = collection(db, "users", userId.value, "children", selectedChildId.value, "posts");
-
+	console.log(3)
 	// Use formData passed from FormComponent
 	const newPost = {
 		date: formData.selectedDate || new Date(), // Default to current date if not provided
