@@ -1,29 +1,3 @@
-<script setup>
-import { useRoute } from 'vue-router';
-import { computed, ref, onMounted } from 'vue';
-import { auth } from '../firebaseConfig.js';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
-
-const route = useRoute();
-
-// Reactive variable to track if the user is logged in
-const user = ref(null);
-
-// Check if the current route is under /articles
-const isExploreActive = computed(() => route.path.startsWith('/articles'));
-
-// Get the category parameter for highlighting the dropdown options
-const activeCategory = computed(() => route.params.category || '');
-
-// Listen to the authentication state changes
-onMounted(() => {
-  onAuthStateChanged(auth, (currentUser) => {
-    user.value = currentUser;
-  });
-});
-
-</script>
-
 <template>
   <nav class="navbar navbar-expand-lg bg-body-tertiary">
     <div class="container-fluid">
@@ -45,7 +19,6 @@ onMounted(() => {
         <span class="navbar-toggler-icon"></span>
       </button>
 
-      <!-- Collapsible navigation content -->
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           <li class="nav-item">
@@ -68,13 +41,21 @@ onMounted(() => {
               <li>
                 <router-link class="dropdown-item" :class="{ 'active-item': activeCategory === 'nutrition' }" to="/articles/nutrition">Nutrition</router-link>
               </li>
+              
+              <!-- Clear, visible partition line -->
+              <li><div class="custom-divider"></div></li>
 
+              <li>
+                <router-link class="dropdown-item" :class="{ 'active-item': activeCategory === 'favourite' }" to="/articles/favourite">
+                  Favourite
+                </router-link>
+              </li>
             </ul>
           </li>
           <li class="nav-item">
             <router-link to="/forum" class="nav-link" :class="{ 'active-item': route.path === '/forum' }">Forum</router-link>
           </li>
-          <li class="nav-item dropdown" :class="{ 'active': isExploreActive }">
+          <li class="nav-item dropdown" :class="{ 'active': isTrackerActive }">
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               Explore trackers
             </a>
@@ -90,7 +71,6 @@ onMounted(() => {
           <li class="nav-item">
             <router-link to="/emergency" class="nav-link" :class="{ 'active-item': route.path === '/emergency' }">Emergency</router-link>
           </li>
-          <!-- Login/Register link inside collapsible menu for small screens -->
           <li class="nav-item d-lg-none" v-if="!user">
             <router-link to="/login" class="nav-link login-register">Login/Register</router-link>
           </li>
@@ -102,7 +82,6 @@ onMounted(() => {
         </ul>
       </div>
 
-      <!-- Right-aligned Login/Register or User link for larger screens -->
       <div class="d-none d-lg-flex ms-auto">
         <router-link v-if="!user" to="/login" class="nav-link login-register" :class="{ 'active-item': route.path === '/login' || route.path === '/register' }">Login/Register</router-link>
         <div v-else class="d-flex align-items-center">
@@ -117,6 +96,26 @@ onMounted(() => {
   <div id="belownavBar"></div>
 </template>
 
+<script setup>
+import { useRoute } from 'vue-router';
+import { computed, ref, onMounted } from 'vue';
+import { auth } from '../firebaseConfig.js';
+import { onAuthStateChanged } from 'firebase/auth';
+
+const route = useRoute();
+
+const user = ref(null);
+const isExploreActive = computed(() => route.path.startsWith('/articles') || route.path === '/bookmarked');
+const isTrackerActive = computed(() => route.path.startsWith('/growthtracker') || route.path.startsWith('/vaccinetracker'));
+const activeCategory = computed(() => route.params.category || '');
+
+onMounted(() => {
+  onAuthStateChanged(auth, (currentUser) => {
+    user.value = currentUser;
+  });
+});
+</script>
+
 <style scoped>
 #belownavBar {
   height: 80px;
@@ -124,22 +123,21 @@ onMounted(() => {
 
 .navbar {
   background-color: #FF9689 !important;
-  position: fixed; /* Makes the navbar fixed */
-  top: 0; /* Sticks the navbar to the top */
+  position: fixed;
+  top: 0;
   left: 0;
-  width: 100%; /* Ensures the navbar spans the full width */
-  z-index: 1000; /* Keeps the navbar above other content */
+  width: 100%;
+  z-index: 1000;
 }
 
 .nav-logo {
   max-height: 50px;
   height: auto;
   width: auto;
-  display: block;
 }
 
 .profile-icon {
-  max-height: 30px; /* Adjust the size to make the icon smaller */
+  max-height: 30px;
   height: auto;
   width: auto;
 }
@@ -148,7 +146,6 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
 }
 
 .navbar-brand {
@@ -164,23 +161,20 @@ onMounted(() => {
   background-color: #FBF4EB !important;
 }
 
-/* Highlight the active dropdown link */
 .active-item {
   font-weight: bold;
   text-decoration: underline;
 }
 
-/* Highlight Explore articles link when active */
 .active > .nav-link {
   text-decoration: underline;
   font-weight: bold;
 }
 
-/* Styles for login/register link */
 .login-register {
   text-decoration: none;
   color: #000;
-  margin-left: 10px; /* Add some space between the links */
+  margin-left: 10px;
   transition: color 0.3s;
 }
 
@@ -199,4 +193,12 @@ onMounted(() => {
     display: none;
   }
 }
+
+.custom-divider {
+  height: 1px;
+  background-color: #000;
+  width: 100%;
+  margin: 0;
+}
+
 </style>

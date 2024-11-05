@@ -3,14 +3,21 @@ import homePage from '../pages/homePage.vue';
 import aboutPage from '../pages/aboutPage.vue';
 import growthTrackerPage from '../pages/trackerPage.vue';
 import articlesPage from '../pages/articlesPage.vue';
+import articleDetailsPage from '../pages/articleDetailsPage.vue';
 import diaryPage from '../pages/diaryPage.vue';
 import emergencyPage from '../pages/emergencyPage.vue';
-import forumPage from '../pages/forumPage.vue';
 import loginPage from '../pages/loginPage.vue';
 import registerPage from '../pages/registerPage.vue';
 import forgotpasswordPage from '../pages/forgotpasswordPage.vue';
 import profilePage from '../pages/profilePage.vue';
 import vaccineTrackerPage from '../pages/vaccineTrackerPage.vue';
+import ForumHome from '../pages/forumHome.vue';
+import CreatePost from '../pages/createPost.vue';
+import UserProfile from '../pages/userProfile.vue';
+import ThreadPost from '../pages/threadPost.vue';
+import EditPost from '../pages/editPost.vue';
+
+
 import {auth } from '../firebaseConfig.js';
 import { onAuthStateChanged } from 'firebase/auth';
 import { reactive } from 'vue';
@@ -26,7 +33,7 @@ const routes = [
         component: homePage
     },
 
-    {    path: '/about',
+    {   path: '/about',
         name: 'About',
         component: aboutPage
     },
@@ -47,7 +54,13 @@ const routes = [
         path: '/articles/:category?',
         name: 'Articles',
         component: articlesPage,
-        props: true, // Pass the route parameters as props to the component
+        props: true,
+    },
+
+    {   path: '/article/:id',
+        name: 'ArticleDetails',
+        component: articleDetailsPage, 
+        props: true 
     },
 
     {
@@ -58,9 +71,31 @@ const routes = [
     },
 
     {
-        path: "/forum",
-        name: "Forum",
-        component: forumPage
+        path: '/forum/:category?',
+        component: ForumHome,
+        props: true,
+    },
+
+    {
+        path: '/forum/thread/:id',
+        component: ThreadPost,
+    },
+
+    {
+        path: '/forum/create-post',
+        component: CreatePost,
+        meta: { requiresAuth: true }
+    },
+
+    {
+        path: '/forum/edit-post/:id',
+        component: EditPost,
+        meta: { requiresAuth: true }
+    },
+
+    {
+        path: '/forum/user/:id',
+        component: UserProfile,
     },
 
     {

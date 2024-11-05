@@ -2,7 +2,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Cherry+Bomb&display=swap');
 
 /* Base styles, assuming dark mode as default */
-:root {
+/* :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -15,7 +15,18 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+} */
+
+:root {
+  --background: #FBF4EB;
+  --forumbar-width: 256px;
+  --forumbar-width-min: 80px;
+  --forumbar-dark-primary: #D9C5B2;
+  --forumbar-dark-secondary: #FF9689;
+  --forumbar-light-primary: #333333;
+  --forumbar-light-secondary: #333333;
 }
+
 
 .container {
   overflow-x: hidden;
@@ -109,4 +120,9 @@ button:focus-visible {
   html, body {
     background-color: #FBF4EB;
   }
+}
+
+html, body {
+  margin: 0;
+  background: var(--background);
 }

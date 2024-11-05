@@ -1,8 +1,8 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword , sendPasswordResetEmail, signOut} from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js';
-import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, deleteDoc, getDocs, query, where,onSnapshot,addDoc,  } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
-import {ref, getDatabase,set } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js';
+import { getFirestore, collection, addDoc, doc, setDoc, getDoc, updateDoc, deleteDoc, getDocs, query, where,onSnapshot  } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
+import { getStorage, ref, uploadBytesResumable, getDownloadURL, uploadBytes } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-storage.js";
 
 // import { getAnalytics } from "firebase/analytics";
 // TODO: Add SDKs for Firebase products that you want to use
@@ -26,11 +26,13 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
+const storage = getStorage(firebaseApp);
 
 export {
   db,
   auth,
   firebaseApp,
+  storage,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
@@ -45,8 +47,9 @@ export {
   query,
   where,
   ref,
-  set,
-  getDatabase,
+  uploadBytesResumable,
+  uploadBytes,
+  getDownloadURL,
   onSnapshot,
-  addDoc
+  addDoc,
 };
