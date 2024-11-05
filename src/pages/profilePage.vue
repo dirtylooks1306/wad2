@@ -2,11 +2,13 @@
 import NavBar from "../components/navBar.vue";
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { auth, signOut, db, collection, doc, getDocs, setDoc, addDoc, query, where, updateDoc, deleteDoc  } from "../firebaseConfig.js";
+import { auth, signOut, db, collection, doc, getDocs, getDoc, addDoc, query, where, updateDoc, deleteDoc, storage  } from "../firebaseConfig.js";
 import { setPersistence, browserLocalPersistence,onAuthStateChanged } from "firebase/auth";
+import { getDownloadURL, ref as storageRef, uploadBytes } from "firebase/storage";
 // State for user information and child details
 const user = ref(null);
 const username = ref("");
+const profileImage = ref("");
 const router = useRouter();
 
 // Child details form fields
@@ -16,6 +18,7 @@ const childAge = ref(getCurrentDate());
 const childWeight = ref("");
 const childHeight = ref("");
 const childGender = ref("");
+const imageFile = ref(null); 
 const children = ref([]); // Array to store the list of children
 const successMessage = ref("");
 const errorMessage = ref("");
@@ -35,6 +38,7 @@ const fetchUserData = async () => {
     if (currentUser) {
       try {
         const userDocRef = doc(db, "users", currentUser.uid);
+
         const childrenCollectionRef = collection(userDocRef, "children");
 
         // Get the user's children
@@ -53,6 +57,7 @@ const fetchUserData = async () => {
         const querySnapshot = await getDocs(q);
         querySnapshot.forEach((doc) => {
           username.value = doc.data().username;
+          profileImage.value = doc.data().profileimage;
         });
 
         user.value = currentUser;
@@ -66,37 +71,55 @@ const fetchUserData = async () => {
 };
 
 
-// Function to handle form submission and save child data to Firestore
+const handleImageUpload = (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    imageFile.value = file; 
+  }
+};
+
 const saveChildData = async () => {
   if (!childName.value || !childAge.value || !childWeight.value || !childGender.value) {
     errorMessage.value = "Please fill in all the details.";
     return;
   }
 
+  let imageUrl = "";
+
   try {
+    // Upload the image if selected
+    console.log(imageFile.value); 
+    if (imageFile.value) {
+      const imageRef = storageRef(storage, `childImages/${auth.currentUser.uid}/${childName.value}-${Date.now()}`);
+      await uploadBytes(imageRef, imageFile.value);
+      imageUrl = await getDownloadURL(imageRef);
+    }
+
+    // Reference to the user's document and children collection
     const userDocRef = doc(db, "users", auth.currentUser.uid);
     const childrenCollectionRef = collection(userDocRef, "children");
 
-    // Add a new child document to the children subcollection
+    // Add the new child data to Firestore with image URL
     const newChildRef = await addDoc(childrenCollectionRef, {
       name: childName.value,
       age: childAge.value,
       weight: childWeight.value,
       height: childHeight.value,
-      gender: childGender.value
+      gender: childGender.value,
+      imageUrl: imageUrl // Save the image URL in Firestore
     });
 
-    // Use the generated ID for the new child
     const newChildId = newChildRef.id;
 
-    // Add the new child with the ID to the local `children` array for immediate UI update
+    // Add the new child to the local `children` array for immediate UI update
     children.value.push({
       id: newChildId,
       name: childName.value,
       age: childAge.value,
       weight: childWeight.value,
       height: childHeight.value,
-      gender: childGender.value
+      gender: childGender.value,
+      imageUrl: imageUrl
     });
 
     // Clear form fields
@@ -105,14 +128,14 @@ const saveChildData = async () => {
     childWeight.value = "";
     childHeight.value = "";
     childGender.value = "";
+    imageFile.value = null; // Clear the image file
 
     isNewUser.value = false; // Mark as existing user after saving details
     successMessage.value = "Child details saved successfully!";
     setTimeout(() => {
       successMessage.value = "";
     }, 3000);
-  }
-  catch (error) {
+  } catch (error) {
     console.error("Error saving child data:", error);
   }
 };
@@ -172,24 +195,16 @@ onMounted(() => {
   fetchUserData();
 });
 
-// Function to handle logout
-const handleLogout = async () => {
-  try {
-    await signOut(auth);
-    user.value = null; // Clear the user data
-    router.push('/login'); // Redirect to the login page after logging out
-  } catch (error) {
-    console.error("Error logging out:", error);
-  }
-};
+
 </script>
 
 <template>
   <NavBar />
   <div class="profile-container" v-if="user">
     <h1>Welcome, {{ username || 'User' }}!</h1>
-
-    <!-- Form to add new child -->
+    <div v-if="profileImage">
+      <img :src="profileImage" alt="Profile Image" class="profile-image">
+    </div>
     <div v-if="children.length > 0">
         <h2>Your Children:</h2>
         <div v-for="child in children" :key="child.id" class="child-card">
@@ -264,16 +279,19 @@ const handleLogout = async () => {
             <option value="female">Female</option>
           </select>
         </div>
+
+        <div class="form-group">
+          <label for="childImage">Upload Image:</label>
+          <input type="file" id="childImage" @change="handleImageUpload" class="form-control" accept="image/*" />
+        </div>
+
         <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
         <button type="submit" class="btn btn-primary">Save Details</button>
       </form>
       <div v-if="successMessage" class="success-message">{{ successMessage }}</div>
     </div>
 
-    <!-- Display list of children -->
 
-
-    <button @click="handleLogout" class="btn btn-danger">Logout</button>
   
   </div>
 </template>
@@ -289,6 +307,14 @@ const handleLogout = async () => {
   border-radius: 10px;
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
   text-align: center;
+}
+.profile-image {
+  border: 1px solid black;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 20px;
 }
 
 .child-details-form .form-group {

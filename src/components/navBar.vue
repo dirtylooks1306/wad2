@@ -84,13 +84,27 @@
       </div>
 
       <div class="d-none d-lg-flex ms-auto">
-        <router-link v-if="!user" to="/login" class="nav-link login-register" :class="{ 'active-item': route.path === '/login' || route.path === '/register' }">Login/Register</router-link>
-        <div v-else class="d-flex align-items-center">
-          <router-link to="/profile" class="nav-link">
-            <img src="../assets/icons/profile.png" class="profile-icon">
-          </router-link>
+        <router-link v-if="!user" to="/login" class="nav-link login-register" :class="{ 'active-item': route.path === '/login' || route.path === '/register' }">
+          Login/Register
+        </router-link>
+        
+        <div v-else class="d-flex align-items-center position-relative">
+          <div class="dropdown">
+            <router-link to="/profile" class="nav-link" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              <img :src="profileImage" class="profile-icon">
+            </router-link>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+              <li>
+                <router-link to="/profile" class="dropdown-item">Profile</router-link>
+              </li>
+              <li>
+                <button class="dropdown-item" @click="handleLogout">Logout</button>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
+
     </div>
   </nav>
 
@@ -100,17 +114,50 @@
 <script setup>
 import { useRoute } from 'vue-router';
 import { computed, ref, onMounted } from 'vue';
-import { auth } from '../firebaseConfig.js';
+import { useRouter } from "vue-router";
+import { auth, signOut, doc, getDoc, db } from '../firebaseConfig.js';
 import { onAuthStateChanged } from 'firebase/auth';
 
 const route = useRoute();
+const router = useRouter();
 
+const profileImage = ref("../assets/icons/profile.png");
 const user = ref(null);
 const isExploreActive = computed(() => route.path.startsWith('/articles') || route.path === '/saved');
 const isTrackerActive = computed(() => route.path.startsWith('/growthtracker') || route.path.startsWith('/vaccinetracker'));
 const activeCategory = computed(() => route.params.category || '');
 
+const handleLogout = async () => {
+  try {
+    await signOut(auth);
+    user.value = null; // Clear the user data
+    router.push('/login'); // Redirect to the login page after logging out
+  } catch (error) {
+    console.error("Error logging out:", error);
+  }
+};
+const fetchUserData = async () => {
+  onAuthStateChanged(auth, async (currentUser) => {
+    if (currentUser) {
+      // Get the user's document reference
+      const userDocRef = doc(db, "users", currentUser.uid);
+
+      // Fetch the user document
+      const userSnapshot = await getDoc(userDocRef);
+      
+      if (userSnapshot.exists()) {
+        // Retrieve the profile image URL from the user document
+        profileImage.value = userSnapshot.data().profileimage; 
+      } else {
+        console.log("No user document found");
+      }
+    
+    }
+  });
+};
+
 onMounted(() => {
+  fetchUserData();
   onAuthStateChanged(auth, (currentUser) => {
     user.value = currentUser;
   });
@@ -138,10 +185,14 @@ onMounted(() => {
 }
 
 .profile-icon {
-  max-height: 30px;
-  height: auto;
-  width: auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff; 
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); 
 }
+
 
 .logo-container {
   display: flex;

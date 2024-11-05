@@ -139,16 +139,22 @@ router.beforeEach((to, from, next) => {
     if (to.meta.requiresAuth) {
       onAuthStateChanged(auth, (user) => {
         if (user) {
-          appState.loginMessage = '';
+          appState.loginMessage = ''; 
           next();
         } else {
-          appState.loginMessage = 'Please log in to access this page.';
+          if (to.name !== 'Login') {
+            appState.loginMessage = 'Please log in to access this page.'; 
+          } else {
+            appState.loginMessage = ''; 
+          }
           next({ name: 'Login' });
         }
       });
     } else {
+      appState.loginMessage = ''; 
       next();
     }
   });
+  
 
 export default router;
