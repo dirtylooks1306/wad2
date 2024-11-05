@@ -5,7 +5,7 @@
             <h3 class=text-center>{{ front.header }}</h3>
             <p class="text-center">{{ front.date }}</p>
             <hr>
-            <img :src="front.imageURL" class="border rounded-1 d-block mx-auto" style="max-width: 300px; height: 150px;">
+            <img :src="front.imageURL" class="border rounded-1 d-block mx-auto" v-if="front.imageURL" style="max-width: 300px; height: 150px;">
             <p class="p-3">{{ front.body }}</p>
             <button type="button" class="btn btn-danger p-1 d-flex mx-auto" @click="deleteFrontEntry">Delete Entry</button>
         </div>
@@ -20,7 +20,7 @@
             <h3 class=text-center>{{ back.header }}</h3>
             <p class="text-center">{{ back.date }}</p>
             <hr>
-            <img :src="back.imageURL" class="border rounded-1 d-block mx-auto" style="max-width: 300px; height: 150px;">
+            <img :src="back.imageURL" class="border rounded-1 d-block mx-auto" v-if="back.imageURL" style="max-width: 300px; height: 150px;">
             <p class="p-3">{{ back.body }}</p>
             <button type="button" class="btn btn-danger p-1 d-flex mx-auto" @click="deleteBackEntry">Delete Entry</button>
         </div>
@@ -37,7 +37,7 @@
         <h3 class=text-center>{{ entry.header }}</h3>
         <p class="text-center">{{ entry.date }}</p>
         <hr>
-        <img :src="entry.imageURL" class="border rounded-1 d-block mx-auto" style="max-width: 300px; height: 150px;">
+        <img :src="entry.imageURL" v-if="entry.imageURL" class="border rounded-1 d-block mx-auto" style="max-width: 300px; height: 150px;">
         <p class="p-3">{{ entry.body }}</p>
         <button type="button" class="btn btn-danger p-1 d-flex mx-auto" @click="deleteEntry">Delete Entry</button>
       </div>
@@ -153,6 +153,6 @@ export default {
   .flipped .back {
     transform: translateX(-400px);
     transition: transform 0.5s;
-  } /* Test */
+  } /* Changed page animation for mobile */
 }
 </style>
