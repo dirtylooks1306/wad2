@@ -50,21 +50,21 @@ const fetchArticleDetails = async () => {
   }
 };
 
-// Toggle favorite status
-const toggleFavourite = async () => {
+// Toggle save status
+const toggleSave = async () => {
   if (!userId.value || !article.value) return;
 
   try {
     const articleRef = doc(db, "articles", article.value.id);
-    const newFavouriteStatus = !article.value.Favourited;
+    const newSaveStatus = !article.value.Saved;
 
-    // Update Firestore with the new favorite status
-    await updateDoc(articleRef, { Favourited: newFavouriteStatus });
+    // Update Firestore with the new save status
+    await updateDoc(articleRef, { Saved: newSaveStatus });
 
-    // Update the local article object with the new favorite status
-    article.value.Favourited = newFavouriteStatus;
+    // Update the local article object with the new save status
+    article.value.Saved = newSaveStatus;
   } catch (error) {
-    console.error("Error toggling favourite:", error);
+    console.error("Error toggling save status:", error);
   }
 };
 
@@ -183,11 +183,11 @@ onMounted(() => {
         </button>
         <span>{{ article.Dislikes }}</span>
       </span>
-      <span class="favourite">
+      <span class="saved">
         <button 
-          @click="toggleFavourite" 
-          :class="{ favourited: article.Favourited }">
-          ⭐
+          @click="toggleSave" 
+          :class="{ saved: article.Saved }">
+          🔖
         </button>
       </span>
     </div>
@@ -274,7 +274,7 @@ onMounted(() => {
   gap: 10px;
 }
 
-.favourite {
+.saved {
   margin-left: auto;
   display: flex;
   align-items: center;
@@ -289,7 +289,7 @@ button {
   transition: background-color 0.3s, color 0.3s;
 }
 
-button.active, button.favourited {
+button.active, button.saved {
   color: #007bff;
   font-weight: bold;
   background-color: #e6f0ff;
