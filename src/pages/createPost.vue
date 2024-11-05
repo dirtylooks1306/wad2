@@ -1,7 +1,8 @@
 <template>
+  <NavBar/>
   <div class="new-post-container">
     <h2>Create a New Post</h2>
-    <form @submit.prevent="submitPost">
+    <form @submit.prevent="submitPost" class="post-form">
       <div class="form-group">
         <label for="title">Title</label>
         <input
@@ -24,6 +25,15 @@
       <div class="form-group">
         <label for="media">Upload Media</label>
         <input type="file" id="media" multiple @change="handleFileUpload" />
+        <div v-if="mediaPreviews.length" class="preview-container">
+          <h3>Media Preview</h3>
+          <div class="preview-grid">
+            <div v-for="(src, index) in mediaPreviews" :key="index" class="preview-item">
+              <img :src="src" alt="Uploaded media preview" />
+              <button @click.prevent="removeFile(index)" class="remove-button">✕</button>
+            </div>
+          </div>
+        </div>
       </div>
       <button type="submit" class="submit-button">Submit Post</button>
     </form>
@@ -33,7 +43,19 @@
 
 <script setup>
 import { ref } from 'vue';
-import { auth, db, storage, addDoc, collection, doc, updateDoc, getDoc, ref as storageRef, uploadBytes, getDownloadURL } from '../firebaseConfig.js';
+import { 
+  auth, 
+  db, 
+  storage,
+  addDoc,
+  collection,
+  doc,
+  updateDoc,
+  getDoc,
+  ref as storageRef,
+  uploadBytes,
+  getDownloadURL } from '../firebaseConfig.js';
+import NavBar from '../components/navBar.vue';
 
 const newPost = ref({
   title: '',
@@ -41,23 +63,31 @@ const newPost = ref({
   mediaFiles: []
 });
 
-const submissionMessage = ref('');
+const mediaPreviews = ref([]);
 const selectedFiles = ref([]);
+const submissionMessage = ref('');
 
-// Function to handle file uploads
+// Function to handle file uploads and generate previews
 const handleFileUpload = (event) => {
   selectedFiles.value = Array.from(event.target.files);
+  mediaPreviews.value = selectedFiles.value.map((file) => URL.createObjectURL(file));
 };
 
-// Function to get the current username and profileimage
+// Function to remove a specific file and its preview
+const removeFile = (index) => {
+  selectedFiles.value.splice(index, 1);
+  mediaPreviews.value.splice(index, 1);
+};
+
+// Function to get the current username and profile image
 const getCurrentUsername = async (userId) => {
   try {
     const userDocRef = doc(db, 'users', userId);
     const userDoc = await getDoc(userDocRef);
     if (userDoc.exists()) {
       return {
-        username: userDoc.data().username, // Assumes username field exists in the document
-        profileimage: userDoc.data().profileimage // Assumes profileimage field exists in the document
+        username: userDoc.data().username,
+        profileimage: userDoc.data().profileimage
       };
     } else {
       console.error('User document not found');
@@ -74,7 +104,6 @@ const getCurrentUsername = async (userId) => {
     };
   }
 };
-
 
 // Function to submit the post to Firestore
 const submitPost = async () => {
@@ -116,6 +145,7 @@ const submitPost = async () => {
       newPost.value.title = '';
       newPost.value.desc = '';
       selectedFiles.value = [];
+      mediaPreviews.value = [];
 
     } catch (error) {
       console.error('Error submitting post:', error);
@@ -134,12 +164,18 @@ const submitPost = async () => {
   padding: 20px;
   border: 1px solid #ddd;
   border-radius: 8px;
-  background-color: #f9f9f9;
+  background-color: #D9C5B2;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 h2 {
   text-align: center;
   margin-bottom: 20px;
+  color: #333;
+}
+
+.post-form {
+  width: 100%;
 }
 
 .form-group {
@@ -150,6 +186,7 @@ label {
   display: block;
   margin-bottom: 5px;
   font-weight: bold;
+  color: #555;
 }
 
 input[type="text"],
@@ -170,10 +207,53 @@ input[type="file"] {
   margin-top: 5px;
 }
 
+.preview-container {
+  margin-top: 15px;
+}
+
+.preview-grid {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.preview-item {
+  position: relative;
+}
+
+.preview-item img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.remove-button {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background-color: rgba(255, 0, 0, 0.7);
+  border: none;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-button:hover {
+  background-color: rgba(255, 0, 0, 0.9);
+}
+
 .submit-button {
   width: 100%;
   padding: 10px;
-  background-color: #28a745;
+  background-color: #FF9689;
   color: #fff;
   border: none;
   border-radius: 4px;

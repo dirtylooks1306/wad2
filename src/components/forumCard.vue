@@ -1,5 +1,6 @@
 <template>
   <div class="post-card">
+  <!-- <div class="post-card" @click="navigateToPost"> -->
     <div class="post-header">
       <img :src="post.profileimage" alt="Author profile" class="profile-image" />
       <div class="author-details">
@@ -10,34 +11,64 @@
 
     <p class="post-title">{{ post.title }}</p>
 
-    <!-- Custom Carousel -->
-    <div v-if="post.media && post.media.length > 0" class="carousel-container">
-      <div class="carousel">
-        <div
-          v-for="(image, index) in post.media"
-          :key="index"
-          class="carousel-item"
-          :class="{ active: index === activeIndex }"
-        >
-          <img :src="image" alt="Post media" class="carousel-image" />
+    <div
+      v-if="post.media && post.media.length > 0"
+      class="carousel-container"
+      @click.stop="openFullScreen"
+    >
+      <!-- Carousel -->
+      <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+          <div v-for="(image, index) in post.media" :key="index" :class="['carousel-item', { active: index === 0 }]">
+            <img :src="image" class="d-block w-100 carousel-image" :alt="'Image ' + (index + 1)" />
+          </div>
         </div>
-      </div>
-      <div class="carousel-indicators">
-        <span
-          v-for="(image, index) in post.media"
-          :key="index"
-          :class="{ 'indicator-active': index === activeIndex }"
-          @click="activeIndex = index"
-        ></span>
+        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Next</span>
+        </button>
       </div>
     </div>
 
-    <router-link :to="`/forum/thread/${post.id}`" class="read-more">Read More</router-link>
+    <p v-else class="post-desc">{{ truncateDesc(post.desc, 400) }}</p>
+
+    <!-- Modal for Full-Screen Image Browsing -->
+    <div v-if="showModal" class="modal" @click.self="closeFullScreen">
+      <div class="modal-content">
+        <button class="close-button" @click="closeFullScreen">✕</button>
+        <div id="modalCarousel" class="carousel slide" data-bs-ride="carousel">
+          <div class="carousel-inner">
+            <div v-for="(image, index) in post.media" :key="index" :class="['carousel-item', { active: index === 0 }]">
+              <img :src="image" class="d-block w-100 modal-image" :alt="'Image ' + (index + 1)" />
+            </div>
+          </div>
+          <button class="carousel-control-prev" type="button" data-bs-target="#modalCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#modalCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="interactiveBar">
+      <span class="like-count"><button @click="likePost"><i class="fa-solid fa-thumbs-up"></i></button>{{ post.likes }}<button @click="dislikePost"><i class="fa-solid fa-thumbs-down"></i></button></span>
+    </div>
+
   </div>
+
 </template>
 
 <script setup>
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 const props = defineProps({
   post: {
@@ -46,11 +77,26 @@ const props = defineProps({
   }
 });
 
-const activeIndex = ref(0);
+const router = useRouter();
+const showModal = ref(false);
+
+// Function to navigate to the individual forum post
+const navigateToPost = () => {
+  router.push(`/forum/thread/${props.post.id}`);
+};
+
+// Function to open the full-screen image modal
+const openFullScreen = () => {
+  showModal.value = true;
+};
+
+// Function to close the full-screen image modal
+const closeFullScreen = () => {
+  showModal.value = false;
+};
 
 // Function to calculate time elapsed since the post date
 const timeElapsed = (date) => {
-  // Check if the date is a Firestore Timestamp and convert it
   const postDate = date.toDate ? date.toDate() : new Date(date);
 
   if (isNaN(postDate)) {
@@ -80,16 +126,76 @@ const timeElapsed = (date) => {
     return `${years} year${years > 1 ? 's' : ''} ago`;
   }
 };
+
+// Function to truncate the description to a specific length
+const truncateDesc = (text, maxLength) => {
+  if (text.length > maxLength) {
+    return text.slice(0, maxLength) + '...';
+  }
+  return text;
+};
+
+const likePost = () => {
+  // Implement like functionality (gets document from forum collection in firebase with post.id, increments likes by 1)
+
+};
+
+const dislikePost = () => {
+  // Implement dislike functionality (gets document from forum collection in firebase wit)
+};
 </script>
 
 <style scoped>
+.interactiveBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}
 .post-card {
+  max-width: 600px; /* Set a maximum width for the card */
+  margin: 15px auto; /* Center the card horizontally */
   padding: 15px;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  background-color: #D9C5B2; /* Updated background color */
-  margin-bottom: 15px;
+  background-color: #D9C5B2;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  position: relative;
+  cursor: pointer;
+}
+
+.carousel-container {
+  max-height: 400px; /* Limit the height of the carousel */
+  overflow: hidden;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.modal-content {
+  max-width: 90%; /* Limit the modal content to 90% of the viewport width */
+  max-height: 90%; /* Limit the modal content to 90% of the viewport height */
+}
+
+.modal-image {
+  object-fit: contain;
+  width: 100%;
+  height: auto;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .post-card {
+    max-width: 90%; /* Reduce the max width for smaller screens */
+  }
+
+  .carousel-container {
+    max-height: 250px; /* Reduce the max height of the carousel on smaller screens */
+  }
+
+  .modal-content {
+    max-width: 100%;
+    max-height: 100%;
+  }
 }
 
 .post-header {
@@ -123,59 +229,77 @@ const timeElapsed = (date) => {
 }
 
 .post-title {
-  margin-bottom: 15px;
+  margin-bottom: 10px;
   color: #333;
 }
 
-.carousel-container {
-  position: relative;
-  margin-bottom: 15px;
-  max-height: 200px;
-  overflow: hidden;
-  border-radius: 8px;
-}
-
-.carousel {
-  display: flex;
-  overflow: hidden;
-  border-radius: 8px;
-}
-
-.carousel-item {
-  flex: 0 0 100%;
-  opacity: 0;
-  transition: opacity 0.5s ease-in-out;
-}
-
-.carousel-item.active {
-  opacity: 1;
-}
-
-.carousel-image {
+.carousel-item img {
+  object-fit: contain;
   width: 100%;
-  height: 200px;
-  object-fit: cover;
+  height: auto;
   border-radius: 8px;
 }
 
-.carousel-indicators {
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
   display: flex;
+  align-items: center;
   justify-content: center;
-  margin-top: 5px;
+  z-index: 1000;
+}
+.modal-content {
+  max-width: 80%; /* Limit the modal content width to 80% of the viewport */
+  max-height: 80%; /* Limit the modal content height to 80% of the viewport */
+  background-color: black;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
-.carousel-indicators span {
-  width: 8px;
-  height: 8px;
-  margin: 0 3px;
-  background-color: #ccc;
-  border-radius: 50%;
+.modal-image {
+  object-fit: contain; /* Ensure the image fits within its container */
+  width: 100%; /* Take up the full width of the modal content */
+  max-height: 70vh; /* Set a maximum height relative to the viewport */
+  border-radius: 8px;
+}
+
+/* Adjust modal close button for better visibility */
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: #000;
+  font-size: 24px;
   cursor: pointer;
-  transition: background-color 0.3s;
 }
 
-.carousel-indicators .indicator-active {
-  background-color: #007bff;
+@media (max-width: 768px) {
+  .modal-content {
+    max-width: 90%; /* Make modal content slightly larger on smaller screens */
+    max-height: 90%; /* Adjust modal content height */
+  }
+
+  .modal-image {
+    max-height: 60vh; /* Reduce image height for smaller screens */
+  }
+}
+
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
 }
 
 .read-more {
@@ -188,70 +312,5 @@ const timeElapsed = (date) => {
 
 .read-more:hover {
   text-decoration: underline;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .post-card {
-    margin-bottom: 10px;
-    padding: 10px;
-  }
-
-  .profile-image {
-    width: 35px;
-    height: 35px;
-  }
-
-  .author-name {
-    font-size: 0.9em;
-  }
-
-  .post-time {
-    font-size: 0.75em;
-  }
-
-  .carousel-container {
-    max-height: 150px;
-  }
-
-  .carousel-image {
-    height: 150px;
-  }
-
-  /* Adjust sidebar and main content for smaller screens */
-  .forum-layout {
-    flex-direction: column;
-  }
-
-  .forum-sidebar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 250px;
-    height: 100%;
-    background-color: #D9C5B2;
-    z-index: 1000;
-    transform: translateX(-250px); /* Hidden by default */
-    transition: transform 0.3s ease-in-out;
-  }
-
-  .forum-sidebar.active {
-    transform: translateX(0); /* Show sidebar */
-  }
-
-  .forum-content {
-    margin-left: 0;
-    padding: 10px;
-  }
-
-  .toggle-sidebar-btn {
-    display: block;
-    background-color: #D9C5B2;
-    border: none;
-    cursor: pointer;
-    margin-bottom: 10px;
-    padding: 10px;
-    font-size: 1.2em;
-  }
 }
 </style>

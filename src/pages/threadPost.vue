@@ -2,7 +2,7 @@
     <div class="thread-post-container">
       <h2>{{ thread.title }}</h2>
       <div class="thread-details">
-        <p class="thread-content">{{ thread.content }}</p>
+        <p class="thread-desc">{{ thread.desc }}</p>
         <p class="thread-meta">Posted by {{ thread.author }} on {{ thread.date }}</p>
       </div>
   
@@ -41,7 +41,7 @@
   const thread = ref({
     id: threadId,
     title: 'Sample Thread Title',
-    content: 'This is the main content of the thread. It provides details and invites discussion.',
+    desc: 'This is the main desc of the thread. It provides details and invites discussion.',
     author: 'John Doe',
     date: '2024-11-05'
   });

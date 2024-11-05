@@ -1,65 +1,90 @@
 <template>
-<div id="forum-bar">
-  <input id="forum-toggle" type="checkbox"/>
-  <div id="forum-header"><a id="forum-title" href="https://codepen.io" target="_blank">headerrrrr</a>
-    <label for="forum-toggle"><span id="forum-toggle-burger"></span></label>
-    <hr/>
-  </div>
-  <div id="forum-content">
-    <div class="forum-button">
-      <i class="fas fa-palette"></i>
-      <router-link to="/forum/createpost"><span>Create</span></router-link>
+  <div id="forum-bar">
+    <input id="forum-toggle" type="checkbox" />
+    <div id="forum-header"><a id="forum-title">Forum</a>
+      <label for="forum-toggle"><span id="forum-toggle-burger"></span></label>
+      <hr />
     </div>
-    <div class="forum-button"><i class="fas fa-images"></i><span>trending</span></div>
-    <div class="forum-button"><i class="fas fa-thumbtack"></i><span>recent</span></div>
-    <hr/>
-    <div class="forum-button"><i class="fas fa-heart"></i><span>hello4</span></div>
-    <div class="forum-button"><i class="fas fa-chart-line"></i><span>hello5</span></div>
-    <hr/>
-    <div class="forum-button"><i class="fas fa-gem"></i><span>first textttt</span></div>
-    <div id="forum-content-highlight"></div>
-  </div>
-  <input id="forum-footer-toggle" type="checkbox"/>
-  <div id="forum-footer">
-    <div id="forum-footer-heading">
-      <div id="forum-footer-avatar"><img src="../assets/icons/profile.png"/></div>
-      <div id="forum-footer-titlebox"><a id="forum-footer-title" href="https://codepen.io/uahnbu/pens/public" target="_blank">userrr</a><span id="forum-footer-subtitle">roleeee</span></div>
-      <label for="forum-footer-toggle"><i class="fas fa-caret-up"></i></label>
+    <div id="forum-content">
+      <div class="forum-button">
+        <i class="fas fa-solid fa-plus"></i>
+        <router-link to="/forum/create-post"><span>Create</span></router-link>
+      </div>
+      <hr />
+      <div class="forum-button"><i class="fas fa-chart-line"></i><span>Trending</span></div>
+      <hr />
+      <div class="forum-button"><i class="fas fa-solid fa-fire"></i><span>New</span></div>
+      <hr />
+      <div class="forum-button"><i class="fas fa-thumbtack"></i><span>Saved</span></div>
+      <hr />
+      <div class="forum-button"><i class="fas fa-solid fa-clock"></i><span>Recently Viewed</span></div>
+      <hr />
+      <div id="forum-content-highlight"></div>
     </div>
-    <div id="forum-footer-content">
-      <Lorem>ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</Lorem>
+    <input id="forum-footer-toggle" type="checkbox" />
+    <div id="forum-footer">
+      <div id="forum-footer-heading">
+        <div id="forum-footer-avatar">
+          <img :src="userData.profileimage" alt="Author profile" class="profile-image" />
+        </div>
+        <div id="forum-footer-titlebox">
+          <span id="forum-footer-title">{{ userData.username }}</span>
+          <span id="forum-footer-subtitle">{{ userData.role || 'user' }}</span>
+        </div>
+        <label for="forum-footer-toggle"><i class="fas fa-caret-up"></i></label>
+      </div>
+      <div id="forum-footer-content">
+        <p>Hello, {{ userData.username }}!</p>
+      </div>
     </div>
   </div>
-</div>
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import { auth, db, doc, getDoc } from '../firebaseConfig.js';
 
 export default {
   name: 'ForumSidebar',
   setup() {
-    const isCollapsed = ref(false);
-    const showSubscribed = ref(false);
+    const userData = ref({
+      username: 'Loading...',
+      profileimage: 'default-profile.png', // Path to a default image
+      role: 'user'
+    });
 
-    const toggleSidebar = () => {
-      isCollapsed.value = !isCollapsed.value;
+    const fetchUserData = async () => {
+      try {
+        const currentUser = await auth.currentUser;
+        if (currentUser) {
+          const userRef = doc(db, 'users', currentUser.uid);
+          const userDoc = await getDoc(userRef);
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            userData.value.username = data.username || 'Anonymous';
+            userData.value.profileimage = data.profileimage || 'default-profile.png';
+            userData.value.role = data.role || 'user';
+          } else {
+            console.error('User document not found');
+          }
+        } else {
+          console.error('No user is currently logged in');
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
     };
 
-    const toggleSubscribed = () => {
-      showSubscribed.value = !showSubscribed.value;
-    };
+    onMounted(() => {
+      fetchUserData();
+    });
+
     return {
-      isCollapsed,
-      showSubscribed,
-      toggleSidebar,
-      toggleSubscribed,
+      userData
     };
-  },
+  }
 };
 </script>
-
-
 
 <style scoped>
 .forum-sidebar {
@@ -67,89 +92,338 @@ export default {
   transition: width 0.3s ease;
   height: 100vh;
   position: fixed;
-  top: 75px; /* Adjust this value to match your forumbar height */
+  top: 75px; /* Adjust this value to match your forum bar height */
   left: 0;
   z-index: 999; /* Stays on top of other content */
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Adds a shadow for better visibility */ 
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Adds a shadow for better visibility */
 }
 
-.forum-sidebar.collapsed {
-  width: 15px; /* Smaller width when collapsed */
+.profile-image {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 10px;
 }
 
-ul {
-  flex-grow: 1;
+/* Add other existing CSS styles for forum sidebar here */
+#forum-toggle-burger {
+  position: relative;
+  width: 16px;
+  height: 2px;
+  background: var(--forumbar-dark-primary);
+  border-radius: 99px;
+  transition: background 0.2s;
+}
+#forum-toggle-burger:before, #forum-toggle-burger:after {
+  content: "";
+  position: absolute;
+  top: -6px;
+  width: 10px;
+  height: 2px;
+  background: var(--forumbar-light-primary);
+  border-radius: 99px;
+  transform: translate(2px, 8px) rotate(30deg);
+  transition: 0.2s;
+}
+#forum-toggle-burger:after {
+  top: 6px;
+  transform: translate(2px, -8px) rotate(-30deg);
 }
 
-.sidebar-link {
+#forum-content {
+  margin: -16px 0;
+  padding: 16px 0;
+  position: relative;
+  flex: 1;
+  width: var(--forumbar-width);
+  background: var(--forumbar-dark-primary);
+  box-shadow: 0 0 0 16px var(--forumbar-dark-primary);
+  direction: rtl;
+  overflow-x: hidden;
+  transition: width 0.2s;
+}
+#forum-content::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+#forum-content::-webkit-scrollbar-thumb {
+  border-radius: 99px;
+  background-color: #333333;
+}
+
+#forum-content-highlight {
+  position: absolute;
+  left: 16px;
+  top: -70px;
+  width: calc(100% - 16px);
+  height: 54px;
+  background: var(--background);
+  background-attachment: fixed;
+  border-radius: 16px 0 0 16px;
+  transition: top 0.2s;
+}
+#forum-content-highlight:before, #forum-content-highlight:after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 100%;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  box-shadow: 16px 16px var(--background);
+}
+#forum-content-highlight:after {
+  top: 100%;
+  box-shadow: 16px -16px var(--background);
+}
+
+.forum-button {
+  position: relative;
+  margin-left: 16px;
+  height: 54px;
   display: flex;
   align-items: center;
-  color: #242424;
-  padding: 10px 0;
-  text-decoration: none;
-  font-size: 18px;
-  transition: color 0.3s;
+  color: var(--forumbar-light-secondary);
+  direction: ltr;
+  cursor: pointer;
+  z-index: 1;
+  transition: color 0.2s;
+}
+.forum-button span {
+  transition: opacity 1s;
+}
+.forum-button .fas {
+  transition: min-width 0.2s;
+}
+.forum-button:nth-of-type(1):hover {
+  color: var(--forumbar-dark-primary);
+}
+.forum-button:nth-of-type(1):hover ~ #forum-content-highlight {
+  top: 16px;
+}
+.forum-button:nth-of-type(2):hover {
+  color: var(--forumbar-dark-primary);
+}
+.forum-button:nth-of-type(2):hover ~ #forum-content-highlight {
+  top: 70px;
+}
+.forum-button:nth-of-type(3):hover {
+  color: var(--forumbar-dark-primary);
+}
+.forum-button:nth-of-type(3):hover ~ #forum-content-highlight {
+  top: 124px;
+}
+.forum-button:nth-of-type(4):hover {
+  color: var(--forumbar-dark-primary);
+}
+.forum-button:nth-of-type(4):hover ~ #forum-content-highlight {
+  top: 178px;
+}
+.forum-button:nth-of-type(5):hover {
+  color: var(--forumbar-dark-primary);
+}
+.forum-button:nth-of-type(5):hover ~ #forum-content-highlight {
+  top: 232px;
 }
 
-.sidebar-link i {
-  margin-right: 15px;
+#forum-bar .fas {
+  min-width: 3rem;
+  text-align: center;
 }
 
-.sidebar-link:hover {
-  color: #ff9689;
+#forum-footer {
+  position: relative;
+  width: var(--forumbar-width);
+  height: 54px;
+  background: var(--forumbar-dark-secondary);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  z-index: 2;
+  transition: width 0.2s, height 0.2s;
 }
 
-ul.list-unstyled {
-  padding-left: 0;
-}
-
-.dropdown-toggle {
-  background: none;
-  border: none;
+#forum-footer-heading {
+  position: relative;
   width: 100%;
-  text-align: left;
-  padding: 10px 0;
-  cursor: pointer;
+  height: 54px;
+  display: flex;
+  align-items: center;
 }
 
-.collapse-btn {
-  background: none;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-  position: absolute;
-  right: -15px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 50px;
-  height: 30px;
-  background-color: #f7cccc;
+#forum-footer-avatar {
+  position: relative;
+  margin: 11px 0 11px 16px;
+  left: 0;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  color: white;
+  overflow: hidden;
+  transform: translate(0);
+  transition: 0.2s;
+}
+#forum-footer-avatar img {
+  height: 100%;
+}
+
+#forum-footer-titlebox {
+  position: relative;
+  margin-left: 16px;
+  width: 10px;
+  display: flex;
+  flex-direction: column;
+  transition: opacity 1s;
+}
+
+#forum-footer-subtitle {
+  color: var(--forumbar-light-secondary);
+  font-size: 0.6rem;
+}
+
+#forum-footer-toggle:checked + #forum-footer {
+  height: 30%;
+  min-height: 54px;
+}
+#forum-footer-toggle:checked + #forum-footer label[for=forum-footer-toggle] {
+  transform: rotate(180deg);
+}
+
+label[for=forum-footer-toggle] {
+  position: absolute;
+  right: 0;
+  width: 3rem;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+#forum-footer-content {
+  margin: 0 16px 16px 16px;
+  border-top: solid 1px var(--forumbar-light-secondary);
+  padding: 16px 0;
+  color: var(--forumbar-light-secondary);
+  font-size: 0.8rem;
+  overflow: auto;
+}
+#forum-footer-content::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+#forum-footer-content::-webkit-scrollbar-thumb {
+  border-radius: 99px;
+  background-color: #333333;
+}
+
+#forum-toggle:checked ~ #forum-header {
+  width: calc(var(--forumbar-width-min) - 16px);
+}
+#forum-toggle:checked ~ #forum-content, #forum-toggle:checked ~ #forum-footer {
+  width: var(--forumbar-width-min);
+}
+#forum-toggle:checked ~ #forum-header #forum-title {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.1s;
+}
+#forum-toggle:checked ~ #forum-header label[for=forum-toggle] {
+  left: calc(50% - 8px);
+  transform: translate(-50%);
+}
+#forum-toggle:checked ~ #forum-header #forum-toggle-burger {
+  background: var(--forumbar-light-primary);
+}
+#forum-toggle:checked ~ #forum-header #forum-toggle-burger:before, #forum-toggle:checked ~ #forum-header #forum-toggle-burger::after {
+  width: 16px;
+  background: var(--forumbar-light-secondary);
+  transform: translate(0, 0) rotate(0deg);
+}
+#forum-toggle:checked ~ #forum-content .forum-button span {
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+#forum-toggle:checked ~ #forum-content .forum-button .fas {
+  min-width: calc(100% - 16px);
+}
+#forum-toggle:checked ~ #forum-footer #forum-footer-avatar {
+  margin-left: 0;
+  left: 50%;
+  transform: translate(-50%);
+}
+#forum-toggle:checked ~ #forum-footer #forum-footer-titlebox, #forum-toggle:checked ~ #forum-footer label[for=forum-footer-toggle] {
+  opacity: 0;
+  transition: opacity 0.1s;
+  pointer-events: none;
+}
+
+#forum-bar {
+  position: absolute;
+  margin-top: 75px;
+  left: 1vw;
+  top: 1vw;
+  z-index: 999;
+  height: calc(100% - 10vw);
+  background: var(--forumbar-dark-primary);
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  color: var(--forumbar-light-primary);
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  overflow: hidden;
+  user-select: none;
+}
+#forum-bar hr {
+  margin: 0;
+  position: relative;
+  left: 16px;
+  width: calc(100% - 32px);
+  border: none;
+  border-top: solid 1px var(--forumbar-dark-secondary);
+}
+#forum-bar a {
+  color: inherit;
+  text-decoration: inherit;
+}
+#forum-bar input[type=checkbox] {
+  display: none;
+}
+
+#forum-header {
+  position: relative;
+  width: var(--forumbar-width);
+  left: 16px;
+  width: calc(var(--forumbar-width) - 16px);
+  min-height: 80px;
+  background: var(--forumbar-dark-primary);
+  border-radius: 16px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  transition: width 0.2s;
+}
+#forum-header hr {
+  position: absolute;
+  bottom: 0;
+}
+
+#forum-title {
+  font-size: 1.5rem;
+  transition: opacity 1s;
+}
+
+label[for=forum-toggle] {
+  position: absolute;
+  right: 0;
+  width: 3rem;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.3s ease;
-}
-
-.collapse-btn:hover {
-  background-color: #ff9689;
-}
-
-ul.list-unstyled .fa-caret-down {
-  margin-left: auto;
-}
-
-.forum-sidebar.collapsed .fa-caret-down {
-  display: none;
-}
-
-/* Hide all icons and text when the sidebar is collapsed */
-.forum-sidebar.collapsed .sidebar-link span,
-.forum-sidebar.collapsed .sidebar-link i {
-  display: none;
+  cursor: pointer;
 }
 </style>

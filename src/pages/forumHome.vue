@@ -4,21 +4,25 @@
   <div class="forum-home-container">
     <div class="forum-layout">
       <div class="forum-content">
-        <div v-for="forumPost in forumPosts" :key="forumPost.id">
-          <ForumCard :post="forumPost" />
+        <div class="forum-cards-container">
+          <div v-for="forumPost in forumPosts" :key="forumPost.id" class="forum-card-wrapper">
+            <ForumCard :post="forumPost" />
+          </div>
         </div>
       </div>
     </div>
   </div>
+  <ToTop />
 </template>
 
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import { db, collection, getDocs, query, where } from '../firebaseConfig.js'; // Ensure you import your Firebase config
+import { db, collection, getDocs } from '../firebaseConfig.js';
 import NavBar from '../components/NavBar.vue';
 import ForumSidebar from '../components/ForumSidebar.vue';
 import ForumCard from '../components/forumCard.vue';
+import ToTop from '../components/ToTop.vue';
 
 const route = useRoute();
 const forumPosts = ref([]);
@@ -27,15 +31,11 @@ const forumPosts = ref([]);
 const fetchPostsByCategory = async (category) => {
   try {
     const forumCollection = collection(db, 'forum');
-    // const q = query(forumCollection, where('category', '==', category));
-    // const querySnapshot = await getDocs(q);
     const querySnapshot = await getDocs(forumCollection);
-
-    // Transform Firebase documents into post objects
     forumPosts.value = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
-    }))
+    }));
   } catch (error) {
     console.error('Error fetching posts:', error);
   }
@@ -53,7 +53,6 @@ watch(
 );
 
 onMounted(() => {
-  // Initial check if the page loads without a route change
   const categories = ['trending', 'new', 'saved', 'recently-viewed'];
   const currentCategory = categories.find(category => route.path.includes(category)) || 'trending';
   fetchPostsByCategory(currentCategory);
@@ -74,13 +73,28 @@ onMounted(() => {
   flex-grow: 1;
   padding: 20px;
   border-radius: 8px;
-  margin-left: 280px; /* Default margin */
-  transition: margin-left 0.3s ease-in-out; /* Smooth transition */
+  margin-left: 280px;
+  transition: margin-left 0.3s ease-in-out;
+  display: flex;
+  justify-content: center;
+}
+
+.forum-cards-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 800px; /* Adjust max-width to fit your design */
+}
+
+.forum-card-wrapper {
+  width: 100%;
+  margin-bottom: 20px; /* Add space between cards */
 }
 
 @media (max-width: 768px) {
   .forum-content {
-    margin-left: 90px; /* Reduced margin for smaller screens */
+    margin-left: 90px;
     padding: 10px;
   }
 }
