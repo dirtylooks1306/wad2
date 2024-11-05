@@ -25,8 +25,6 @@
     "vue3-google-map": "^0.21.0"
   },
   "devDependencies": {
-    "@esbuild/darwin-arm64": "^0.24.0",
-    "@rollup/rollup-darwin-arm64": "^4.24.0",
     "@vitejs/plugin-vue": "^5.1.4",
     "vite": "^5.4.8"
   }
