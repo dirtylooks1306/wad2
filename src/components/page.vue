@@ -37,7 +37,7 @@
         <h3 class=text-center>{{ entry.header }}</h3>
         <p class="text-center">{{ entry.date }}</p>
         <hr>
-        <img src="" class="border rounded-1 d-block mx-auto" style="max-width: 300px; height: 150px;">
+        <img :src="entry.imageURL" class="border rounded-1 d-block mx-auto" style="max-width: 300px; height: 150px;">
         <p class="p-3">{{ entry.body }}</p>
         <button type="button" class="btn btn-danger p-1 d-flex mx-auto" @click="deleteEntry">Delete Entry</button>
       </div>

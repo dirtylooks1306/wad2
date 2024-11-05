@@ -35,7 +35,7 @@ To Do:
       <p>Insert media and text about your parenting journey here.</p>
       -->
       <div class="diaries">
-        <Diary v-for="(diary, i) in dbDiaries" 
+        <Diary v-for="(diary, i) in userDiaries" 
         :dbDiary="diary" 
         :key="i"
         @deleteEntry="deleteEntry"/>
@@ -44,7 +44,7 @@ To Do:
     <div class="form-block container-fluid w-100">
       <CustomHeader header="SUBMIT A NEW ENTRY"/>
       <DiaryForm :entryData="newEntry"
-      :diaries="dbDiaries" 
+      :diaries="userDiaries" 
       :children="children"
       @submitEntry="submitEntry"
       @addDiary="addDiary"
@@ -64,7 +64,8 @@ To Do:
     },
     data() {
       return {
-        dbDiaries: [],
+        dbDiaries: [], //Gets the database's diaries
+        userDiaries: [], //Gets diaries that belong to the user
         children: [],
         newEntry: {},
       }
@@ -206,6 +207,7 @@ To Do:
         if (user) {
           this.userId = user.uid;
           //console.log(user.uid); //Check whether user ID is obtained
+          //Retrieves all of user's children
           var childrenList = [];
           const childrenRef = collection(db, "users", this.userId, "children");
           const snapshot = await getDocs(childrenRef);
@@ -215,6 +217,7 @@ To Do:
           for (let child of childrenList) {
             this.children.push(child.name);
           }
+          //Initialises the diaries collection from Firebase
           const diaries = collection(db, "diary");
           const diarySnapshot = await getDocs(diaries);
           this.dbDiaries = diarySnapshot.docs.map((doc) => ({
@@ -231,8 +234,14 @@ To Do:
             const entries = await this.getEntries(d.id);
             d.entries = entries;
           }
-          console.log(this.dbDiaries); //Ensures the diaries database is populated
-          return this.dbDiaries //Ensure the return of populated database
+          //Retrieves the user's diaries collection (if any)
+          for (let d of this.dbDiaries) {
+            if (this.children.includes(d.id)) {
+              this.userDiaries.push(d)
+            }
+          }
+          console.log(this.userDiaries); //Ensures the diaries database is populated
+          return this.userDiaries //Ensure the return of user's diaries
         } else {
           this.$router.push("/login");
         }
