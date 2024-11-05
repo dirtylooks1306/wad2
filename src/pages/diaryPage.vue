@@ -13,8 +13,8 @@ import {
   query,
   storage,
   auth,
-  ref,
-  uploadBytesResumable,
+  ref as sRef,
+  uploadBytes,
   getDownloadURL,
 } from "../firebaseConfig.js";
 import { orderBy } from "firebase/firestore";
@@ -22,13 +22,9 @@ import { onAuthStateChanged } from "firebase/auth";
 /*
 To Do:
 - Figure out how to add subcollections to Firebase (Done, figure out how to remove placeholder if possible)
-- Add button animations for form component -> Refer to Emergency Page for button CSS (Last priority)
-- Integrate login guard into diary page (Done)
-- Obtain list of children and make dropdown list for adding diary (Done)
-- Figure out how to add images to diary (Top priority)
 */
 </script>
-
+ 
 <template>
 	<NavBar />
   <div class="container-fluid p-3">
@@ -70,60 +66,35 @@ To Do:
       return {
         dbDiaries: [],
         children: [],
-        // Static storage of diaries, KEEP NAMING CONVENTIONS
-        /*
-        diaries: [
-          { name: 'Jason',   
-            entries: [
-              { header: 'Baby spoke his first words!', body: 'A', date: '10/5/2024' },
-              { header: 'day2', body: 'B', date: '14/5/2024' },
-              { header: 'day3', body: 'C', date: '16/5/2024' },
-              { header: 'day4', body: 'D', date: '18/5/2024' },
-              { header: 'day5', body: 'E', date: '24/5/2024' },
-              { header: 'day6', body: 'F', date: '29/5/2024' },
-              { header: 'day7', body: 'G', date: '1/6/2024' },
-              { header: 'day8', body: 'H', date: '6/6/2024' },
-              { header: 'day9', body: 'I', date: '10/6/2024' },
-            ]
-          },
-          { name: 'Michael', 
-            entries: [
-              { header: 'day1', body: 'urmumgae', date: '1/8/2024' },
-              { header: 'day2', body: 'no u', date: '10/8/2024' },
-            ] 
-          },
-        ],
-        */
         newEntry: {},
       }
     },
     methods: {
       async submitEntry(formData) {
-        console.log(formData); //Debugging image path
+        //console.log(formData); //Debugging image path
         //Part 1: Retrieve form data and assign variables
         const diaryOwner = formData.name;
         //console.log(this.newEntry); //Ensure form data is successfully retrieved
         //Part 2: Update database with new entry
         for (let d of this.dbDiaries) {
           if (d.id === diaryOwner) {
-            //Test for uploading files logic
-            const storageRef = ref(storage, `/DiaryImages/${diaryOwner}`);
-            const uploadTask = await uploadBytesResumable(storageRef, formData.image)
-            if (formData.image) {
-              console.log("image exists");
-            }
+            //Logic for uploading files to Firestore
+            const fileRef = sRef(storage, `DiaryImages/${diaryOwner}/${formData.imageURL.name}`);
+            await uploadBytes(fileRef, formData.imageURL);
+            const fileURL = await getDownloadURL(fileRef);
+            formData.imageURL = fileURL;
             //if-loop only when diary is first initialised -> Removes placeholder with actual entry
             if (d.entries.length === 1 && d.entries[0].id === "Placeholder") {
+              await this.deletePlaceholder(diaryOwner);
               const id = "Entry 001"
               const entry = {
                 body: formData.body,
                 date: formData.date ? new Date(formData.date) : null,
-                image: formData.image,
+                imageURL: formData.imageURL,
                 header: formData.header
               }
               const newDiaryEntry = doc(db, "diary", diaryOwner, "Entries", id)
               await setDoc(newDiaryEntry, entry)
-              this.deletePlaceholder(diaryOwner);
               d.entries.push({
                 id: id,
                 ...entry,
@@ -137,7 +108,7 @@ To Do:
               this.newEntry = {
                 body: formData.body,
                 date: formData.date ? new Date(formData.date) : null, //Convert date string to Timestamp object
-                image: formData.image,
+                imageURL: formData.imageURL,
                 header: formData.header,
               };
               await setDoc(newEntryRef, this.newEntry); //setDoc used instead of addDoc since there is custom ID set
@@ -176,7 +147,7 @@ To Do:
           header: doc.data().header,
           date: doc.data().date ? doc.data().date.toDate().toLocaleDateString() : 'No Date',
           body: doc.data().body,
-          image: doc.data().image,
+          imageURL: doc.data().imageURL,
         }))
         //console.log(entries); //Entries successfully retrieved
         return entries; // Returns value of entries array to be used in mounted function
@@ -218,11 +189,10 @@ To Do:
           if (d.id === name) {
             const entries = d.entries;
             for (let entry of entries) {
-              if (entry.id === 'Placeholder') {
-                d.entries.splice(d.entries.indexOf(entry), 1);
-                
+              if (entry.id === 'Placeholder') {                
                 const deletePlaceholder = doc(db, "diary", name, "Entries", entry.id);
                 await deleteDoc(deletePlaceholder);
+                d.entries.splice(d.entries.indexOf(entry), 1);
               }
             }
           }
@@ -261,7 +231,7 @@ To Do:
             const entries = await this.getEntries(d.id);
             d.entries = entries;
           }
-          //console.log(this.dbDiaries); //Ensures the diaries database is populated
+          console.log(this.dbDiaries); //Ensures the diaries database is populated
           return this.dbDiaries //Ensure the return of populated database
         } else {
           this.$router.push("/login");

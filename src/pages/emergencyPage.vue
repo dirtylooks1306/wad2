@@ -142,7 +142,7 @@ function clear() {
 		<div class="row no-gutters">
 			<div class="col-12">
 				<img
-					src="../assets/A&E test.png"
+					src="../assets/A&E banner.jfif"
 					class="img-fluid"
 					id="background-image"
 					alt=""

@@ -4,7 +4,7 @@ import CustomHeader from "./CustomHeader.vue";
 <template>
     <div class="row row-cols-xl-2 row-cols-lg-1 pt-1">
         <div class="col-xl-4 col-lg-12 py-2">
-            <label for="name" class="col-form-label">Owner Name:</label><br>
+            <label for="name" class="col-form-label">Owner Name:</label>
             <select id="name" class="form-select" aria-label="Default Select Example" v-model="formData.name">
                 <option value="" selected>Select a Child</option>
                 <option v-for="(diary, i) in diaries" :value="diary.id">{{ diary.id }}</option>
@@ -21,7 +21,7 @@ import CustomHeader from "./CustomHeader.vue";
     </div>
     <div class="col-3">
         <label for="imageFile" class="col-form-label">Select an Image:</label>
-        <input type="file" id="imageFile" ref="file" class="form-control" @change="setImage" accept=".pdf,.jpg,.jpeg,.png">
+        <input type="file" id="imageFile" ref="file" class="form-control" @change="setImage">
     </div>
     <div class="col-12 py-2">
         <label for="body" class="col-form-label">Entry Body:</label>
@@ -136,12 +136,7 @@ import CustomHeader from "./CustomHeader.vue";
             },
             setImage() {
                 const fileInput = document.getElementById('imageFile');
-                //console.log(fileInput.files); Debugging for file upload
-                const reader = new FileReader();
-                reader.onload = () => {
-                    this.formData.imageURL = reader.result;
-                }
-                reader.readAsDataURL(fileInput.files[0]);
+                this.formData.imageURL = fileInput.files[0];
             }
         }
     }

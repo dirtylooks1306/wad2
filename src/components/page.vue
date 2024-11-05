@@ -5,9 +5,14 @@
             <h3 class=text-center>{{ front.header }}</h3>
             <p class="text-center">{{ front.date }}</p>
             <hr>
-            <img :src="front.image" class="border rounded-1 d-block mx-auto" style="max-width: 300px; height: 150px;">
+            <img :src="front.imageURL" class="border rounded-1 d-block mx-auto" style="max-width: 300px; height: 150px;">
             <p class="p-3">{{ front.body }}</p>
             <button type="button" class="btn btn-danger p-1 d-flex mx-auto" @click="deleteFrontEntry">Delete Entry</button>
+        </div>
+      </div>
+      <div class="front d-flex justify-content-center align-items-center" v-if="!front"> <!-- Center content of empty page -->
+        <div class="front-content">
+          <h3 class="text-center">Log a new entry!</h3>
         </div>
       </div>
       <div class="back" :key="backIndex" v-if="back">
@@ -15,7 +20,7 @@
             <h3 class=text-center>{{ back.header }}</h3>
             <p class="text-center">{{ back.date }}</p>
             <hr>
-            <img :src="back.image" class="border rounded-1 d-block mx-auto" style="max-width: 300px; height: 150px;">
+            <img :src="back.imageURL" class="border rounded-1 d-block mx-auto" style="max-width: 300px; height: 150px;">
             <p class="p-3">{{ back.body }}</p>
             <button type="button" class="btn btn-danger p-1 d-flex mx-auto" @click="deleteBackEntry">Delete Entry</button>
         </div>
