@@ -6,16 +6,23 @@ import NavBar from "../components/NavBar.vue";
 import CustomHeader from "../components/CustomHeader.vue";
 import CalendarComponent from "../components/Calendar.vue";
 import VaccineCheckList from "../components/VaccineCheckList.vue";
+import ChatBot from "../components/ChatBot.vue";
 
 const children = ref([]);
 const isNewUser = ref(false);
 const selectedChildId = ref(null); // Selected child ID
 const vaccineRecords = ref({});
-
+const currentUserValue = ref(null);
+const defaultQuestions = ref([
+  "Are vaccines linked to autism or other developmental disorders?",
+  "Is it safe for my baby to get multiple vaccines at once?",
+  "What vaccines does my 2 month-old baby need and when?",
+]);
 // Fetch user data including children
 const fetchUserData = async (currentUser) => {
   if (currentUser) {
     try {
+      currentUserValue.value = currentUser.uid;
       const childrenCollectionRef = collection(db, "users", currentUser.uid, "children");
       const childrenSnapshot = await getDocs(childrenCollectionRef);
       children.value = childrenSnapshot.docs.map((doc) => ({
@@ -91,7 +98,10 @@ onMounted(() => {
         <CalendarComponent :childId="selectedChildId"/>
       </div>
     </div>
+
+    <ChatBot :userId="currentUserValue" :defaultQuestions="defaultQuestions"/>
   </div>
+
 </template>
 
 <style scoped>
@@ -155,5 +165,8 @@ onMounted(() => {
   margin-top: 8px;
   text-align: center;
 }
+
+
+
 
 </style>
