@@ -3,6 +3,7 @@ import { onMounted, ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import NavBar from "../components/navBar.vue";
 import CustomHeader from "../components/CustomHeader.vue";
+import ToTop from '../components/ToTop.vue';
 import { collection, addDoc, query, where, getDocs, doc, updateDoc, increment, runTransaction } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
 import { db, auth } from "../firebaseConfig.js";
 
@@ -227,7 +228,7 @@ onMounted(fetchArticles);
           class="article-card"
           @click="goToArticleDetails(article.id)"
         >
-          <CustomHeader :header="article.Title || 'Untitled'" />
+          <h1 class="article-card-title">{{ article.Title }} </h1>
 
           <div class="article-info">
             <p class="article-author"><b>Author: {{ article.Author || 'Unknown' }}</b></p>
@@ -257,8 +258,8 @@ onMounted(fetchArticles);
     <div v-else>
       <p>No articles found in {{ capitalizeCategory(category) }}.</p>
     </div>
-
-    <!-- Write Article Button -->
+    
+    <ToTop />
     <button @click="showArticleForm = true" class="write-article-button">Write Article</button>
   </div>
 </template>
@@ -302,6 +303,17 @@ onMounted(fetchArticles);
 
 .article-card:hover {
   transform: scale(1.02);
+}
+
+.article-card-title {
+  text-align: center;
+  font-size: 18px;
+  color: #ff9689;
+  font-family: "Cherry Bomb", sans-serif;
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin: 0.5em 0;
 }
 
 .article-info {
@@ -425,15 +437,27 @@ button:hover {
 }
 
 .article-form button.article-form-button {
-  color: #fff; /* Visible color for both themes */
-  background-color: #007bff; /* Blue background for contrast */
+  color: #fff;
+  background-color: #007bff;
   border: none;
   font-size: 16px;
   font-family: "Cherry Bomb", sans-serif;
 }
 
 .article-form button.article-form-button:hover {
-  background-color: #0056b3; /* Darker blue on hover */
+  background-color: #0056b3;
 }
 
+#to-top {
+  position: fixed;
+  bottom: 90px;
+  right: 20px;
+  background-color: #333;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  display: none;
+  z-index: 1000;
+}
 </style>
