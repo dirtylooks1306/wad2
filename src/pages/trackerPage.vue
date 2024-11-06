@@ -4,6 +4,7 @@ import FormComponent from "../components/form.vue";
 import TableTracker from "../components/TableTracker.vue";
 import NavBar from "../components/navBar.vue";
 import GrowthCharts from "../components/GrowthCharts.vue";
+import ChatBot from "../components/ChatBot.vue";
 import { ref } from "vue";
 import { onAuthStateChanged } from "firebase/auth";
 import { db, collection, getDocs, setDoc, deleteDoc, doc, auth, addDoc, getDoc } from "../firebaseConfig";
@@ -16,8 +17,15 @@ const userId = ref(null);
 const selectedChildId = ref(null);
 const children = ref([]);
 const gender = ref(null);
+const currentUserValue = ref(null);
 const error = ref("");
 const todayDate = ref("");
+
+const defaultQuestions = ref([
+	"How can I tell if my baby is growing at a healthy rate?",
+	"What milestones should I expect as my baby grows during their first year?",
+	"What are some signs that my baby might have a growth or developmental delay?",
+]);
 // Fetch posts for the selected child
 const sortPosts = () => {
     posts.value = posts.value.sort((a, b) => {
@@ -144,6 +152,7 @@ const fetchChildren = async () => {
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     userId.value = user.uid;
+	currentUserValue.value = user.uid;
     await fetchChildren();
 	sortPosts();
   }
@@ -154,54 +163,56 @@ onAuthStateChanged(auth, async (user) => {
 <template>
 	<NavBar />
 	<div class="page-container">
-	  <div class="container-fluid header-section">
+		<div class="container-fluid header-section">
 		<div class="left-align">
-		  <CustomHeader header="GrowthTracker" />
-		  <div class="child-selector mb-3">
+			<CustomHeader header="GrowthTracker" />
+			<div class="child-selector mb-3">
 			<label for="childDropdown" class="me-2">Select Child:</label>
 			<select id="childDropdown" v-model="selectedChildId" @change="handleChildSelection">
-			  <option v-for="child in children" :key="child.id" :value="child.id">
+				<option v-for="child in children" :key="child.id" :value="child.id">
 				{{ child.name }}
-			  </option>
+				</option>
 			</select>
-		  </div>
+			</div>
 		</div>
-	  </div>
+		</div>
   
 	  <!-- Modal for no children found -->
-	<div v-if="error" class="modal-overlay">
-		<div class="modal-content">
-			<h2 class="modal-title">No Children Registered</h2>
-			<p class="modal-message">It looks like you haven't registered any children yet.</p>
-			<p class="modal-subtext">Please visit your profile page to add a child and start tracking growth information.</p>
-			<button class="modal-button" @click="redirectToProfile">Go to Profile Page</button>
+		<div v-if="error" class="modal-overlay">
+			<div class="modal-content">
+				<h2 class="modal-title">No Children Registered</h2>
+				<p class="modal-message">It looks like you haven't registered any children yet.</p>
+				<p class="modal-subtext">Please visit your profile page to add a child and start tracking growth information.</p>
+				<button class="modal-button" @click="redirectToProfile">Go to Profile Page</button>
+			</div>
 		</div>
-	</div>
-  
-	  <div>
-		<div class="table-tracker text-center">
-		  <div class="center">
-			<TableTracker
-			  :posts="posts"
-			  @delete-post="handleDeletePost"
-			  @update-post="handleUpdatePost"
-			  class="m-3"
-			/>
-		  </div>
+	
+		<div>
+			<div class="table-tracker text-center">
+				<div class="center">
+					<TableTracker
+						:posts="posts"
+						@delete-post="handleDeletePost"
+						@update-post="handleUpdatePost"
+						class="m-3"
+					/>
+				</div>
+			</div>
+
+			<div class="form-and-charts">
+				<div class="form-section">
+				<FormComponent @submit="savePost" />
+				</div>
+
+				<div class="charts-section">
+				<GrowthCharts :posts="posts" :gender="gender"/>
+				</div>
+			</div>
 		</div>
-  
-		<div class="form-and-charts">
-		  <div class="form-section">
-			<FormComponent @submit="savePost" />
-		  </div>
-  
-		  <div class="charts-section">
-			<GrowthCharts :posts="posts" :gender="gender"/>
-		  </div>
-		</div>
-	  </div>
-	</div>
-  </template>
+		<ChatBot :userId="currentUserValue" :defaultQuestions="defaultQuestions"/>
+</div>
+	
+</template>
   
 <style scoped>
 /* General Page Layout */
