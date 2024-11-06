@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import NavBar from "../components/navBar.vue";
 import CustomHeader from "../components/CustomHeader.vue";
 import ToTop from '../components/ToTop.vue';
-import { collection, addDoc, query, where, getDocs, doc, updateDoc, increment, runTransaction } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
+import { collection, addDoc, query, where, getDocs, doc, updateDoc, increment, runTransaction, Timestamp } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
 import { db, auth } from "../firebaseConfig.js";
 
 const route = useRoute();
@@ -20,6 +20,15 @@ const newArticle = ref({
   Description: '',
   Paragraphs: [''], // Start with one paragraph
 });
+
+// New state for sorting options
+const sortOption = ref('date');
+
+// Options for sorting
+const sortOptions = {
+  likes: 'Likes (Descending)',
+  date: 'Date (Newest First)',
+};
 
 const category = computed(() => route.params.category || '');
 const isSavedView = computed(() => category.value.toLowerCase() === 'saved');
@@ -40,6 +49,7 @@ auth.onAuthStateChanged((user) => {
 
 const capitalizeCategory = (cat) => cat ? cat.charAt(0).toUpperCase() + cat.slice(1) : '';
 
+// Function to fetch and sort articles based on the selected sorting option
 const fetchArticles = async () => {
   try {
     const articlesCollection = collection(db, "articles");
@@ -49,7 +59,7 @@ const fetchArticles = async () => {
       q = query(articlesCollection, where("Saved", "==", true));
     } else {
       q = category.value.toLowerCase() === 'new'
-        ? query(articlesCollection, where("Date", ">=", new Date(new Date().setMonth(new Date().getMonth() - 1))))
+        ? query(articlesCollection, where("Date", ">=", Timestamp.fromDate(new Date(new Date().setMonth(new Date().getMonth() - 1)))))
         : query(articlesCollection, where("Filter", "==", capitalizeCategory(category.value)));
     }
 
@@ -57,12 +67,37 @@ const fetchArticles = async () => {
     articles.value = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
-      Date: doc.data().Date ? doc.data().Date.toDate().toLocaleDateString() : 'No Date'
+      Date: doc.data().Date instanceof Timestamp 
+        ? doc.data().Date.toMillis() 
+        : new Date(doc.data().Date).getTime() // Convert string dates to milliseconds for sorting
     }));
+
+    // Apply sorting
+    sortArticles();
   } catch (error) {
     console.error("Error fetching articles:", error.message);
   }
 };
+
+// Function to sort articles based on the selected sorting option
+const sortArticles = () => {
+  if (sortOption.value === 'likes') {
+    articles.value.sort((a, b) => (b.Likes ?? 0) - (a.Likes ?? 0));
+  } else if (sortOption.value === 'date') {
+    articles.value.sort((a, b) => b.Date - a.Date); // Sort by Date in descending order
+  }
+};
+
+// Computed property to format the date for display
+const formattedArticles = computed(() => {
+  return articles.value.map(article => ({
+    ...article,
+    displayDate: new Date(article.Date).toLocaleDateString() // Format date for display
+  }));
+});
+
+// Update sorting when the sort option changes
+watch(sortOption, sortArticles);
 
 // Function to publish a new article
 const publishArticle = async () => {
@@ -75,7 +110,7 @@ const publishArticle = async () => {
       Author: newArticle.value.Author,
       Filter: newArticle.value.Category,
       Description: newArticle.value.Description,
-      Date: new Date(),
+      Date: Timestamp.fromDate(new Date()), // Store date as a Firestore Timestamp
       Likes: 0,
       Dislikes: 0,
       Saved: false,
@@ -196,8 +231,8 @@ onMounted(fetchArticles);
   <NavBar />
   <div class="articles-container">
     <h1 class="article-title">{{ capitalizeCategory(category) }} Articles</h1>
-    
-    <!-- Article Form -->
+
+    <!-- Write Article Form -->
     <div v-if="showArticleForm" class="article-form">
       <CustomHeader header="Write a New Article"/>
       <input v-model="newArticle.Title" placeholder="Article Title" required />
@@ -219,39 +254,46 @@ onMounted(fetchArticles);
       <button @click="publishArticle" class="btn article-form-button">Publish Article</button>
       <button @click="showArticleForm = false" class="btn article-form-button">Cancel</button>
     </div>
+
+    <!-- Sort Options -->
+    <div class="sort-button" :class="{ 'form-active': showArticleForm }">
+      <CustomHeader header = "Sort By:"/>
+      <select id="sort" v-model="sortOption">
+        <option value="date">{{ sortOptions.date }}</option>
+        <option value="likes">{{ sortOptions.likes }}</option>
+      </select>
+    </div>
     
-    <div v-if="articles.length">
-      <div class="articles-grid">
-        <div
-          v-for="article in articles"
-          :key="article.id"
-          class="article-card"
-          @click="goToArticleDetails(article.id)"
-        >
-          <h1 class="article-card-title">{{ article.Title }} </h1>
+    <div v-if="formattedArticles.length" class="articles-grid">
+      <div
+        v-for="article in formattedArticles"
+        :key="article.id"
+        class="article-card"
+        @click="goToArticleDetails(article.id)"
+      >
+        <h1 class="article-card-title">{{ article.Title }}</h1>
 
-          <div class="article-info">
-            <p class="article-author"><b>Author: {{ article.Author || 'Unknown' }}</b></p>
-            <p class="article-date">{{ article.Date || 'No Date' }}</p>
-          </div>
+        <div class="article-info">
+          <p class="article-author"><b>Author: {{ article.Author || 'Unknown' }}</b></p>
+          <p class="article-date">{{ article.displayDate || 'No Date' }}</p>
+        </div>
 
-          <div class="partition-line"></div>
-          <p>{{ article.Description || 'No description available' }}</p>
-          <div class="partition-line"></div>
+        <div class="partition-line"></div>
+        <p>{{ article.Description || 'No description available' }}</p>
+        <div class="partition-line"></div>
 
-          <div class="article-meta">
-            <span class="likes">
-              <button @click.stop="likeArticle(article.id)" :class="{ active: userReactions[article.id] === 'liked' }">👍</button>
-              <span>{{ article.Likes ?? 0 }}</span>
-            </span>
-            <span class="dislikes">
-              <button @click.stop="dislikeArticle(article.id)" :class="{ active: userReactions[article.id] === 'disliked' }">👎</button>
-              <span>{{ article.Dislikes ?? 0 }}</span>
-            </span>
-            <span class="saved">
-              <button @click.stop="toggleSaved(article.id)" :class="{ saved: article.Saved }">🔖</button>
-            </span>
-          </div>
+        <div class="article-meta">
+          <span class="likes">
+            <button @click.stop="likeArticle(article.id)" :class="{ active: userReactions[article.id] === 'liked' }">👍</button>
+            <span>{{ article.Likes ?? 0 }}</span>
+          </span>
+          <span class="dislikes">
+            <button @click.stop="dislikeArticle(article.id)" :class="{ active: userReactions[article.id] === 'disliked' }">👎</button>
+            <span>{{ article.Dislikes ?? 0 }}</span>
+          </span>
+          <span class="saved">
+            <button @click.stop="toggleSaved(article.id)" :class="{ saved: article.Saved }">🔖</button>
+          </span>
         </div>
       </div>
     </div>
@@ -259,6 +301,7 @@ onMounted(fetchArticles);
       <p>No articles found in {{ capitalizeCategory(category) }}.</p>
     </div>
     
+    <!-- "Back to Top" and "Write Article" buttons -->
     <ToTop />
     <button @click="showArticleForm = true" class="write-article-button">Write Article</button>
   </div>
@@ -286,6 +329,7 @@ onMounted(fetchArticles);
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
+  margin-top: 20px;
 }
 
 .article-card {
@@ -367,6 +411,12 @@ onMounted(fetchArticles);
   align-items: center;
 }
 
+.sort-button {
+  align-items: center;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
 button {
   background-color: transparent;
   border: 1px solid #ccc;
@@ -437,20 +487,20 @@ button:hover {
 }
 
 .article-form button.article-form-button {
-  color: #fff;
-  background-color: #007bff;
+  color: #fff; /* Visible color for both themes */
+  background-color: #007bff; /* Blue background for contrast */
   border: none;
   font-size: 16px;
   font-family: "Cherry Bomb", sans-serif;
 }
 
 .article-form button.article-form-button:hover {
-  background-color: #0056b3;
+  background-color: #0056b3; /* Darker blue on hover */
 }
 
 #to-top {
   position: fixed;
-  bottom: 90px;
+  bottom: 90px; /* Sets the position above the "Write Article" button */
   right: 20px;
   background-color: #333;
   color: white;
