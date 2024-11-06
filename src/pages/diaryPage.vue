@@ -24,7 +24,7 @@ Side Quests:
 - Figure out how to remove placeholder if possible
 - Modify map marker to be draggable
 Top Priority:
-- Add proper error handling (No alerts, use proper messages) -> Left diaryPage
+
 */
 </script>
  
@@ -48,6 +48,8 @@ Top Priority:
       <DiaryForm :entryData="newEntry"
       :diaries="userDiaries" 
       :children="children"
+      :entryError="entryError"
+      :diaryError="diaryError"
       @submitEntry="submitEntry"
       @addDiary="addDiary"
       @deleteDiary="deleteDiary"/>
@@ -70,6 +72,8 @@ Top Priority:
         userDiaries: [], //Gets diaries that belong to the user
         children: [],
         newEntry: {},
+        entryError: "",
+        diaryError: "",
       }
     },
     methods: {
@@ -125,7 +129,10 @@ Top Priority:
                 date: this.newEntry.date ? this.newEntry.date.toLocaleDateString() : 'No Date',
               }) //Bug happens when new entry is submitted while diary is in closed state -> Paper overlaps the Next Page button but works as per normal after button is pressed
             };
-            alert("Entry successfully added!");   
+            this.entryError = "Entry successfully added!";
+            setTimeout(() => {
+              this.entryError = "";
+            }, 3000);   
           }
         }
       },
@@ -161,7 +168,10 @@ Top Priority:
         //Check first if diary already exists for the selected person
         for (let d of this.userDiaries) {
           if (d.id === name) {
-            alert("Diary already exists!")
+            this.diaryError = "Diary already exists!";
+            setTimeout(() => {
+              this.diaryError = "";
+            }, 3000);
             return; //Exit the function if diary exists, stops repeated addition of identical diaries
           }
         }
@@ -177,7 +187,10 @@ Top Priority:
           id: name,
           entries: [],
         })
-        alert("Diary added successfully");
+        this.diaryError = "Diary added successfully";
+        setTimeout(() => {
+          this.diaryError = "";
+        }, 3000);
       },
       async deleteDiary(name) {
         const toRemove = doc(db, "diary", name);
@@ -187,7 +200,10 @@ Top Priority:
             this.userDiaries.splice(i, 1);
           }
         }
-        alert("Diary deleted successfully!")
+        this.diaryError = "Diary deleted successfully";
+        setTimeout(() => {
+          this.diaryError = "";
+        }, 3000);
       },
       async deletePlaceholder(name) {
         for (let d of this.userDiaries) {

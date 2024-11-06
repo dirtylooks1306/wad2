@@ -43,6 +43,7 @@ import CustomHeader from "./CustomHeader.vue";
                 <div class="col-4"></div>
             </div>
             <span class="error-text d-flex justify-content-center" v-if="entryErrorMsg">{{ entryErrorMsg }}</span>
+            <span class="error-text d-flex justify-content-center" v-if="entryError">{{ entryError }}</span> <!-- Message to show successful entry  -->
         </div>
         <div class="col-xl-6 col-lg-12 addDeleteDiary">
             <CustomHeader header="Add / Delete Diary"/> <!-- Form group to delete diaries from Firebase entirely -->
@@ -71,6 +72,7 @@ import CustomHeader from "./CustomHeader.vue";
                 </div>
             </div>
             <span class="error-text d-flex justify-content-center" v-if="diaryErrorMsg">{{ diaryErrorMsg }}</span>
+            <span class="error-text d-flex justify-content-center" v-if="diaryError">{{ diaryError}}</span>
         </div>
     </div>
 </template>
@@ -85,6 +87,8 @@ import CustomHeader from "./CustomHeader.vue";
             entryData: Object,
             diaries: Array,
             children: Array,
+            entryError: String,
+            diaryError: String,
         },
         emits: ['submitEntry', 'addDiary', 'deleteDiary'],
         data() {
