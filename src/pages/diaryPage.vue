@@ -20,8 +20,11 @@ import {
 import { orderBy } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 /*
-To Do:
-- Figure out how to add subcollections to Firebase (Done, figure out how to remove placeholder if possible)
+Side Quests:
+- Figure out how to remove placeholder if possible
+- Modify map marker to be draggable
+Top Priority:
+
 */
 </script>
  
@@ -42,10 +45,11 @@ To Do:
       </div>
     </div>
     <div class="form-block container-fluid w-100">
-      <CustomHeader header="SUBMIT A NEW ENTRY"/>
       <DiaryForm :entryData="newEntry"
       :diaries="userDiaries" 
       :children="children"
+      :entryError="entryError"
+      :diaryError="diaryError"
       @submitEntry="submitEntry"
       @addDiary="addDiary"
       @deleteDiary="deleteDiary"/>
@@ -68,6 +72,8 @@ To Do:
         userDiaries: [], //Gets diaries that belong to the user
         children: [],
         newEntry: {},
+        entryError: "",
+        diaryError: "",
       }
     },
     methods: {
@@ -77,13 +83,15 @@ To Do:
         const diaryOwner = formData.name;
         //console.log(this.newEntry); //Ensure form data is successfully retrieved
         //Part 2: Update database with new entry
-        for (let d of this.dbDiaries) {
+        for (let d of this.userDiaries) {
           if (d.id === diaryOwner) {
-            //Logic for uploading files to Firestore
-            const fileRef = sRef(storage, `DiaryImages/${diaryOwner}/${formData.imageURL.name}`);
-            await uploadBytes(fileRef, formData.imageURL);
-            const fileURL = await getDownloadURL(fileRef);
-            formData.imageURL = fileURL;
+            if (formData.imageURL) {
+              //Logic for uploading files to Firestore (only happen if user chooses to upload an image)
+              const fileRef = sRef(storage, `DiaryImages/${diaryOwner}/${formData.imageURL.name}`);
+              await uploadBytes(fileRef, formData.imageURL);
+              const fileURL = await getDownloadURL(fileRef);
+              formData.imageURL = fileURL;
+            }
             //if-loop only when diary is first initialised -> Removes placeholder with actual entry
             if (d.entries.length === 1 && d.entries[0].id === "Placeholder") {
               await this.deletePlaceholder(diaryOwner);
@@ -121,13 +129,16 @@ To Do:
                 date: this.newEntry.date ? this.newEntry.date.toLocaleDateString() : 'No Date',
               }) //Bug happens when new entry is submitted while diary is in closed state -> Paper overlaps the Next Page button but works as per normal after button is pressed
             };
-            alert("Entry successfully added!");   
+            this.entryError = "Entry successfully added!";
+            setTimeout(() => {
+              this.entryError = "";
+            }, 3000);   
           }
         }
       },
       async deleteEntry(name, index) {
         //console.log(name, index); //Ensure that name and entry is correct
-        for (let d of this.dbDiaries) {
+        for (let d of this.userDiaries) {
           if (d.id === name) {
             //Delete entry from Firebase
             const entryId = String(index + 1).padStart(3, '0');
@@ -155,9 +166,12 @@ To Do:
       },
       async addDiary(name) {
         //Check first if diary already exists for the selected person
-        for (let d of this.dbDiaries) {
+        for (let d of this.userDiaries) {
           if (d.id === name) {
-            alert("Diary already exists!")
+            this.diaryError = "Diary already exists!";
+            setTimeout(() => {
+              this.diaryError = "";
+            }, 3000);
             return; //Exit the function if diary exists, stops repeated addition of identical diaries
           }
         }
@@ -169,24 +183,30 @@ To Do:
         const placeholder = doc(newEntries, "Placeholder");
         await setDoc(placeholder, { empty: true }) //Create subcollection with placeholder
         //Update dbDiaries
-        this.dbDiaries.push({
+        this.userDiaries.push({
           id: name,
           entries: [],
         })
-        alert("Diary added successfully");
+        this.diaryError = "Diary added successfully";
+        setTimeout(() => {
+          this.diaryError = "";
+        }, 3000);
       },
       async deleteDiary(name) {
         const toRemove = doc(db, "diary", name);
         await deleteDoc(toRemove);
-        for (let i = 0; i < this.dbDiaries.length; i++) {
-          if (this.dbDiaries[i].id === name) {
-            this.dbDiaries.splice(i, 1);
+        for (let i = 0; i < this.userDiaries.length; i++) {
+          if (this.userDiaries[i].id === name) {
+            this.userDiaries.splice(i, 1);
           }
         }
-        alert("Diary deleted successfully!")
+        this.diaryError = "Diary deleted successfully";
+        setTimeout(() => {
+          this.diaryError = "";
+        }, 3000);
       },
       async deletePlaceholder(name) {
-        for (let d of this.dbDiaries) {
+        for (let d of this.userDiaries) {
           if (d.id === name) {
             const entries = d.entries;
             for (let entry of entries) {
@@ -240,7 +260,7 @@ To Do:
               this.userDiaries.push(d)
             }
           }
-          console.log(this.userDiaries); //Ensures the diaries database is populated
+          //console.log(this.userDiaries); //Ensures the diaries database is populated
           return this.userDiaries //Ensure the return of user's diaries
         } else {
           this.$router.push("/login");
