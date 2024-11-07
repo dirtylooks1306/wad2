@@ -3,6 +3,9 @@ import NavBar from "../components/navBar.vue";
 import {
   auth,
   signInWithEmailAndPassword,
+  doc,
+  getDoc,
+  db
 } from "../firebaseConfig.js";
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
@@ -39,16 +42,35 @@ const handleLogin = async () => {
   }
 
   try {
-    await signInWithEmailAndPassword(auth, email.value, password.value);
-    successMessage.value = "Login successful! Redirecting...";
-    // Redirect to the home page or dashboard after login
-    setTimeout(() => {
-      router.push("/");
-    }, 2000); // Adjust the delay as needed
+    const userCredential = await signInWithEmailAndPassword(auth, email.value, password.value);
+  
+    const user = userCredential.user;
+    // Retrieve user role from the database
+    const userRef = doc(db, 'users', user.uid);
+    const userData = await getDoc(userRef);
+    if (userData.exists()) {
+      const role = userData.data().role;
+      successMessage.value = "Login successful! Redirecting...";
+
+      // Redirect based on user role
+      setTimeout(() => {
+        if (role === 'admin') {
+          router.push("/allUsers"); // Redirect to admin page if user is an admin
+        } else {
+          router.push("/"); // Redirect to home page if user is not an admin
+        }
+      }, 400); // Adjust the delay as needed
+    } else {
+      console.error("User data not found.");
+      error.value = "User role not found.";
+    }
   } catch (err) {
+    console.error("Error during login:", err);
     error.value = "Failed to login. Please check your credentials.";
   }
 };
+
+
 </script>
 
 <template>

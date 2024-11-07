@@ -19,7 +19,7 @@ import EditPost from '../pages/editPost.vue';
 import AdminUserPage from '../pages/adminUserPage.vue';
 import AdminArticle from '../pages/adminArticle.vue';
 
-import {auth } from '../firebaseConfig.js';
+import {auth, doc, db, getDoc } from '../firebaseConfig.js';
 import { onAuthStateChanged } from 'firebase/auth';
 import { reactive } from 'vue';
 
@@ -43,13 +43,13 @@ const routes = [
     {   path: '/growthtracker',
         name: 'GrowthTracker',
         component: growthTrackerPage,
-        meta: { requiresAuth: true }
+        meta: { requiresAuth: true, adminOnly: false, nonAdminOnly: true }
     },
 
     {   path: '/vaccinetracker',
         name: 'VaccineTracker',
         component: vaccineTrackerPage,
-        meta: { requiresAuth: true }
+        meta: { requiresAuth: true, adminOnly: false, nonAdminOnly: true }
     },
 
     {
@@ -69,30 +69,32 @@ const routes = [
         path: '/diary',
         name: 'Diary',
         component: diaryPage,
-        meta: { requiresAuth: true }
+        meta: { requiresAuth: true, adminOnly: false, nonAdminOnly: true }
     },
 
     {
         path: '/forum/:category?',
         component: ForumHome,
         props: true,
+        meta: { requiresAuth: true, adminOnly: false, nonAdminOnly: true }
     },
 
     {
         path: '/forum/thread/:id',
         component: ThreadPost,
+        meta: { requiresAuth: true, adminOnly: false, nonAdminOnly: true }
     },
 
     {
         path: '/forum/create-post',
         component: CreatePost,
-        meta: { requiresAuth: true }
+        meta: { requiresAuth: true, adminOnly: false, nonAdminOnly: true }
     },
 
     {
         path: '/forum/edit-post/:id',
         component: EditPost,
-        meta: { requiresAuth: true }
+        meta: { requiresAuth: true, adminOnly: false, nonAdminOnly: true }
     },
 
     {
@@ -103,7 +105,8 @@ const routes = [
     {
         path: '/emergency',
         name: 'Emergency',
-        component: emergencyPage
+        component: emergencyPage,
+        meta: { requiresAuth: true, adminOnly: false, nonAdminOnly: true }
     },
 
     {
@@ -127,17 +130,20 @@ const routes = [
     {
         path: '/profile',
         name: 'Profile',
-        component: profilePage
+        component: profilePage,
+        meta: { requiresAuth: true, nonAdminOnly: true }
     },
     {
         path: '/allUsers',
+        name: 'AdminUserPage',
         component: AdminUserPage,
-        meta: { requiresAuth: true }
+        meta: { requiresAuth: true, adminOnly: true, nonAdminOnly: false }
     },
     {
         path: '/adminArticle',
+        name: 'AdminArticle',
         component: AdminArticle,
-        meta: { requiresAuth: true }
+        meta: { requiresAuth: true, adminOnly: true, nonAdminOnly: false }
     },
 
 ];
@@ -148,25 +154,42 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-    if (to.meta.requiresAuth) {
-      onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
         if (user) {
-          appState.loginMessage = ''; 
-          next();
+            const userRef = doc(db, 'users', user.uid); // Get user document
+            const userData = await getDoc(userRef);
+            const role = userData.data()?.role; // Assuming role is stored in the user document
+            // Check if route requires authentication
+            if (to.meta.requiresAuth) {
+                if (to.meta.adminOnly && role !== 'admin') {
+                    appState.loginMessage = 'Access restricted to admin users only.';
+                    next({ name: 'Home' });
+                }
+                // Prevent admins from accessing non-admin-only routes
+                else if (to.meta.nonAdminOnly && role === 'admin') {
+                    appState.loginMessage = 'Admins cannot access this page.';
+                    next({ name: 'AdminUserPage' }); // Redirect to an admin page or home
+                } else {
+                    appState.loginMessage = '';
+                    next();
+                }
+            } else {
+                appState.loginMessage = '';
+                next();
+            }
         } else {
-          if (to.name !== 'Login') {
-            appState.loginMessage = 'Please log in to access this page.'; 
-          } else {
-            appState.loginMessage = ''; 
-          }
-          next({ name: 'Login' });
+            // Redirect unauthenticated users to login if required
+            if (to.meta.requiresAuth) {
+                appState.loginMessage = 'Please log in to access this page.';
+                next({ name: 'Login' });
+            } else {
+                next();
+            }
         }
-      });
-    } else {
-      appState.loginMessage = ''; 
-      next();
-    }
-  });
+    });
+});
+
+
   
 
 export default router;

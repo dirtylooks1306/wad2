@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted } from 'vue';
 import { db, collection, getDocs, deleteDoc, doc, updateDoc, addDoc,Timestamp } from '../firebaseConfig.js';
 import AdminNavBar from '../components/AdminNavBar.vue';
 
@@ -12,7 +12,7 @@ const newArticle = ref({
   Author: '',
   Category: '',
   Description: '',
-  Content: []
+  Content: ''
 });
 const closeArticleForm = () => {
   showArticleForm.value = false;
@@ -82,17 +82,13 @@ const saveArticleChanges = async () => {
 
   try {
     const articleDocRef = doc(db, 'articles', editedArticle.value.id);
-    console.log("Original Content:", editedArticle.value.Content);
-
     const articleData = {
       Title: editedArticle.value.Title,
       Author: editedArticle.value.Author,
       Category: editedArticle.value["Filter"],
-      Description: editedArticle.value.Description,
-      Content: editedArticle.value.Content.split('\n').filter(line => line.trim() !== ''), // Use editedArticle here
+      Description: editedArticle.value.Description, 
+      Content: newArticle.value.Content.split('\n').filter(line => line.trim() !== ''),
     };
-
-    console.log("Processed Content:", articleData.Content); // This should now work correctly
 
     await updateDoc(articleDocRef, articleData);
     showEditModal.value = false;
@@ -103,14 +99,6 @@ const saveArticleChanges = async () => {
   }
 };
 
-const ContentDisplay = computed({
-  get() {
-    return editedArticle.value.Content ? editedArticle.value.Content.join('\n') : '';
-  },
-  set(value) {
-    editedArticle.value.Content = value.split(/(?:\n\n|\.\s|,\s)+/).filter(line => line.trim() !== '');
-  }
-});
 
   
 onMounted(fetchArticles);
@@ -119,9 +107,10 @@ onMounted(fetchArticles);
 <template>
     <AdminNavBar />
     <div>
+        <h1 class="text-center mt-1">Articles Management</h1>
         <div class="header-container">
-            <h1>Articles Management</h1>
-            <button @click="showArticleForm = true" class="add-article-button">Add Article</button>
+            <div></div>
+            <button @click="showArticleForm = true" class="add-article-button text-end">Add Article</button>
         </div>
         <!-- Article Form (Modal) -->
         <div v-if="showArticleForm" class="modal-overlay" @click.self="closeArticleForm">
@@ -189,9 +178,10 @@ onMounted(fetchArticles);
 
                     <label>Description</label>
                     <textarea v-model="editedArticle.Description" placeholder="Enter the article description" required></textarea>
-
+                    
                     <label>Content</label>
-                    <textarea v-model="ContentDisplay" placeholder="Enter the article content with paragraphs and blank lines as needed" required  rows='5' style='resize: vertical;'></textarea>
+                    <textarea v-model="editedArticle.Content" placeholder="Enter the article content with paragraphs and blank lines as needed" required  rows='5' style='resize: vertical;'></textarea>
+                    
                     <button type="submit">Save Changes</button>
                     <button type="button" @click="closeEditModal">Cancel</button>
                 </form>

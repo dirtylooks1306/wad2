@@ -48,9 +48,6 @@
               </router-link>
               <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
                 <li>
-                  <router-link to="/profile" class="dropdown-item">Profile</router-link>
-                </li>
-                <li>
                   <button class="dropdown-item" @click="handleLogout">Logout</button>
                 </li>
               </ul>
@@ -76,11 +73,8 @@
   
   const profileImage = ref("../assets/icons/profile.png");
   const user = ref(null);
-  const isExploreActive = computed(() => route.path.startsWith('/articles') || route.path === '/saved');
-  const isTrackerActive = computed(() => route.path.startsWith('/growthtracker') || route.path.startsWith('/vaccinetracker'));
-  const activeCategory = computed(() => route.params.category || '');
   
-  const handleLogout = async () => {
+const handleLogout = async () => {
     try {
       await signOut(auth);
       user.value = null; // Clear the user data
@@ -89,7 +83,7 @@
       console.error("Error logging out:", error);
     }
   };
-  const fetchUserData = async () => {
+const fetchUserData = async () => {
     onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         // Get the user's document reference
@@ -101,109 +95,106 @@
         if (userSnapshot.exists()) {
           // Retrieve the profile image URL from the user document
           profileImage.value = userSnapshot.data().profileimage; 
-        } else {
-          console.log("No user document found");
-        }
+        } 
       
       }
     });
   };
   
-  onMounted(() => {
-    fetchUserData();
-    onAuthStateChanged(auth, (currentUser) => {
-      user.value = currentUser;
-    });
+onMounted(() => {
+  fetchUserData();
+  onAuthStateChanged(auth, (currentUser) => {
+    user.value = currentUser;
   });
-  </script>
-  
-  <style scoped>
-  #belownavBar {
-    height: 80px;
+});
+</script>
+
+<style scoped>
+#belownavBar {
+  height: 80px;
+}
+
+.navbar {
+  background-color: #FF9689 !important;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+}
+
+.nav-logo {
+  max-height: 50px;
+  height: auto;
+  width: auto;
+}
+
+.profile-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff; 
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); 
+}
+
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-toggler {
+  border: none;
+}
+
+.dropdown-menu {
+  background-color: #FBF4EB !important;
+}
+
+.active-item {
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.active > .nav-link {
+  text-decoration: underline;
+  font-weight: bold;
+}
+
+.login-register {
+  text-decoration: none;
+  color: #000;
+  margin-left: 10px;
+  transition: color 0.3s;
+}
+
+.login-register:hover {
+  color: #555;
+}
+
+@media (max-width: 768px) {
+  .navbar-collapse {
+    text-align: center;
   }
-  
-  .navbar {
-    background-color: #FF9689 !important;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 1000;
+}
+
+@media (max-width: 440px) {
+  .text-logo {
+    display: none;
   }
-  
-  .nav-logo {
-    max-height: 50px;
-    height: auto;
-    width: auto;
-  }
-  
-  .profile-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid #fff; 
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); 
-  }
-  
-  
-  .logo-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .navbar-brand {
-    display: flex;
-    align-items: center;
-  }
-  
-  .navbar-toggler {
-    border: none;
-  }
-  
-  .dropdown-menu {
-    background-color: #FBF4EB !important;
-  }
-  
-  .active-item {
-    font-weight: bold;
-    text-decoration: underline;
-  }
-  
-  .active > .nav-link {
-    text-decoration: underline;
-    font-weight: bold;
-  }
-  
-  .login-register {
-    text-decoration: none;
-    color: #000;
-    margin-left: 10px;
-    transition: color 0.3s;
-  }
-  
-  .login-register:hover {
-    color: #555;
-  }
-  
-  @media (max-width: 768px) {
-    .navbar-collapse {
-      text-align: center;
-    }
-  }
-  
-  @media (max-width: 440px) {
-    .text-logo {
-      display: none;
-    }
-  }
-  
-  .custom-divider {
-    height: 1px;
-    background-color: #000;
-    width: 100%;
-    margin: 0;
-  }
-  </style>
-  
+}
+
+.custom-divider {
+  height: 1px;
+  background-color: #000;
+  width: 100%;
+  margin: 0;
+}
+</style>
