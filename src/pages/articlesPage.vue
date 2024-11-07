@@ -110,32 +110,6 @@ const formattedArticles = computed(() => {
 watch(sortOption, sortArticles);
 
 // Function to publish a new article
-const publishArticle = async () => {
-  if (!userId.value || !newArticle.Title || !newArticle.Author || !newArticle.Category || !newArticle.Description || !newArticle.Content[0]) return;
-
-  try {
-    const articlesCollection = collection(db, "articles");
-    const articleData = {
-      Title: newArticle.Title,
-      Author: newArticle.Author,
-      Filter: newArticle.Category,
-      Description: newArticle.Description,
-      Date: Timestamp.fromDate(new Date()), // Store date as a Firestore Timestamp
-      Likes: 0,
-      Dislikes: 0,
-      Saved: false,
-      Content: newArticle.Content // Store all paragraphs in the Content array
-    };
-
-    await addDoc(articlesCollection, articleData);
-    // Reset form fields after publishing
-    Object.assign(newArticle, { Title: '', Author: '', Category: '', Description: '', Content: [''] });
-    showArticleForm.value = false; // Close the form
-    fetchArticles(); // Refresh articles list
-  } catch (error) {
-    console.error("Error publishing article:", error.message);
-  }
-};
 
 // Function to handle Enter key in content input field
 const handleContentEnter = (event, index) => {
@@ -319,9 +293,6 @@ onMounted(fetchArticles);
     
     <!-- "Back to Top" and "Write Article" buttons -->
     <ToTop />
-    <button v-if="userRole === 'admin'" @click="showArticleForm = true" class="write-article-button">
-      Write Article
-    </button>
 
   </div>
 </template>
