@@ -11,8 +11,12 @@ library.add(faTrash); // Add trash icon
 
 <template>
     <div class="diary-container">
-        <button type="button" class="btn btn-secondary border-0 p-3 my-2 collapsible" :class="{ active: open }" @click="toggle">            
-            <span class="d-flex justify-content-between">{{ dbDiary.id }}<FontAwesomeIcon :icon="['fas', 'trash']" class="border rounded-1 p-1 bg-danger" @click="deleteDiary(dbDiary.id)"/></span>
+        <button type="button" class="btn btn-secondary border-0 p-3 my-2 collapsible d-flex justify-content-between align-items-center" :class="{ active: open }" @click="toggle">            
+            <span>{{ dbDiary.id }}</span>
+            <span class="d-flex align-items-center">
+                <FontAwesomeIcon :icon="['fas', 'trash']" class="border rounded-1 p-1 bg-danger" @click="deleteDiary(dbDiary.id)"/>
+                <span class="toggle-icon ms-2">{{ open ? '-' : '+' }}</span>
+            </span>
         </button>
         <!-- Collapsible component -->
         <div class="content" :style="contentStyle">
@@ -231,16 +235,9 @@ library.add(faTrash); // Add trash icon
   background-color: #555;
 }
 
-.collapsible:after {
-  content: '\002B'; /* '+' unicode */
-  color: white;
-  font-weight: bold;
-  float: right;
-  margin-left: 5px;
-}
-
-.active:after {
-  content: "\2212"; /* '-' unicode */
+.toggle-icon {
+    font-weight: bold;
+    color: white;
 }
 
 .content {
