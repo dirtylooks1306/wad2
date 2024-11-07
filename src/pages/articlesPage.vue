@@ -5,13 +5,14 @@ import NavBar from "../components/navBar.vue";
 import CustomHeader from "../components/CustomHeader.vue";
 import ToTop from '../components/ToTop.vue';
 import { collection, addDoc, query, where, getDocs, doc, updateDoc, increment, runTransaction, Timestamp } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
-import { db, auth } from "../firebaseConfig.js";
+import { db, auth, getDoc } from "../firebaseConfig.js";
 
 const route = useRoute();
 const router = useRouter();
 const articles = ref([]);
 const userReactions = ref({});
 const userId = ref(null);
+const userRole = ref(null);
 const showArticleForm = ref(false); // Controls form visibility
 const newArticle = ref({
   Title: '',
@@ -37,9 +38,16 @@ const isSavedView = computed(() => category.value.toLowerCase() === 'saved');
 const categories = ['Activities', 'Education', 'Nutrition'];
 
 // Listen for authentication state changes
-auth.onAuthStateChanged((user) => {
+auth.onAuthStateChanged(async (user) => {
   if (user) {
     userId.value = user.uid;
+    const userDocRef = doc(db, "users", user.uid);
+    const userDoc = await getDoc(userDocRef);
+
+    if (userDoc.exists()) {
+      console.log(userDoc.data().role)
+      userRole.value = userDoc.data().role;
+    } 
     fetchArticles();
   } else {
     userId.value = null;
@@ -102,7 +110,8 @@ watch(sortOption, sortArticles);
 // Function to publish a new article
 const publishArticle = async () => {
   if (!userId.value || !newArticle.value.Title || !newArticle.value.Author || !newArticle.value.Category || !newArticle.value.Description || !newArticle.value.Paragraphs[0]) return;
-
+  console.log(userRole.value);
+  console.log(userId.value);
   try {
     const articlesCollection = collection(db, "articles");
     const articleData = {
@@ -303,7 +312,10 @@ onMounted(fetchArticles);
     
     <!-- "Back to Top" and "Write Article" buttons -->
     <ToTop />
-    <button @click="showArticleForm = true" class="write-article-button">Write Article</button>
+    <button v-if="userRole === 'admin'" @click="showArticleForm = true" class="write-article-button">
+      Write Article
+    </button>
+
   </div>
 </template>
 

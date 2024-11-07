@@ -73,12 +73,18 @@ const handleRegister = async () => {
 
   try {
     // Create the user with email and password
+    const usersCollection = collection(db, "users");
+    const usersSnapshot = await getDocs(usersCollection);
+    const isFirstUser = usersSnapshot.empty;
     const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value);
 
+
+    const role = isFirstUser ? "admin" : "user";
     // Create a user document in the "users" collection with the username as the field
     await setDoc(doc(db, "users", userCredential.user.uid), {
       username: username.value,
       email: email.value, // Optionally store the email in the document as well
+      role: role,
     });
 
     successMessage.value = "Registration successful! Redirecting...";

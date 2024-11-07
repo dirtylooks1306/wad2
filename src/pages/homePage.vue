@@ -62,7 +62,6 @@ try {
     icon1: "src/assets/heart.svg",  // Static icon paths as defined in carousel component
     icon2: "src/assets/bookmark.svg"
   }));
-  console.log("Top 3 articles fetched for carousel:", carouselItems.value);
 } catch (error) {
   console.error("Error fetching top articles:", error.message);
 }

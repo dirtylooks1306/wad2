@@ -81,11 +81,9 @@ const fetchPosts = async () => {
     };
     await addDoc(childPostsRef, firstPost); // Save first post to Firestore
     posts.value = [firstPost];
-    console.log("Added initial post to Firestore");
   } else {
     // Load existing posts from Firestore if they exist
     posts.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    console.log("Loaded existing posts from Firestore");
   }
 
   sortPosts();
@@ -112,7 +110,6 @@ const handleDeletePost = async (postId) => {
 
 const savePost = async (formData) => {
 	const postRef = collection(db, "users", userId.value, "children", selectedChildId.value, "posts");
-	console.log(3)
 	// Use formData passed from FormComponent
 	const newPost = {
 		date: formData.selectedDate || new Date(), // Default to current date if not provided
