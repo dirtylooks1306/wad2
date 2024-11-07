@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import NavBar from "../components/navBar.vue";
 import { doc, getDoc, updateDoc, increment, runTransaction } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
@@ -10,15 +10,6 @@ const article = ref(null); // Store article data
 const paragraphs = ref([]); // Store paragraphs dynamically
 const userReaction = ref(null); // Track user reaction (like/dislike)
 const userId = ref(null);
-
-// Detect time of day and apply theme
-const isDaytime = computed(() => {
-  const hours = new Date().getHours();
-  return hours >= 6 && hours < 18; // Daytime from 6 AM to 6 PM
-});
-
-// CSS class for light or dark theme
-const themeClass = computed(() => (isDaytime.value ? 'light-theme' : 'dark-theme'));
 
 const fetchArticleDetails = async () => {
   try {
@@ -147,7 +138,7 @@ onMounted(() => {
 
 <template>
   <NavBar />
-  <div :class="['article-details-container', themeClass]" v-if="article">
+  <div class="article-details-container" v-if="article">
     <h1 class="article-title">{{ article.Title }}</h1>
     <p class="article-author"><b><i>Author: {{ article.Author }}</i></b></p>
     <p class="article-date">{{ article.Date ? article.Date.toDate().toLocaleDateString() : 'No Date' }}</p>
@@ -163,26 +154,20 @@ onMounted(() => {
 
     <div class="article-meta">
       <span class="likes">
-        <button 
-          @click="likeArticle" 
-          :class="{ active: userReaction === 'liked' }">
-          👍
+        <button @click="likeArticle" :class="{ active: userReaction === 'liked' }">
+          <i class="fas fa-thumbs-up"></i>
         </button>
         <span>{{ article.Likes }}</span>
       </span>
       <span class="dislikes">
-        <button 
-          @click="dislikeArticle" 
-          :class="{ active: userReaction === 'disliked' }">
-          👎
+        <button @click="dislikeArticle" :class="{ active: userReaction === 'disliked' }">
+          <i class="fas fa-thumbs-down"></i>
         </button>
         <span>{{ article.Dislikes }}</span>
       </span>
       <span class="saved">
-        <button 
-          @click="toggleSave" 
-          :class="{ saved: article.Saved }">
-          🔖
+        <button @click="toggleSave" :class="{ saved: article.Saved }">
+          <i class="fas fa-bookmark"></i>
         </button>
       </span>
     </div>
@@ -195,8 +180,10 @@ onMounted(() => {
   padding: 20px;
   max-width: 800px;
   margin: 0 auto;
-  transition: color 0.3s, background-color 0.3s;
+  background-color: #ffffff;
+  color: #333333;
   line-height: 1.6;
+  transition: color 0.3s, background-color 0.3s;
 }
 
 .article-title {
@@ -229,16 +216,6 @@ onMounted(() => {
   font-size: 1em;
   color: #555;
   margin-bottom: 1em;
-}
-
-.light-theme .article-author,
-.light-theme .article-date {
-  color: #555;
-}
-
-.dark-theme .article-author,
-.dark-theme .article-date {
-  color: #bbbbbb;
 }
 
 .partition-line {
@@ -277,30 +254,26 @@ onMounted(() => {
 
 button {
   background-color: transparent;
-  border: 1px solid #ccc;
-  padding: 8px;
-  border-radius: 5px;
+  border: none;
   cursor: pointer;
-  transition: background-color 0.3s, color 0.3s;
+  color: #555;
+  font-size: 1.2em;
 }
 
-button.active, button.saved {
+button.active i {
   color: #007bff;
-  font-weight: bold;
-  background-color: #e6f0ff;
 }
 
-button:hover {
-  background-color: #f0f0f0;
+button.saved i {
+  color: #FFD700;
 }
 
-.light-theme {
-  background-color: #ffffff;
-  color: #333333;
+button:hover i {
+  color: #0056b3;
 }
 
-.dark-theme {
-  background-color: #1e1e1e;
-  color: #ffffff;
+.article-meta i {
+  font-size: 1.2em;
+  margin-right: 5px;
 }
 </style>
