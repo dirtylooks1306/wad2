@@ -21,7 +21,6 @@ import { orderBy } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 /*
 Side Quests:
-- Figure out how to remove placeholder if possible
 - Modify map marker to be draggable (Requires overhaul of marker element)
 - Make changes to emergencyPage banner
 Top Priority:
@@ -95,7 +94,6 @@ Top Priority:
             }
             //if-loop only when diary is first initialised -> Removes placeholder with actual entry
             if (d.entries.length === 1 && d.entries[0].id === "Placeholder") {
-              await this.deletePlaceholder(diaryOwner);
               const id = "Entry 001"
               const entry = {
                 body: formData.body,
@@ -183,7 +181,10 @@ Top Priority:
         const newEntries = collection(newDiary, "Entries");
         const placeholder = doc(newEntries, "Placeholder");
         await setDoc(placeholder, { empty: true }) //Create subcollection with placeholder
-        //Update dbDiaries
+        //Remove placeholder immediately after diary is created
+        const deletePlaceholder = doc(db, "diary", name, "Entries", 'Placeholder');
+        await deleteDoc(deletePlaceholder);
+        //Update userDiaries
         this.userDiaries.push({
           id: name,
           entries: [],
@@ -206,20 +207,6 @@ Top Priority:
           this.diaryError = "";
         }, 3000);
       },
-      async deletePlaceholder(name) {
-        for (let d of this.userDiaries) {
-          if (d.id === name) {
-            const entries = d.entries;
-            for (let entry of entries) {
-              if (entry.id === 'Placeholder') {                
-                const deletePlaceholder = doc(db, "diary", name, "Entries", entry.id);
-                await deleteDoc(deletePlaceholder);
-                d.entries.splice(d.entries.indexOf(entry), 1);
-              }
-            }
-          }
-        }
-      }
     },
     async mounted() {
       window.vm = this;
