@@ -1,11 +1,22 @@
 <script setup>
 import Page from './page.vue';
+import { library } from "@fortawesome/fontawesome-svg-core";
+import {
+	faTrash
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+
+library.add(faTrash); // Add trash icon
 </script>
 
 <template>
     <div class="diary-container">
-        <button type="button" class="btn btn-secondary border-0 p-3 my-2 collapsible" :class="{ active: open }" @click="toggle">
-            {{ dbDiary.id }}
+        <button type="button" class="btn btn-secondary border-0 p-3 my-2 collapsible d-flex justify-content-between align-items-center" :class="{ active: open }" @click="toggle">            
+            <span>{{ dbDiary.id }}</span>
+            <span class="d-flex align-items-center">
+                <FontAwesomeIcon :icon="['fas', 'trash']" class="border rounded-1 p-1 bg-danger" @click="deleteDiary(dbDiary.id)"/>
+                <span class="toggle-icon ms-2">{{ open ? '-' : '+' }}</span>
+            </span>
         </button>
         <!-- Collapsible component -->
         <div class="content" :style="contentStyle">
@@ -79,6 +90,7 @@ import Page from './page.vue';
         props: {
             dbDiary: Object,
         },
+        emits: ['deleteDiary'],
         methods: {
             //Passes toggle event to diaryPage to open or close the collapsible
             toggle() {
@@ -124,29 +136,6 @@ import Page from './page.vue';
                         this.currentLocation++;
                     }
                 }  
-                
-                /*
-                if (this.currentLocation < this.numPapers) {
-                    switch(this.currentLocation) {
-                        case 1:
-                            this.openBook();
-                            this.$refs.p1.classList.add('flipped')
-                            this.$refs.p1.style.zIndex = 1;
-                            break;
-                        case 2:
-                            this.$refs.p2.classList.add('flipped')
-                            this.$refs.p2.style.zIndex = 2;
-                            break;
-                        case 3:
-                            this.$refs.p3.classList.add('flipped')
-                            this.$refs.p3.style.zIndex = 3;
-                            this.closeBook(false)
-                            break;
-                        default:
-                            throw new Error("unknown");
-                    }
-                    this.currentLocation++
-                */
             },
             prevPage() {
                 if (this.isWideEnough) {
@@ -170,28 +159,6 @@ import Page from './page.vue';
                         this.currentLocation--;
                     }
                 }
-                /*
-                if (this.currentLocation > 1) {
-                    switch(this.currentLocation) {
-                        case 2:
-                            this.closeBook(true);
-                            this.$refs.p1.classList.remove('flipped')
-                            this.$refs.p1.style.zIndex = 3;
-                            break;
-                        case 3:
-                            this.$refs.p2.classList.remove('flipped')
-                            this.$refs.p2.style.zIndex = 2;
-                            break;
-                        case 4:
-                            this.openBook();
-                            this.$refs.p3.classList.remove('flipped')
-                            this.$refs.p3.style.zIndex = 1;
-                            break;
-                        default:
-                            throw new Error("unknown");
-                    }
-                    this.currentLocation--
-                */
             },
             isFlipped(index) {
                 if (this.isWideEnough) {
@@ -215,7 +182,10 @@ import Page from './page.vue';
             },
             //Delete entry at specified index, change function to use dynamic storage
             deleteEntry(i) {
-                this.$emit('deleteEntry', this.dbDiary.id, i)
+                this.$emit('deleteEntry', this.dbDiary.id, i);
+            },
+            deleteDiary(name) {
+                this.$emit('deleteDiary', name);
             }
         },
         computed: {
@@ -265,16 +235,9 @@ import Page from './page.vue';
   background-color: #555;
 }
 
-.collapsible:after {
-  content: '\002B';
-  color: white;
-  font-weight: bold;
-  float: right;
-  margin-left: 5px;
-}
-
-.active:after {
-  content: "\2212";
+.toggle-icon {
+    font-weight: bold;
+    color: white;
 }
 
 .content {

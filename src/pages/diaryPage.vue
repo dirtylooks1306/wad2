@@ -21,10 +21,9 @@ import { orderBy } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 /*
 Side Quests:
-- Figure out how to remove placeholder if possible
-- Modify map marker to be draggable
+- Make changes to emergencyPage banner
 Top Priority:
-
+- Modify diary animations if possible
 */
 </script>
  
@@ -41,7 +40,8 @@ Top Priority:
         <Diary v-for="(diary, i) in userDiaries" 
         :dbDiary="diary" 
         :key="i"
-        @deleteEntry="deleteEntry"/>
+        @deleteEntry="deleteEntry"
+        @deleteDiary="deleteDiary"/>
       </div>
     </div>
     <div class="form-block container-fluid w-100">
@@ -51,8 +51,7 @@ Top Priority:
       :entryError="entryError"
       :diaryError="diaryError"
       @submitEntry="submitEntry"
-      @addDiary="addDiary"
-      @deleteDiary="deleteDiary"/>
+      @addDiary="addDiary"/>
     </div>
   </div>
 </template>
@@ -94,7 +93,6 @@ Top Priority:
             }
             //if-loop only when diary is first initialised -> Removes placeholder with actual entry
             if (d.entries.length === 1 && d.entries[0].id === "Placeholder") {
-              await this.deletePlaceholder(diaryOwner);
               const id = "Entry 001"
               const entry = {
                 body: formData.body,
@@ -182,7 +180,10 @@ Top Priority:
         const newEntries = collection(newDiary, "Entries");
         const placeholder = doc(newEntries, "Placeholder");
         await setDoc(placeholder, { empty: true }) //Create subcollection with placeholder
-        //Update dbDiaries
+        //Remove placeholder immediately after diary is created
+        const deletePlaceholder = doc(db, "diary", name, "Entries", 'Placeholder');
+        await deleteDoc(deletePlaceholder);
+        //Update userDiaries
         this.userDiaries.push({
           id: name,
           entries: [],
@@ -205,20 +206,6 @@ Top Priority:
           this.diaryError = "";
         }, 3000);
       },
-      async deletePlaceholder(name) {
-        for (let d of this.userDiaries) {
-          if (d.id === name) {
-            const entries = d.entries;
-            for (let entry of entries) {
-              if (entry.id === 'Placeholder') {                
-                const deletePlaceholder = doc(db, "diary", name, "Entries", entry.id);
-                await deleteDoc(deletePlaceholder);
-                d.entries.splice(d.entries.indexOf(entry), 1);
-              }
-            }
-          }
-        }
-      }
     },
     async mounted() {
       window.vm = this;

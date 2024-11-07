@@ -46,19 +46,20 @@ import CustomHeader from "./CustomHeader.vue";
             <span class="error-text d-flex justify-content-center" v-if="entryError">{{ entryError }}</span> <!-- Message to show successful entry  -->
         </div>
         <div class="col-xl-6 col-lg-12 addDeleteDiary">
-            <CustomHeader header="Add / Delete Diary"/> <!-- Form group to delete diaries from Firebase entirely -->
+            <CustomHeader header="Add Diary"/> <!-- Form group to add diaries from Firebase entirely -->
             <div class="row row-xl-cols-2 row-lg-cols-1">
                 <div class="col-xl-6 col-lg-12">
                     <label for="newDiaryName" class="col-form-label">New Owner Name:</label>
                     <select id="newDiaryName" class="form-select" aria-label="Default Select Example" v-model="newDiaryName">
                         <option value="" selected>Select a Child</option>
-                        <option v-for="child of children" :value="child">{{ child }}</option> <!-- To Change based on user's children names -->
+                        <option v-for="child of children" :value="child">{{ child }}</option>
                     </select>
                 </div>
                 <div class="col-xl-6 col-lg-12 mt-2 d-flex align-self-end justify-content-center">
                     <button type="button" id="add" class="btn btn-success align-bottom w-50" @click="addDiary"><span>Add Diary</span></button>
                 </div>
             </div>
+            <!--
             <div class="row row-xl-cols-2 row-lg-cols-1">
                 <div class="col-xl-6 col-lg-12">
                     <label for="existingDiaryName" class="col-form-label">Existing Owner Name:</label>
@@ -71,8 +72,9 @@ import CustomHeader from "./CustomHeader.vue";
                     <button type="button" id="delete" class="btn btn-danger align-bottom w-50" @click="deleteDiary"><span>Delete Diary</span></button>
                 </div>
             </div>
+            -->
             <span class="error-text d-flex justify-content-center" v-if="diaryErrorMsg">{{ diaryErrorMsg }}</span>
-            <span class="error-text d-flex justify-content-center" v-if="diaryError">{{ diaryError}}</span>
+            <span class="error-text d-flex justify-content-center" v-if="diaryError">{{ diaryError}}</span> <!-- Message to show success/error message for adding/deleting diaries -->
         </div>
     </div>
 </template>
@@ -102,7 +104,7 @@ import CustomHeader from "./CustomHeader.vue";
 			    },
                 maxChars: 360,
                 newDiaryName: "", //Diary to add
-                existingDiaryName: "", //Diary to delete
+                //existingDiaryName: "", //Diary to delete
                 entryErrorMsg: "",
                 diaryErrorMsg: "",
             }
@@ -148,6 +150,7 @@ import CustomHeader from "./CustomHeader.vue";
                 }
                 this.$emit('addDiary', this.newDiaryName)
             },
+            /*
             deleteDiary() {
                 if (this.existingDiaryName === '') {
                     this.diaryErrorMsg = "Existing owner name must be selected!";
@@ -157,6 +160,7 @@ import CustomHeader from "./CustomHeader.vue";
                 }
                 this.$emit('deleteDiary', this.existingDiaryName)
             },
+            */
             setImage() {
                 const fileInput = document.getElementById('imageFile');
                 this.formData.imageURL = fileInput.files[0];
