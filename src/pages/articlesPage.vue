@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, computed, watch } from 'vue';
+import { onMounted, ref, reactive, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import NavBar from "../components/navBar.vue";
 import CustomHeader from "../components/CustomHeader.vue";
@@ -14,12 +14,14 @@ const userReactions = ref({});
 const userId = ref(null);
 const userRole = ref(null);
 const showArticleForm = ref(false); // Controls form visibility
-const newArticle = ref({
+
+// Initialize newArticle with a default structure using reactive to handle nested properties
+const newArticle = reactive({
   Title: '',
   Author: '',
   Category: '',
   Description: '',
-  Paragraphs: [''], // Start with one paragraph
+  Content: [''] // Initialize Content as an array with one empty string
 });
 
 // New state for sorting options
@@ -45,7 +47,7 @@ auth.onAuthStateChanged(async (user) => {
     const userDoc = await getDoc(userDocRef);
 
     if (userDoc.exists()) {
-      console.log(userDoc.data().role)
+      console.log(userDoc.data().role);
       userRole.value = userDoc.data().role;
     } 
     fetchArticles();
@@ -109,30 +111,25 @@ watch(sortOption, sortArticles);
 
 // Function to publish a new article
 const publishArticle = async () => {
-  if (!userId.value || !newArticle.value.Title || !newArticle.value.Author || !newArticle.value.Category || !newArticle.value.Description || !newArticle.value.Paragraphs[0]) return;
-  console.log(userRole.value);
-  console.log(userId.value);
+  if (!userId.value || !newArticle.Title || !newArticle.Author || !newArticle.Category || !newArticle.Description || !newArticle.Content[0]) return;
+
   try {
     const articlesCollection = collection(db, "articles");
     const articleData = {
-      Title: newArticle.value.Title,
-      Author: newArticle.value.Author,
-      Filter: newArticle.value.Category,
-      Description: newArticle.value.Description,
+      Title: newArticle.Title,
+      Author: newArticle.Author,
+      Filter: newArticle.Category,
+      Description: newArticle.Description,
       Date: Timestamp.fromDate(new Date()), // Store date as a Firestore Timestamp
       Likes: 0,
       Dislikes: 0,
       Saved: false,
+      Content: newArticle.Content // Store all paragraphs in the Content array
     };
-    // Dynamically add paragraphs
-    newArticle.value.Paragraphs.forEach((paragraph, index) => {
-      if (paragraph) {
-        articleData[`Para${index + 1}`] = paragraph;
-      }
-    });
 
     await addDoc(articlesCollection, articleData);
-    newArticle.value = { Title: '', Author: '', Category: '', Description: '', Paragraphs: [''] }; // Reset form fields
+    // Reset form fields after publishing
+    Object.assign(newArticle, { Title: '', Author: '', Category: '', Description: '', Content: [''] });
     showArticleForm.value = false; // Close the form
     fetchArticles(); // Refresh articles list
   } catch (error) {
@@ -140,9 +137,14 @@ const publishArticle = async () => {
   }
 };
 
-// Add a new paragraph field
-const addParagraph = () => {
-  newArticle.value.Paragraphs.push('');
+// Function to handle Enter key in content input field
+const handleContentEnter = (event, index) => {
+  if (event.key === 'Enter') {
+    event.preventDefault(); // Prevent new line in the current text area
+    if (newArticle.Content[index]) {
+      newArticle.Content.splice(index + 1, 0, ''); // Insert new empty content block after the current one
+    }
+  }
 };
 
 // Toggle save status
@@ -254,19 +256,24 @@ onMounted(fetchArticles);
       
       <textarea v-model="newArticle.Description" placeholder="Brief Description" rows="3" required></textarea>
       
-      <!-- Paragraphs Section -->
-      <div v-for="(paragraph, index) in newArticle.Paragraphs" :key="index">
-        <textarea v-model="newArticle.Paragraphs[index]" :placeholder="'Paragraph ' + (index + 1)" rows="4" required></textarea>
+      <!-- Content Section -->
+      <div v-for="(paragraph, index) in newArticle.Content" :key="index">
+        <textarea 
+          v-model="newArticle.Content[index]" 
+          :placeholder="'Content'" 
+          rows="4" 
+          @keydown="handleContentEnter($event, index)" 
+          required>
+        </textarea>
       </div>
       
-      <button @click="addParagraph" class="btn article-form-button">Add Paragraph</button>
       <button @click="publishArticle" class="btn article-form-button">Publish Article</button>
       <button @click="showArticleForm = false" class="btn article-form-button">Cancel</button>
     </div>
 
     <!-- Sort Options -->
     <div class="sort-button" :class="{ 'form-active': showArticleForm }">
-      <CustomHeader header = "Sort By:"/>
+      <CustomHeader header="Sort By:"/>
       <select id="sort" v-model="sortOption">
         <option value="date">{{ sortOptions.date }}</option>
         <option value="likes">{{ sortOptions.likes }}</option>
@@ -455,7 +462,7 @@ button:hover {
 
 .write-article-button {
   position: fixed;
-  bottom: 20px;
+  top: 90px;
   right: 20px;
   background-color: #007bff;
   color: #fff;
@@ -512,14 +519,13 @@ button:hover {
 
 #to-top {
   position: fixed;
-  bottom: 90px; /* Sets the position above the "Write Article" button */
+  bottom: 20px; /* Adjusted to align with the bottom */
   right: 20px;
   background-color: #333;
   color: white;
   padding: 10px 20px;
   border-radius: 5px;
   cursor: pointer;
-  display: none;
   z-index: 1000;
 }
 </style>
