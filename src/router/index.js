@@ -16,11 +16,13 @@ import CreatePost from '../pages/createPost.vue';
 import UserProfile from '../pages/userProfile.vue';
 import ThreadPost from '../pages/threadPost.vue';
 import EditPost from '../pages/editPost.vue';
-
+import AdminUserPage from '../pages/adminUserPage.vue';
+import AdminArticle from '../pages/adminArticle.vue';
 
 import {auth } from '../firebaseConfig.js';
 import { onAuthStateChanged } from 'firebase/auth';
 import { reactive } from 'vue';
+
 
 export const appState = reactive({
   loginMessage: '',
@@ -126,6 +128,16 @@ const routes = [
         path: '/profile',
         name: 'Profile',
         component: profilePage
+    },
+    {
+        path: '/allUsers',
+        component: AdminUserPage,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/adminArticle',
+        component: AdminArticle,
+        meta: { requiresAuth: true }
     },
 
 ];
