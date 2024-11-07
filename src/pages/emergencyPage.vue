@@ -1,7 +1,7 @@
 <script setup>
 import NavBar from "../components/navBar.vue";
 import CustomHeader from "../components/CustomHeader.vue";
-import { GoogleMap, Marker } from 'vue3-google-map';
+import { GoogleMap, AdvancedMarker } from 'vue3-google-map';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
 import { onMounted, ref, watch } from 'vue';
@@ -32,6 +32,7 @@ onMounted(fetchLocations);
 
 //Segment to help users find nearest distance to hospital
 //Part 1: Declaration of variables
+const mapID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID;
 const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 const userLat = ref(0);
 const userLng = ref(0);
@@ -42,7 +43,7 @@ var nearest;
 window.onload = getCurrentLocation;
 //Part 1 End
 
-//Part 2: Functions for geolocation prompt and location finding
+//Part 2: Functions for geolocation prompt and location finding (If users allow location access)
 function getCurrentLocation() {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition((position) => {
@@ -53,9 +54,10 @@ function getCurrentLocation() {
       locationReady.value = true;
     })
   } else {
-    alert("Error!")
+    document.getElementById("errorMsg").innerText = "Error retrieving your location!"
   }
 };
+
 watch([userLat, userLng],([newLat, newLng]) => {
   if (newLat && newLng) {
     userLat.value = newLat;
@@ -120,6 +122,10 @@ function setLocation() {
     locationReady.value = true;
     markerLat = userLat;
     markerLng = userLng;
+    document.getElementById("errorMsg").innerText = "Location set successfully!";
+    setTimeout(() => {
+      document.getElementById("errorMsg").innerText = "";
+    }, 3000);
   })
   .catch(error => {
     //console.log(error.message);
@@ -133,6 +139,18 @@ function setLocation() {
 
 function clear() {
   document.getElementById("userLocation").value = "";
+}
+//Function to update user location when marker is dragged
+function updateLocation(event) {
+  const newPosition = event.latLng;
+  markerLat.value = newPosition.lat();
+  markerLng.value = newPosition.lng();
+  userLat.value = markerLat.value;
+  userLng.value = markerLng.value;
+  document.getElementById("errorMsg").innerText = "Location set successfully!";
+  setTimeout(() => {
+    document.getElementById("errorMsg").innerText = "";
+  }, 3000);
 }
 </script>
 
@@ -171,12 +189,14 @@ function clear() {
     <div id="map" v-if="locationReady">
       <!-- Margin left and right set to auto to center map -->
       <GoogleMap 
-        :api-key="apiKey" 
+        :api-key="apiKey"
+        :mapId="mapID"
         style="width: 75%; height: 500px; margin-left: auto; margin-right: auto;"
         :center="{ lat: userLat, lng: userLng }" 
         :zoom="16">
         <!-- Shows users their current location, change marker location to nearest hospital when one is found -->
-        <Marker :options="{ position: { lat: markerLat, lng: markerLng }, title: 'Current Location' }" :clickable="true"/> 
+        <AdvancedMarker :options="{ position: { lat: markerLat, lng: markerLng }, title: 'Current Location', gmpDraggable: true }"
+        @dragend="updateLocation"/> 
       </GoogleMap>
     </div>
     <div v-else class="centered-container">
