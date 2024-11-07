@@ -22,9 +22,10 @@ import { onAuthStateChanged } from "firebase/auth";
 /*
 Side Quests:
 - Figure out how to remove placeholder if possible
-- Modify map marker to be draggable
+- Modify map marker to be draggable (Requires overhaul of marker element)
+- Make changes to emergencyPage banner
 Top Priority:
-
+- Modify diary animations if possible
 */
 </script>
  
@@ -41,7 +42,8 @@ Top Priority:
         <Diary v-for="(diary, i) in userDiaries" 
         :dbDiary="diary" 
         :key="i"
-        @deleteEntry="deleteEntry"/>
+        @deleteEntry="deleteEntry"
+        @deleteDiary="deleteDiary"/>
       </div>
     </div>
     <div class="form-block container-fluid w-100">
@@ -51,8 +53,7 @@ Top Priority:
       :entryError="entryError"
       :diaryError="diaryError"
       @submitEntry="submitEntry"
-      @addDiary="addDiary"
-      @deleteDiary="deleteDiary"/>
+      @addDiary="addDiary"/>
     </div>
   </div>
 </template>

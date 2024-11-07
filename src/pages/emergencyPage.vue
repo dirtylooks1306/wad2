@@ -222,7 +222,6 @@ function clear() {
         </tr>
       </tbody>
     </table>
-    <p class="enquiries text-center">Other problems? Feel free to contact us <a class="contact-link" href="diary">here</a>.</p> <!-- href link is temporary, to change/remove later if contact page is present -->
   </div>
 
 </template>
@@ -269,13 +268,13 @@ button:hover span:after {
 	right: 0;
 }
 
-.enquiries, #nearest{
+#nearest{
   color: #efba1d;
   font-family: "Cherry Bomb", sans-serif;
   font-size: 30px;
 }
     
-.contact-link, strong{
+strong{
   text-decoration: underline;
   text-decoration-color: #ff9689;
 }
