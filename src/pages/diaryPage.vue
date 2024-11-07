@@ -21,7 +21,6 @@ import { orderBy } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 /*
 Side Quests:
-- Modify map marker to be draggable (Requires overhaul of marker element)
 - Make changes to emergencyPage banner
 Top Priority:
 - Modify diary animations if possible
