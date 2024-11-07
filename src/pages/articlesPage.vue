@@ -246,14 +246,16 @@ onMounted(fetchArticles);
     </div>
 
     <!-- Sort Options -->
-    <div class="sort-button" :class="{ 'form-active': showArticleForm }">
-      <CustomHeader header="Sort By:"/>
-      <select id="sort" v-model="sortOption">
-        <option value="date">{{ sortOptions.date }}</option>
-        <option value="likes">{{ sortOptions.likes }}</option>
-      </select>
+    <div class="sort-container">
+      <CustomHeader header="Sort By:" />
+      <div class="sort-dropdown">
+        <select id="sort" v-model="sortOption">
+          <option value="date">{{ sortOptions.date }}</option>
+          <option value="likes">{{ sortOptions.likes }}</option>
+        </select>
+      </div>
     </div>
-    
+
     <div v-if="formattedArticles.length" class="articles-grid">
       <div
         v-for="article in formattedArticles"
@@ -273,17 +275,24 @@ onMounted(fetchArticles);
         <div class="partition-line"></div>
 
         <div class="article-meta">
-          <span class="likes">
-            <button @click.stop="likeArticle(article.id)" :class="{ active: userReactions[article.id] === 'liked' }">👍</button>
-            <span>{{ article.Likes ?? 0 }}</span>
+          <span class="reaction">
+            <button @click.stop="likeArticle(article.id)" :class="{ active: userReactions[article.id] === 'liked' }">
+              <i class="fas fa-thumbs-up"></i>
+            </button>
+            <span class="reaction-count">{{ article.Likes ?? 0 }}</span>
           </span>
-          <span class="dislikes">
-            <button @click.stop="dislikeArticle(article.id)" :class="{ active: userReactions[article.id] === 'disliked' }">👎</button>
-            <span>{{ article.Dislikes ?? 0 }}</span>
+          <span class="reaction">
+            <button @click.stop="dislikeArticle(article.id)" :class="{ active: userReactions[article.id] === 'disliked' }">
+              <i class="fas fa-thumbs-down"></i>
+            </button>
+            <span class="reaction-count">{{ article.Dislikes ?? 0 }}</span>
           </span>
-          <span class="saved">
-            <button @click.stop="toggleSaved(article.id)" :class="{ saved: article.Saved }">🔖</button>
-          </span>
+        </div>
+
+        <div class="saved">
+          <button @click.stop="toggleSaved(article.id)" :class="{ saved: article.Saved }">
+            <i class="fas fa-bookmark"></i>
+          </button>
         </div>
       </div>
     </div>
@@ -315,6 +324,29 @@ onMounted(fetchArticles);
   margin: 0 auto;
 }
 
+.sort-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.sort-dropdown select {
+  padding: 8px 12px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #f5f5f5;
+  color: #555;
+  cursor: pointer;
+  transition: border-color 0.3s;
+}
+
+.sort-dropdown select:focus {
+  outline: none;
+  border-color: #ff9689;
+}
+
 .articles-grid {
   display: flex;
   flex-wrap: wrap;
@@ -333,6 +365,7 @@ onMounted(fetchArticles);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  position: relative;
 }
 
 .article-card:hover {
@@ -380,55 +413,49 @@ onMounted(fetchArticles);
 
 .article-meta {
   display: flex;
-  justify-content: space-between;
+  gap: 12px;
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
   align-items: center;
-  margin-top: 0.5em;
 }
 
-.likes, .dislikes {
+.reaction {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 3px;
 }
 
-.likes {
-  margin-right: 10px;
-}
-
-.saved {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-}
-
-.sort-button {
-  align-items: center;
-  margin-top: 20px;
-  margin-bottom: 20px;
+.reaction-count {
+  font-size: 0.9em;
+  color: #555;
 }
 
 button {
   background-color: transparent;
-  border: 1px solid #ccc;
-  padding: 8px;
-  border-radius: 5px;
+  border: none;
   cursor: pointer;
-  transition: background-color 0.3s, color 0.3s;
+  color: #555;
+  font-size: 1.2em;
 }
 
-button.active {
+button.active i {
   color: #007bff;
-  font-weight: bold;
-  background-color: #e6f0ff;
 }
 
-button.saved {
+.saved {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+button.saved i {
   color: #FFD700;
-  background-color: #e6f0ff;
 }
 
-button:hover {
-  background-color: #f0f0f0;
+button:hover i {
+  color: #0056b3;
 }
 
 .write-article-button {
@@ -477,20 +504,20 @@ button:hover {
 }
 
 .article-form button.article-form-button {
-  color: #fff; /* Visible color for both themes */
-  background-color: #007bff; /* Blue background for contrast */
+  color: #fff;
+  background-color: #007bff;
   border: none;
   font-size: 16px;
   font-family: "Cherry Bomb", sans-serif;
 }
 
 .article-form button.article-form-button:hover {
-  background-color: #0056b3; /* Darker blue on hover */
+  background-color: #0056b3;
 }
 
 #to-top {
   position: fixed;
-  bottom: 20px; /* Adjusted to align with the bottom */
+  bottom: 20px;
   right: 20px;
   background-color: #333;
   color: white;
