@@ -6,6 +6,8 @@ import CustomHeader from "./CustomHeader.vue";
         <div class="col-xl-6 col-lg-12 submit-entry" v-if="diaries.length > 0">
             <CustomHeader header="SUBMIT A NEW ENTRY"/>
             <div class="row pt-1">
+                <span id="submission" v-if="owner">Submitting an entry for: <span id="ownerName">{{ owner }}</span></span>
+                <!--
                 <div class="col-xl-4 col-lg-6 py-2">
                     <label for="name" class="col-form-label">Owner Name:</label>
                     <select id="name" class="form-select" aria-label="Default Select Example" v-model="formData.name">
@@ -13,22 +15,23 @@ import CustomHeader from "./CustomHeader.vue";
                         <option v-for="(diary, i) in diaries" :value="diary.id">{{ diary.id }}</option>
                     </select>
                 </div>
-                <div class="col-xl-4 col-lg-6 py-2">
+                -->
+                <div class="col-xl-6 col-lg-12 py-2">
                     <label for="header" class="col-form-label">Entry Header:</label>
                     <input type="text" class="form-control" id="header" v-model="formData.header">
                 </div>
-                <div class="col-xl-4 col-lg-6 py-2">
+                <div class="col-xl-6 col-lg-12 py-2">
                     <label for="date" class="col-form-label">Entry Date:</label>
                     <input type="date" class="form-control" id="date" v-model="formData.date">
                 </div>
             </div>
             <div class="col-6">
                 <label for="imageFile" class="col-form-label">Select an Image:</label>
-                <input type="file" id="imageFile" ref="file" class="form-control" @change="setImage">
+                <input type="file" id="imageFile" class="form-control" @change="setImage">
             </div>
             <div class="col-12 py-2">
                 <label for="body" class="col-form-label">Entry Body:</label>
-                <textarea class="form-control" id="body" rows="5" maxlength="525" 
+                <textarea class="form-control" id="body" rows="5" maxlength="360" 
                     placeholder="Write something memorable!" 
                     v-model="formData.body" 
                 > <!-- Set max limit of characters for entry so that content does not overflow out of diary page -->
@@ -42,39 +45,8 @@ import CustomHeader from "./CustomHeader.vue";
                 </div>
                 <div class="col-4"></div>
             </div>
-            <span class="error-text d-flex justify-content-center" v-if="entryErrorMsg">{{ entryErrorMsg }}</span>
             <span class="error-text d-flex justify-content-center" v-if="entryError">{{ entryError }}</span> <!-- Message to show successful entry  -->
-        </div>
-        <div class="col-xl-6 col-lg-12 addDeleteDiary">
-            <CustomHeader header="Add Diary"/> <!-- Form group to add diaries from Firebase entirely -->
-            <div class="row row-xl-cols-2 row-lg-cols-1">
-                <div class="col-xl-6 col-lg-12">
-                    <label for="newDiaryName" class="col-form-label">New Owner Name:</label>
-                    <select id="newDiaryName" class="form-select" aria-label="Default Select Example" v-model="newDiaryName">
-                        <option value="" selected>Select a Child</option>
-                        <option v-for="child of children" :value="child">{{ child }}</option>
-                    </select>
-                </div>
-                <div class="col-xl-6 col-lg-12 mt-2 d-flex align-self-end justify-content-center">
-                    <button type="button" id="add" class="btn btn-success align-bottom w-50" @click="addDiary"><span>Add Diary</span></button>
-                </div>
-            </div>
-            <!--
-            <div class="row row-xl-cols-2 row-lg-cols-1">
-                <div class="col-xl-6 col-lg-12">
-                    <label for="existingDiaryName" class="col-form-label">Existing Owner Name:</label>
-                    <select id="existingDiaryName" class="form-select" aria-label="Default Select Example" v-model="existingDiaryName">
-                        <option value="" selected>Select a Child</option>
-                        <option v-for="(diary, i) in diaries" :value="diary.id">{{ diary.id }}</option>
-                    </select>
-                </div>
-                <div class="col-xl-6 col-lg-12 mt-2 d-flex align-self-end justify-content-center">
-                    <button type="button" id="delete" class="btn btn-danger align-bottom w-50" @click="deleteDiary"><span>Delete Diary</span></button>
-                </div>
-            </div>
-            -->
-            <span class="error-text d-flex justify-content-center" v-if="diaryErrorMsg">{{ diaryErrorMsg }}</span>
-            <span class="error-text d-flex justify-content-center" v-if="diaryError">{{ diaryError}}</span> <!-- Message to show success/error message for adding/deleting diaries -->
+            <span class="error-text d-flex justify-content-center" v-if="diaryError">{{ diaryError }}</span> <!-- Message to show success/error message for adding/deleting diaries -->
         </div>
     </div>
 </template>
@@ -91,8 +63,9 @@ import CustomHeader from "./CustomHeader.vue";
             children: Array,
             entryError: String,
             diaryError: String,
+            owner: String,
         },
-        emits: ['submitEntry', 'addDiary', 'deleteDiary'],
+        emits: ['submitEntry', 'deleteDiary'],
         data() {
             return {
                 formData: {
@@ -103,10 +76,6 @@ import CustomHeader from "./CustomHeader.vue";
                     body: "",
 			    },
                 maxChars: 360,
-                newDiaryName: "", //Diary to add
-                //existingDiaryName: "", //Diary to delete
-                entryErrorMsg: "",
-                diaryErrorMsg: "",
             }
         },
         computed: {
@@ -123,12 +92,6 @@ import CustomHeader from "./CustomHeader.vue";
                 return `${year}-${month}-${day}`;
             },
             submitEntry() {
-                if (this.formData.name === '') {
-                    this.entryErrorMsg = "New entry must belong to an owner!";
-                    setTimeout(() => {
-                        this.entryErrorMsg = "";
-                    }, 3000);
-                }
                 this.$emit('submitEntry', this.formData);
                 this.resetFormData();
             },
@@ -141,37 +104,44 @@ import CustomHeader from "./CustomHeader.vue";
                     body: "",
 			    };
             },
-            addDiary() {
-                if (this.newDiaryName === '') {
-                    this.diaryErrorMsg = "New owner name must be selected!";
-                    setTimeout(() => {
-                        this.diaryErrorMsg = "";
-                    }, 3000);
-                }
-                this.$emit('addDiary', this.newDiaryName)
-            },
-            /*
-            deleteDiary() {
-                if (this.existingDiaryName === '') {
-                    this.diaryErrorMsg = "Existing owner name must be selected!";
-                    setTimeout(() => {
-                        this.diaryErrorMsg = "";
-                    }, 3000);
-                }
-                this.$emit('deleteDiary', this.existingDiaryName)
-            },
-            */
             setImage() {
                 const fileInput = document.getElementById('imageFile');
                 this.formData.imageURL = fileInput.files[0];
+            },
+        },
+        watch: {
+            owner(newOwner) {
+                this.formData.name = newOwner; // Watch for changes in owner variable when user changes collapsibles
+            }
+        },
+        mounted() {
+            //Set formData.name initially if owner is set when component mounts
+            if (this.owner) {
+                this.formData.name = this.owner;
             }
         }
     }
 </script>
 
 <style scoped>
-label, button {
+button {
     font-family: "Cherry Bomb", sans-serif;
+}
+
+label {
+    font-family: sans-serif;
+}
+
+#ownerName {
+    text-decoration: underline;
+    color: #efba1d;
+    text-decoration-color: #ff9689;
+    font-weight: bold;
+}
+
+#submission {
+    font-size: 25px;
+    font-family: sans-serif;
 }
 /* Form button animations */
 button {

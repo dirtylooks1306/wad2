@@ -4,11 +4,10 @@ import CustomHeader from "../components/CustomHeader.vue";
 import { GoogleMap, AdvancedMarker } from 'vue3-google-map';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, ref, watch, nextTick } from 'vue';
 import { collection, query, getDocs } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';  // Correct Firestore imports
 import { db } from "../firebaseConfig.js";  // Import the Firestore instance (db)
 // Log the Firestore instance to ensure it's properly initialized
-
 
 //Segment to retrieve hospital locations from Firebase
 const route = useRoute();
@@ -37,6 +36,13 @@ const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 const userLat = ref(0);
 const userLng = ref(0);
 const locationReady = ref(false);
+const steps = ref([]); //To show users the route to take
+//References for modals
+const reminderModal = ref(null);
+const isFirstInitialised = ref(false);
+const firstModal = ref(null);
+const pageInitialised = ref(false);
+//Modal references end
 var markerLat;
 var markerLng;
 var nearest;
@@ -52,6 +58,13 @@ function getCurrentLocation() {
       markerLat = userLat;
       markerLng = userLng;
       locationReady.value = true;
+      //Ensures that DOM updates before showing the modal
+      nextTick(() => {
+        isFirstInitialised.value = true;
+        const modalElement = reminderModal.value;
+        const bootstrapModal = new window.bootstrap.Modal(modalElement);
+        bootstrapModal.show()
+      })
     })
   } else {
     document.getElementById("errorMsg").innerText = "Error retrieving your location!"
@@ -92,6 +105,29 @@ function findNearest() {
     }
   }
   nearest = nearestHospital.name;
+  //Test directionsRenderer service
+  var directionsService = new google.maps.DirectionsService();
+  var request = {
+    origin: { lat: userLat.value, lng: userLng.value },
+    destination: { lat: nearestHospital.lat, lng: nearestHospital.lng },
+    travelMode: google.maps.TravelMode.DRIVING,
+  };
+  directionsService.route(request, (response, status) => {
+    if (status === "OK") {
+      //console.log(response);
+      const legs = response.routes[0].legs[0]; //Assuming a single route with one leg
+      legs.steps.forEach((step) => {
+        steps.value.push({
+          instruction: step.instructions,
+          distance: step.distance.text,
+          duration: step.duration.text,
+        })
+      })
+    } else {
+      console.error("Failed to set directions");
+    }
+  })
+  //Change the marker coordinates after directions are set?
   markerLat.value = nearestHospital.lat;
   markerLng.value = nearestHospital.lng;
 };
@@ -116,6 +152,7 @@ function setLocation() {
   .then(response => {
     //console.log(response.data)
     //console.log(response.data.results[0].geometry.location);
+    steps.value = []; // Reset the steps reference each time the user sets the location
     let coordinates = response.data.results[0].geometry.location;
     userLat.value = coordinates.lat;
     userLng.value = coordinates.lng;
@@ -126,6 +163,15 @@ function setLocation() {
     setTimeout(() => {
       document.getElementById("errorMsg").innerText = "";
     }, 3000);
+    //Ensures that DOM updates before showing the modal and only show if users are setting their location for the first time
+    nextTick(() => {
+      if (!isFirstInitialised.value) {
+        const modalElement = reminderModal.value;
+        const bootstrapModal = new window.bootstrap.Modal(modalElement);
+        isFirstInitialised.value = true;
+        bootstrapModal.show();
+      }
+    });
   })
   .catch(error => {
     //console.log(error.message);
@@ -142,6 +188,7 @@ function clear() {
 }
 //Function to update user location when marker is dragged
 function updateLocation(event) {
+  steps.value = []; // Reset the steps reference each time the user sets the location
   const newPosition = event.latLng;
   markerLat.value = newPosition.lat();
   markerLng.value = newPosition.lng();
@@ -152,6 +199,16 @@ function updateLocation(event) {
     document.getElementById("errorMsg").innerText = "";
   }, 3000);
 }
+
+//Modal to initialise when emergency page is loaded
+onMounted(() => {
+  if (!pageInitialised.value) {
+    pageInitialised.value = true;
+    const modalElement = firstModal.value;
+    const bootstrapModal = new window.bootstrap.Modal(modalElement);
+    bootstrapModal.show();
+  }
+})
 </script>
 
 <template>
@@ -167,7 +224,7 @@ function updateLocation(event) {
 					id="background-image"
 					alt=""
 				/>
-				<!-- To change image -->
+				<!-- To change image, refer to Pinterest -->
 				<h5 class="img-overlay-center position-absolute">
 					Emergency Resources
 				</h5>
@@ -182,9 +239,27 @@ function updateLocation(event) {
     <div id="helpPrompt" class="position-absolute popup" v-if="locationReady">
       <button type="button" class="btn btn-primary px-4" id="help" @click="showPopUp"><span>Help</span></button>
       <span class="popuptext p-2" id="helpPopUp">
-        1. Click on the "Find Nearest A&E" button to locate your nearest hospital<br>
-        2. Click on the hospital's location marker and click "View on Google Maps" to start calibrating your navigation route!
+        1. Click on the "Find Nearest A&E" button to locate your nearest hospital.<br>
+        2. If you are still unsure of the directions provided, you can click 'View on Google Maps' to get a better visualisation of the directions.<br>
+        3. If the location marker cannot be seen, feel free to zoom in the map to get a clearer view!
       </span>
+    </div>
+    <!-- Modal that shows when webpage gets the user's location -->
+    <div class="modal fade" tabindex="-1" ref="reminderModal" aria-hidden="true" v-if="locationReady">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Reminder</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="close"></button>
+          </div>
+          <div class="modal-body">
+            <p>The map marker can also be dragged to set your location.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
     </div>
     <div id="map" v-if="locationReady">
       <!-- Margin left and right set to auto to center map -->
@@ -206,7 +281,22 @@ function updateLocation(event) {
       </div>
       <button type="button" class="btn btn-success m-2 p-1" @click="getCurrentLocation"><span>Initialise Map</span></button>
 	    <br>
-	    <p id="notification">If location access is blocked, feel free to set your location manually. Otherwise, just click 'Initialise Map' and you're good to go!</p>
+      <div class="modal fade" tabindex="-1" aria-hidden="true" ref="firstModal">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">NOTE</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="close"></button>
+            </div>
+            <div class="modal-body">
+              <p class="text-start">If location access is blocked, feel free to set your location manually. Otherwise, just click 'Initialise Map' and you're good to go!</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
       <span id="errorMsg" class="blinking-text"></span>
     </div>
     <div v-if="locationReady" class="centered-container">
@@ -220,6 +310,14 @@ function updateLocation(event) {
         <button type="button" class="btn btn-primary m-2 p-1" @click="setLocation"><span>Change Location</span></button>
       </div>
       <span id="errorMsg" class="blinking-text"></span>
+      <div class="directions container-fluid w-100 rounded-2" v-if="steps.value !== []">
+        <h3>Directions:</h3>
+        <ol>
+          <li class="text-start" v-for="(step, index) in steps" :key="index">
+            <p>{{ index + 1 }}. </p><p v-html="step.instruction"></p><p>[{{ step.distance }}, {{ step.duration }}]</p>
+          </li>
+        </ol>
+      </div>
     </div>
   </div>
 
@@ -288,6 +386,10 @@ button:hover span:after {
 	right: 0;
 }
 
+.directions {
+  background-color: #FBF4EB;
+}
+
 #nearest{
   color: #efba1d;
   font-family: "Cherry Bomb", sans-serif;
@@ -317,12 +419,6 @@ strong{
 	font-family: "Cherry Bomb", sans-serif;
   font-size: 50px;
 	-webkit-text-stroke: 1px #555;
-}
-
-#notification {
-	color: #efba1d;
-  font-family: "Cherry Bomb", sans-serif;
-	font-size: 30px;
 }
 
 .map-block {
