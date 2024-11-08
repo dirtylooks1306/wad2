@@ -11,13 +11,25 @@
         <router-link to="/forum/create-post"><span>Create</span></router-link>
       </div>
       <hr />
-      <div class="forum-button"><i class="fas fa-chart-line"></i><span>Trending</span></div>
+      <div class="forum-button">
+        <i class="fas fa-chart-line"></i>
+        <router-link to="/forum/trending"><span>Trending</span></router-link>
+      </div>
       <hr />
-      <div class="forum-button"><i class="fas fa-solid fa-fire"></i><span>New</span></div>
+      <div class="forum-button">
+        <i class="fas fa-solid fa-fire"></i>
+        <router-link to="/forum/new"><span>New</span></router-link>
+      </div>
       <hr />
-      <div class="forum-button"><i class="fas fa-thumbtack"></i><span>Saved</span></div>
+      <div class="forum-button">
+        <i class="fas fa-thumbtack"></i>
+        <router-link to="/forum/saved"><span>Saved</span></router-link>
+      </div>
       <hr />
-      <div class="forum-button"><i class="fas fa-solid fa-clock"></i><span>Recently Viewed</span></div>
+      <div class="forum-button">
+        <i class="fas fa-solid fa-clock"></i>
+        <router-link to="/forum/recently-viewed"><span>Recently Viewed</span></router-link>
+      </div>
       <hr />
       <div id="forum-content-highlight"></div>
     </div>
@@ -87,20 +99,6 @@ export default {
 </script>
 
 <style scoped>
-.forum-sidebar {
-  background-color: #f7cccc;
-  transition: width 0.3s ease;
-  height: 100vh;
-  position: fixed;
-  top: 75px; /* Adjust this value to match your forum bar height */
-  left: 0;
-  z-index: 999; /* Stays on top of other content */
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Adds a shadow for better visibility */
-}
-
 .profile-image {
   width: 40px;
   height: 40px;
@@ -199,31 +197,31 @@ export default {
   transition: min-width 0.2s;
 }
 .forum-button:nth-of-type(1):hover {
-  color: var(--forumbar-dark-primary);
+  color: var(--forumbar-dark-secondary);
 }
 .forum-button:nth-of-type(1):hover ~ #forum-content-highlight {
   top: 16px;
 }
 .forum-button:nth-of-type(2):hover {
-  color: var(--forumbar-dark-primary);
+  color: var(--forumbar-dark-secondary);
 }
 .forum-button:nth-of-type(2):hover ~ #forum-content-highlight {
   top: 70px;
 }
 .forum-button:nth-of-type(3):hover {
-  color: var(--forumbar-dark-primary);
+  color: var(--forumbar-dark-secondary);
 }
 .forum-button:nth-of-type(3):hover ~ #forum-content-highlight {
   top: 124px;
 }
 .forum-button:nth-of-type(4):hover {
-  color: var(--forumbar-dark-primary);
+  color: var(--forumbar-dark-secondary);
 }
 .forum-button:nth-of-type(4):hover ~ #forum-content-highlight {
   top: 178px;
 }
 .forum-button:nth-of-type(5):hover {
-  color: var(--forumbar-dark-primary);
+  color: var(--forumbar-dark-secondary);
 }
 .forum-button:nth-of-type(5):hover ~ #forum-content-highlight {
   top: 232px;
@@ -289,6 +287,10 @@ export default {
 }
 #forum-footer-toggle:checked + #forum-footer label[for=forum-footer-toggle] {
   transform: rotate(180deg);
+}
+
+#forum-toggle:checked ~ #forum-bar {
+  height: 80px; /* Change to desired collapsed height */
 }
 
 label[for=forum-footer-toggle] {
@@ -361,13 +363,13 @@ label[for=forum-footer-toggle] {
 }
 
 #forum-bar {
-  position: absolute;
-  margin-top: 75px;
+  position: fixed;
+  margin-top: 100px;
   left: 1vw;
   top: 1vw;
   z-index: 999;
-  height: calc(100% - 10vw);
-  background: var(--forumbar-dark-primary);
+  height: calc(80% - 1vw);
+  background: #f5e1e1;
   border-radius: 16px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
   display: flex;
@@ -376,7 +378,9 @@ label[for=forum-footer-toggle] {
   font-family: Verdana, Geneva, Tahoma, sans-serif;
   overflow: hidden;
   user-select: none;
+  transition: height 0.3s ease; /* Smooth transition */
 }
+
 #forum-bar hr {
   margin: 0;
   position: relative;
@@ -385,6 +389,7 @@ label[for=forum-footer-toggle] {
   border: none;
   border-top: solid 1px var(--forumbar-dark-secondary);
 }
+
 #forum-bar a {
   color: inherit;
   text-decoration: inherit;

@@ -85,6 +85,7 @@ const handleRegister = async () => {
       username: username.value,
       email: email.value, // Optionally store the email in the document as well
       role: role,
+      profileimage: "https://firebasestorage.googleapis.com/v0/b/cradlecare-5870f.appspot.com/o/ProfileImages%2FRosenSG.png?alt=media&token=7b56b776-850e-4ab3-b022-54a9286d540f"
     });
 
     successMessage.value = "Registration successful! Redirecting...";

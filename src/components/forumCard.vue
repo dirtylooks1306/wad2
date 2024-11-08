@@ -1,10 +1,10 @@
 <template>
-  <div class="post-card">
-  <!-- <div class="post-card" @click="navigateToPost"> -->
-    <div class="post-header">
-      <img :src="post.profileimage" alt="Author profile" class="profile-image" />
-      <div class="author-details">
-        <p class="author-name">{{ post.author }}</p>
+  <!-- <div class="post-card"> -->
+  <div class="post-card" @click="navigateToPost">
+    <div class="post-header" @click.stop>
+      <img :src="post.profileimage" alt="Author profile" class="profile-image" @click="navigateToProfile"/>
+      <div class="author-details" >
+        <p class="author-name" @click="navigateToProfile">{{ post.author }}</p>
         <p class="post-time">{{ timeElapsed(post.date) }}</p>
       </div>
     </div>
@@ -37,7 +37,7 @@
     <p v-else class="post-desc">{{ truncateDesc(post.desc, 400) }}</p>
 
     <!-- Modal for Full-Screen Image Browsing -->
-    <div v-if="showModal" class="modal" @click.self="closeFullScreen">
+    <div v-if="showModal" class="modal" @click.stop>
       <div class="modal-content">
         <button class="close-button" @click="closeFullScreen">✕</button>
         <div id="modalCarousel" class="carousel slide" data-bs-ride="carousel">
@@ -58,17 +58,23 @@
       </div>
     </div>
 
-    <div class="interactiveBar">
-      <span class="like-count"><button @click="likePost"><i class="fa-solid fa-thumbs-up"></i></button>{{ post.likes }}<button @click="dislikePost"><i class="fa-solid fa-thumbs-down"></i></button></span>
+    <div class="interactiveBar mt-3" @click.stop  >
+        <button class="like-button" @click="likePost">
+          <i class="fa-solid fa-thumbs-up"></i> {{ post.likes }}
+        </button>
+        <button class="dislike-button" @click="dislikePost">
+          <i class="fa-solid fa-thumbs-down"></i>
+        </button>
+    </div>
     </div>
 
-  </div>
 
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, defineProps } from 'vue';
 import { useRouter } from 'vue-router';
+import { db, collection, where, getDocs, query} from '../firebaseConfig.js';
 
 const props = defineProps({
   post: {
@@ -83,6 +89,17 @@ const showModal = ref(false);
 // Function to navigate to the individual forum post
 const navigateToPost = () => {
   router.push(`/forum/thread/${props.post.id}`);
+};
+
+const navigateToProfile = async () => {
+  const user = props.post.author;
+  console.log(user);
+
+  try {
+    router.push(`/forum/user/${props.post.author}`);
+  } catch (error) {
+    console.error('Error navigating to profile:', error);
+  }
 };
 
 // Function to open the full-screen image modal
@@ -146,14 +163,54 @@ const dislikePost = () => {
 </script>
 
 <style scoped>
+/* Interactive Bar Styling */
 .interactiveBar {
   display: flex;
-  justify-content: space-between;
+  gap: 10px;
   align-items: center;
-  margin-top: 10px;
+  margin-top: 15px;
 }
+
+.like-button,
+.dislike-button {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  font-size: 14px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.like-button {
+  background-color: #FF9689;
+  color: #fff;
+}
+
+.like-button i {
+  margin-right: 5px;
+}
+
+.like-button:hover {
+  background-color: #ff6e61;
+}
+
+.dislike-button {
+  background-color: #E0E0E0;
+  color: #555;
+}
+
+.dislike-button i {
+  margin-right: 5px;
+}
+
+.dislike-button:hover {
+  background-color: #d3d3d3;
+}
+
 .post-card {
-  max-width: 600px; /* Set a maximum width for the card */
+  max-width: 650px; /* Set a maximum width for the card */
   margin: 15px auto; /* Center the card horizontally */
   padding: 15px;
   border: 1px solid #e0e0e0;
@@ -278,6 +335,7 @@ const dislikePost = () => {
   color: #000;
   font-size: 24px;
   cursor: pointer;
+  z-index: 999;
 }
 
 @media (max-width: 768px) {
@@ -300,17 +358,5 @@ const dislikePost = () => {
   color: #fff;
   font-size: 24px;
   cursor: pointer;
-}
-
-.read-more {
-  display: inline-block;
-  margin-top: 10px;
-  color: #007bff;
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.read-more:hover {
-  text-decoration: underline;
 }
 </style>

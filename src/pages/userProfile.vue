@@ -1,127 +1,180 @@
 <template>
-    <div class="user-profile-container">
-      <h2>User Profile: {{ user.username }}</h2>
-      <div class="user-info">
-        <img :src="user.avatar" alt="User Avatar" class="user-avatar" />
-        <div class="user-details">
-          <p><strong>Name:</strong> {{ user.name }}</p>
-          <p><strong>Email:</strong> {{ user.email }}</p>
-          <p><strong>Bio:</strong> {{ user.bio }}</p>
-        </div>
-      </div>
-  
-      <h3>Recent Posts</h3>
-      <div v-if="loading" class="loading-message">Loading posts...</div>
-      <div v-else-if="userPosts.length === 0" class="no-posts-message">This user has not posted anything yet.</div>
-      <div v-else class="post-list">
-        <div v-for="post in userPosts" :key="post.id" class="post-card">
-          <h4>{{ post.title }}</h4>
-          <p>{{ post.excerpt }}</p>
-          <router-link :to="`/forum/thread/${post.id}`" class="read-more">Read More</router-link>
-        </div>
+  <NavBar />
+  <ForumSidebar />
+  <div class="user-profile-container">
+    <div class="user-info">
+      <img :src="user.profileimage" alt="User Avatar" class="user-avatar" />
+      <div class="user-details">
+        <h2>{{ user.username }}</h2>
+        <p><strong>Bio:</strong> {{ user.bio }}</p>
+        <p>Posts: {{ userPosts.length }}</p>
       </div>
     </div>
-  </template>
-  
-  <script setup>
-  import { ref, onMounted } from 'vue';
-  import { useRoute } from 'vue-router';
-  
-  const route = useRoute();
-  const userId = route.params.username; // Use `username` or `id` depending on your route setup
-  
-  const user = ref({
-    username: 'johndoe',
-    name: 'John Doe',
-    email: 'johndoe@example.com',
-    bio: 'A passionate forum contributor.',
-    avatar: 'https://via.placeholder.com/150'
-  });
-  
-  const userPosts = ref([]);
-  const loading = ref(true);
-  
-  // Mock data-fetching function (replace with actual API call)
-  const fetchUserPosts = async () => {
-    // Simulate an API call with a delay
-    setTimeout(() => {
-      userPosts.value = [
-        { id: 1, title: 'Understanding Vue 3 Composition API', excerpt: 'A guide to help you master the Composition API in Vue 3...' },
-        { id: 2, title: 'Tips for Effective JavaScript Debugging', excerpt: 'Learn how to debug your JavaScript code efficiently...' }
-      ];
-      loading.value = false;
-    }, 1000);
-  };
-  
-  // Fetch user posts when the component is mounted
-  onMounted(() => {
-    fetchUserPosts();
-  });
-  </script>
-  
-  <style scoped>
-  .user-profile-container {
-    max-width: 800px;
-    margin: 20px auto;
-    padding: 20px;
-    background-color: #f9f9f9;
-    border-radius: 8px;
+
+    <h3>Recent Posts</h3>
+    <div v-if="loading" class="loading-message">Loading posts...</div>
+    <div v-else-if="userPosts.length === 0" class="no-posts-message">This user has not posted anything yet.</div>
+    <div v-else class="post-list">
+      <div v-for="post in userPosts" :key="post.id" class="post-card">
+        <h4>{{ post.title }}</h4>
+        <p>{{ post.desc }}</p>
+        <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+          <div v-for="(image, index) in post.media" :key="index" :class="['carousel-item', { active: index === 0 }]">
+            <img :src="image" class="d-block w-100 carousel-image" :alt="'Image ' + (index + 1)" />
+          </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Next</span>
+        </button>
+      </div>
+        <router-link :to="`/forum/thread/${post.id}`" class="read-more">Read More</router-link>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
+import ForumSidebar from '../components/ForumSidebar.vue';
+import NavBar from '../components/NavBar.vue';
+import { db, collection, query, where, getDocs } from '../firebaseConfig.js';
+
+const route = useRoute();
+const username = route.params.username;
+
+const user = ref({
+  username: '',
+  bio: '',
+  profileimage: ''
+});
+
+const userPosts = ref([]);
+const loading = ref(true);
+const error = ref(null);
+
+const fetchUserData = async () => {
+  try {
+    // Retrieve the user data from the 'users' collection where 'username' matches the route parameter
+    const q = query(collection(db, 'users'), where('username', '==', username));
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      user.value = querySnapshot.docs[0].data(); // Get the first matching document
+    } else {
+      error.value = 'User not found';
+    }
+  } catch (err) {
+    console.error("Error fetching user data:", err);
+    error.value = 'Failed to fetch user data';
   }
-  
-  .user-info {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 20px;
+};
+
+const fetchUserPosts = async () => {
+  try {
+    // Retrieve posts from the 'forum' collection where 'author' matches the username
+    const q = query(collection(db, 'forum'), where('author', '==', username));
+    const querySnapshot = await getDocs(q);
+
+    userPosts.value = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  } catch (err) {
+    console.error("Error fetching user posts:", err);
+    error.value = 'Failed to fetch user posts';
+  } finally {
+    loading.value = false;
   }
-  
-  .user-avatar {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    border: 2px solid #ddd;
-  }
-  
-  .user-details {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .loading-message,
-  .no-posts-message {
-    text-align: center;
-    font-size: 18px;
-    color: #555;
-  }
-  
-  .post-list {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-  
-  .post-card {
-    padding: 15px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    background-color: #fff;
-  }
-  
-  .post-card h4 {
-    margin: 0 0 10px;
-  }
-  
-  .post-card p {
-    margin: 0 0 15px;
-    color: #666;
-  }
-  
-  .read-more {
-    color: #007bff;
-    text-decoration: none;
-    font-weight: bold;
-  }
-  
-  .read-more:hover {
-    text-decoration: underline;
-  }
-  </style>
+};
+
+// Fetch data when the component is mounted
+onMounted(async () => {
+  await fetchUserData();
+  await fetchUserPosts();
+});
+</script>
+
+<style scoped>
+.user-profile-container {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 25px;
+  background-color: #D9C5B2; /* Soft pastel background */
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+h2, h3 {
+  color: #FF6E61; /* Match theme colors for headings */
+  font-weight: bold;
+}
+
+.user-info {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.user-avatar {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  border: 3px solid #FF9689; /* Use theme color for border */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+}
+
+.user-details p {
+  margin: 5px 0;
+  color: #555;
+}
+
+.loading-message,
+.no-posts-message {
+  text-align: center;
+  font-size: 18px;
+  color: #FF6E61; /* Theme color for messages */
+}
+
+.post-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.post-card {
+  padding: 15px;
+  border: 1px solid #FF9689; /* Border matching theme */
+  border-radius: 8px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.post-card h4 {
+  color: #FF6E61;
+  margin: 0 0 10px;
+}
+
+.post-card p {
+  margin: 0 0 15px;
+  color: #666;
+}
+
+.read-more {
+  color: #FF6E61;
+  text-decoration: none;
+  font-weight: bold;
+  transition: color 0.3s;
+}
+
+.read-more:hover {
+  color: #FF9689;
+}
+
+.user-details strong {
+  color: #FF6E61;
+}
+</style>

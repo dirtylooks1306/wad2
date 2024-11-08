@@ -1,159 +1,203 @@
 <template>
-    <div class="thread-post-container">
-      <h2>{{ thread.title }}</h2>
-      <div class="thread-details">
-        <p class="thread-desc">{{ thread.desc }}</p>
-        <p class="thread-meta">Posted by {{ thread.author }} on {{ thread.date }}</p>
-      </div>
-  
-      <h3>Comments</h3>
-      <div v-if="loading" class="loading-message">Loading comments...</div>
-      <div v-else-if="comments.length === 0" class="no-comments-message">No comments yet. Be the first to comment!</div>
-      <div v-else class="comments-list">
-        <div v-for="comment in comments" :key="comment.id" class="comment-card">
-          <p><strong>{{ comment.author }}</strong>:</p>
-          <p>{{ comment.text }}</p>
-          <p class="comment-meta">{{ comment.date }}</p>
+  <navBar/>
+  <ForumSidebar/>
+  <div class="post-thread-container container">
+    <div class="post-content p-4 rounded shadow-sm">
+      <!-- Author Section -->
+      <div class="author-info d-flex align-items-center mb-3">
+        <img :src="post.profileimage" alt="Author profile" class="author-avatar" />
+        <div class="author-details ms-3">
+          <h5 class="author-name mb-0">{{ post.author }}</h5>
+          <small class="text-muted">{{ formattedDate }}</small>
         </div>
       </div>
-  
-      <div class="add-comment">
-        <h4>Add a Comment</h4>
-        <form @submit.prevent="submitComment">
-          <textarea
-            v-model="newComment"
-            placeholder="Write your comment here"
-            required
-          ></textarea>
-          <button type="submit" class="submit-button">Submit Comment</button>
-        </form>
+
+      <!-- Post Content -->
+      <h2 class="post-title">{{ post.title }}</h2>
+      <p class="post-description">{{ post.desc }}</p>
+
+      <!-- Carousel for Media -->
+      <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel" v-if="post.media && post.media.length">
+        <div class="carousel-inner">
+          <div v-for="(image, index) in post.media" :key="index" :class="['carousel-item', { active: index === 0 }]">
+            <img :src="image" class="d-block w-100 carousel-image" :alt="'Image ' + (index + 1)" />
+          </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Next</span>
+        </button>
+      </div>
+
+      <!-- Post Actions -->
+      <div class="post-actions mt-3 d-flex align-items-center">
+        <button class="btn btn-outline-primary me-2" @click="likePost">👍 Like ({{ post.likes }})</button>
+        <button class="btn btn-outline-secondary" @click="bookmarkPost">🔖 Bookmark</button>
       </div>
     </div>
-  </template>
-  
-  <script setup>
-  import { ref, onMounted } from 'vue';
-  import { useRoute } from 'vue-router';
-  
-  const route = useRoute();
-  const threadId = route.params.id;
-  
-  const thread = ref({
-    id: threadId,
-    title: 'Sample Thread Title',
-    desc: 'This is the main desc of the thread. It provides details and invites discussion.',
-    author: 'John Doe',
-    date: '2024-11-05'
-  });
-  
-  const comments = ref([]);
-  const newComment = ref('');
-  const loading = ref(true);
-  
-  // Mock data-fetching function (replace with actual API call)
-  const fetchComments = async () => {
-    setTimeout(() => {
-      comments.value = [
-        { id: 1, author: 'Jane Smith', text: 'This is a very insightful post!', date: '2024-11-04' },
-        { id: 2, author: 'Alex Johnson', text: 'I completely agree with the points made here.', date: '2024-11-05' }
-      ];
-      loading.value = false;
-    }, 1000);
-  };
-  
-  // Fetch comments when the component is mounted
-  onMounted(() => {
-    fetchComments();
-  });
-  
-  // Function to handle comment submission
-  const submitComment = () => {
-    if (!newComment.value.trim()) {
-      alert('Comment cannot be empty.');
-      return;
-    }
-  
-    // Simulate adding a new comment (replace with API call)
-    comments.value.push({
-      id: comments.value.length + 1,
-      author: 'Current User',
-      text: newComment.value,
-      date: new Date().toISOString().split('T')[0]
-    });
-  
-    newComment.value = ''; // Clear the input after submission
-  };
-  </script>
-  
-  <style scoped>
-  .thread-post-container {
-    max-width: 800px;
-    margin: 20px auto;
-    padding: 20px;
-    background-color: #f9f9f9;
-    border-radius: 8px;
+
+    <CommentSection :postId="postId" />
+  </div>
+</template>
+
+<script setup>
+import navBar from '../components/navBar.vue';
+import ForumSidebar from '../components/ForumSidebar.vue';
+import { ref, onMounted, computed } from 'vue';
+import { useRoute } from 'vue-router';
+import { db, doc, getDoc, auth } from '../firebaseConfig.js';
+import CommentSection from '../components/Comments.vue';
+
+const route = useRoute();
+const postId = route.params.id;
+
+const post = ref({ title: '', desc: '', author: '', media: [], date: '', likes: 1 });
+
+const formattedDate = computed(() => {
+  const date = post.value.date ? new Date(post.value.date.seconds * 1000) : null;
+  return date ? date.toLocaleDateString() : '';
+});
+
+const fetchPost = async () => {
+  const docRef = doc(db, 'forum', postId);
+  const docSnap = await getDoc(docRef);
+
+  if (docSnap.exists()) {
+    post.value = docSnap.data();
+  } else {
+    console.error('Post not found!');
   }
-  
-  .thread-details {
-    margin-bottom: 20px;
+};
+
+const likePost = () => {
+  post.value.likes += 1;
+};
+
+const bookmarkPost = () => {
+  // Logic for bookmarking
+};
+
+const updateHistory = async () => {
+  const user = auth.currentUser;
+  if (!user) {
+    console.error('User is not logged in');
+    return;
   }
-  
-  .thread-meta {
-    font-size: 14px;
-    color: #666;
+
+  const userRef = doc(db, 'users', user.uid);
+  const userDoc = await getDoc(userRef);
+
+  if (userDoc.exists()) {
+    const history = userDoc.data().recentlyViewed || [];
+    const updatedHistory = [postId, ...history].slice(0, 10);
+    await userRef.update({ recentlyViewed: updatedHistory });
+  } else {
+    console.error('User document not found');
   }
-  
-  h3 {
-    margin-top: 30px;
-  }
-  
-  .loading-message,
-  .no-comments-message {
-    text-align: center;
-    font-size: 18px;
-    color: #555;
-  }
-  
-  .comments-list {
-    margin-bottom: 20px;
-  }
-  
-  .comment-card {
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
-  }
-  
-  .comment-meta {
-    font-size: 12px;
-    color: #777;
-    margin-top: 5px;
-  }
-  
-  .add-comment {
-    margin-top: 20px;
-  }
-  
-  textarea {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    resize: vertical;
-    min-height: 100px;
-  }
-  
-  .submit-button {
-    padding: 10px;
-    background-color: #28a745;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-    margin-top: 10px;
-  }
-  
-  .submit-button:hover {
-    background-color: #218838;
-  }
-  </style>
+};
+
+onMounted(() => {
+  fetchPost();
+  updateHistory();
+});
+</script>
+
+<style scoped>
+.post-thread-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.post-content {
+  background-color: #D9C5B2;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+/* Author Section */
+.author-info {
+  display: flex;
+  align-items: center;
+}
+
+.author-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid #FF9689;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.author-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.author-name {
+  font-weight: bold;
+  font-size: 18px;
+  color: #333;
+}
+
+.text-muted {
+  color: #666;
+  font-size: 14px;
+}
+
+/* Carousel */
+#carouselExampleIndicators {
+  margin-top: 20px;
+  max-height: 400px;
+}
+
+.carousel-image {
+  object-fit: cover;
+  max-height: 400px;
+  border-radius: 8px;
+}
+
+/* Post Title and Description */
+.post-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+}
+
+.post-description {
+  font-size: 16px;
+  color: #555;
+  margin: 10px 0;
+}
+
+/* Post Actions */
+.post-actions button {
+  font-size: 14px;
+}
+
+.post-actions .btn-outline-primary {
+  border-color: #FF9689;
+  color: #FF9689;
+}
+
+.post-actions .btn-outline-primary:hover {
+  background-color: #FF9689;
+  color: #fff;
+}
+
+.post-actions .btn-outline-secondary {
+  border-color: #FF9689;
+  color: #FF9689;
+}
+
+.post-actions .btn-outline-secondary:hover {
+  background-color: #FF9689;
+  color: #fff;
+}
+</style>

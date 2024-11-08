@@ -1,9 +1,9 @@
 <template>
   <NavBar/>
-  <div class="new-post-container">
-    <h2>Create a New Post</h2>
+  <div class="container my-5 new-post-container">
+    <h2 class="text-center mb-4">Create a New Post</h2>
     <form @submit.prevent="submitPost" class="post-form">
-      <div class="form-group">
+      <div class="form-group mb-3">
         <label for="title">Title</label>
         <input
           type="text"
@@ -11,33 +11,36 @@
           v-model="newPost.title"
           required
           placeholder="Enter the title"
+          maxlength="200"
+          class="form-control"
         />
       </div>
-      <div class="form-group">
+      <div class="form-group mb-3">
         <label for="desc">Description</label>
         <textarea
           id="desc"
           v-model="newPost.desc"
           required
           placeholder="Write your post content here"
+          class="form-control"
         ></textarea>
       </div>
-      <div class="form-group">
+      <div class="form-group mb-3">
         <label for="media">Upload Media</label>
-        <input type="file" id="media" multiple @change="handleFileUpload" />
-        <div v-if="mediaPreviews.length" class="preview-container">
+        <input type="file" id="media" multiple @change="handleFileUpload" class="form-control" />
+        <div v-if="mediaPreviews.length" class="preview-container mt-3">
           <h3>Media Preview</h3>
-          <div class="preview-grid">
-            <div v-for="(src, index) in mediaPreviews" :key="index" class="preview-item">
-              <img :src="src" alt="Uploaded media preview" />
-              <button @click.prevent="removeFile(index)" class="remove-button">✕</button>
+          <div class="preview-grid row row-cols-auto g-2">
+            <div v-for="(src, index) in mediaPreviews" :key="index" class="col position-relative">
+              <img :src="src" alt="Uploaded media preview" class="img-thumbnail" />
+              <button @click.prevent="removeFile(index)" class="btn-close remove-button" aria-label="Close"></button>
             </div>
           </div>
         </div>
       </div>
-      <button type="submit" class="submit-button">Submit Post</button>
+      <button type="submit" class="btn btn-primary w-100 submit-button">Submit Post</button>
     </form>
-    <p v-if="submissionMessage" class="submission-message">{{ submissionMessage }}</p>
+    <p v-if="submissionMessage" class="submission-message text-center mt-3">{{ submissionMessage }}</p>
   </div>
 </template>
 
@@ -147,6 +150,19 @@ const submitPost = async () => {
       selectedFiles.value = [];
       mediaPreviews.value = [];
 
+      //add docid into user's document under field array createdPosts
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
+      if (userDoc.exists()) {
+        const createdPosts = userDoc.data().createdPosts || [];
+        createdPosts.push(documentId);
+        await updateDoc(userDocRef, {
+          createdPosts: createdPosts
+        });
+      } else {
+        console.error('User document not found');
+      }
+
     } catch (error) {
       console.error('Error submitting post:', error);
       submissionMessage.value = 'Error submitting post. Please try again.';
@@ -160,65 +176,11 @@ const submitPost = async () => {
 <style scoped>
 .new-post-container {
   max-width: 700px;
-  margin: 30px auto;
-  padding: 20px;
   border: 1px solid #ddd;
   border-radius: 8px;
   background-color: #D9C5B2;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-h2 {
-  text-align: center;
-  margin-bottom: 20px;
-  color: #333;
-}
-
-.post-form {
-  width: 100%;
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-  color: #555;
-}
-
-input[type="text"],
-textarea {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-textarea {
-  min-height: 150px;
-  resize: vertical;
-}
-
-input[type="file"] {
-  display: block;
-  margin-top: 5px;
-}
-
-.preview-container {
-  margin-top: 15px;
-}
-
-.preview-grid {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.preview-item {
-  position: relative;
+  padding: 20px;
 }
 
 .preview-item img {
@@ -234,40 +196,9 @@ input[type="file"] {
   top: 5px;
   right: 5px;
   background-color: rgba(255, 0, 0, 0.7);
-  border: none;
-  color: white;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  font-size: 12px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.remove-button:hover {
-  background-color: rgba(255, 0, 0, 0.9);
-}
-
-.submit-button {
-  width: 100%;
-  padding: 10px;
-  background-color: #FF9689;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-.submit-button:hover {
-  background-color: #218838;
 }
 
 .submission-message {
-  text-align: center;
   color: #28a745;
-  margin-top: 15px;
 }
 </style>
