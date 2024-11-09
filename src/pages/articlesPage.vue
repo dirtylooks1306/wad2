@@ -1,10 +1,10 @@
 <script setup>
-import { onMounted, ref, reactive, computed, watch } from 'vue';
+import { onMounted, ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import NavBar from "../components/navBar.vue";
 import CustomHeader from "../components/CustomHeader.vue";
 import ToTop from '../components/ToTop.vue';
-import { collection, addDoc, query, where, getDocs, doc, updateDoc, increment, runTransaction, Timestamp } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
+import { collection, query, where, getDocs, doc, updateDoc, increment, runTransaction, Timestamp } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
 import { db, auth, getDoc } from "../firebaseConfig.js";
 
 const route = useRoute();
@@ -13,42 +13,25 @@ const articles = ref([]);
 const userReactions = ref({});
 const userId = ref(null);
 const userRole = ref(null);
-const showArticleForm = ref(false); // Controls form visibility
 
-// Initialize newArticle with a default structure using reactive to handle nested properties
-const newArticle = reactive({
-  Title: '',
-  Author: '',
-  Category: '',
-  Description: '',
-  Content: [''] // Initialize Content as an array with one empty string
-});
-
-// New state for sorting options
 const sortOption = ref('date');
-
-// Options for sorting
 const sortOptions = {
   likes: 'Likes (Descending)',
   date: 'Date (Newest First)',
+  dateAsc: 'Date (Oldest First)',
+  likesAsc: 'Likes (Ascending)'
 };
 
 const category = computed(() => route.params.category || '');
 const isSavedView = computed(() => category.value.toLowerCase() === 'saved');
-
-// List of categories for the dropdown
 const categories = ['Activities', 'Education', 'Nutrition'];
 
-// Listen for authentication state changes
 auth.onAuthStateChanged(async (user) => {
   if (user) {
     userId.value = user.uid;
     const userDocRef = doc(db, "users", user.uid);
     const userDoc = await getDoc(userDocRef);
-
-    if (userDoc.exists()) {
-      userRole.value = userDoc.data().role;
-    } 
+    userRole.value = userDoc.exists() ? userDoc.data().role : null;
     fetchArticles();
   } else {
     userId.value = null;
@@ -58,7 +41,6 @@ auth.onAuthStateChanged(async (user) => {
 
 const capitalizeCategory = (cat) => cat ? cat.charAt(0).toUpperCase() + cat.slice(1) : '';
 
-// Function to fetch and sort articles based on the selected sorting option
 const fetchArticles = async () => {
   try {
     const articlesCollection = collection(db, "articles");
@@ -73,80 +55,39 @@ const fetchArticles = async () => {
     }
 
     const querySnapshot = await getDocs(q);
-    articles.value = querySnapshot.docs.map(doc => ({
+    articles.value = querySnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
-      Date: doc.data().Date instanceof Timestamp 
-        ? doc.data().Date.toMillis() 
-        : new Date(doc.data().Date).getTime() // Convert string dates to milliseconds for sorting
+      Date: doc.data().Date instanceof Timestamp ? doc.data().Date.toMillis() : new Date(doc.data().Date).getTime()
     }));
 
-    // Apply sorting
     sortArticles();
   } catch (error) {
     console.error("Error fetching articles:", error.message);
   }
 };
 
-// Function to sort articles based on the selected sorting option
 const sortArticles = () => {
   if (sortOption.value === 'likes') {
     articles.value.sort((a, b) => (b.Likes ?? 0) - (a.Likes ?? 0));
   } else if (sortOption.value === 'date') {
-    articles.value.sort((a, b) => b.Date - a.Date); // Sort by Date in descending order
+    articles.value.sort((a, b) => b.Date - a.Date);
+  } else if (sortOption.value === 'dateAsc') {
+    articles.value.sort((a, b) => a.Date - b.Date);
+  } else if (sortOption.value === 'likesAsc') {
+    articles.value.sort((a, b) => (a.Likes ?? 0) - (b.Likes ?? 0));
   }
 };
 
-// Computed property to format the date for display
 const formattedArticles = computed(() => {
   return articles.value.map(article => ({
     ...article,
-    displayDate: new Date(article.Date).toLocaleDateString() // Format date for display
+    displayDate: new Date(article.Date).toLocaleDateString()
   }));
 });
 
-// Update sorting when the sort option changes
 watch(sortOption, sortArticles);
 
-// Function to publish a new article
-const publishArticle = async () => {
-  if (!userId.value || !newArticle.Title || !newArticle.Author || !newArticle.Category || !newArticle.Description || !newArticle.Content[0]) return;
-
-  try {
-    const articlesCollection = collection(db, "articles");
-    const articleData = {
-      Title: newArticle.Title,
-      Author: newArticle.Author,
-      Filter: newArticle.Category,
-      Description: newArticle.Description,
-      Date: Timestamp.fromDate(new Date()), // Store date as a Firestore Timestamp
-      Likes: 0,
-      Dislikes: 0,
-      Saved: false,
-      Content: newArticle.Content // Store all paragraphs in the Content array
-    };
-
-    await addDoc(articlesCollection, articleData);
-    // Reset form fields after publishing
-    Object.assign(newArticle, { Title: '', Author: '', Category: '', Description: '', Content: [''] });
-    showArticleForm.value = false; // Close the form
-    fetchArticles(); // Refresh articles list
-  } catch (error) {
-    console.error("Error publishing article:", error.message);
-  }
-};
-
-// Function to handle Enter key in content input field
-const handleContentEnter = (event, index) => {
-  if (event.key === 'Enter') {
-    event.preventDefault(); // Prevent new line in the current text area
-    if (newArticle.Content[index]) {
-      newArticle.Content.splice(index + 1, 0, ''); // Insert new empty content block after the current one
-    }
-  }
-};
-
-// Toggle save status
 const toggleSaved = async (articleId) => {
   if (!userId.value) return;
 
@@ -233,7 +174,6 @@ const dislikeArticle = async (articleId) => {
 };
 
 watch(category, fetchArticles, { immediate: true });
-
 onMounted(fetchArticles);
 </script>
 
@@ -242,41 +182,14 @@ onMounted(fetchArticles);
   <div class="articles-container">
     <h1 class="article-title">{{ capitalizeCategory(category) }} Articles</h1>
 
-    <!-- Write Article Form -->
-    <div v-if="showArticleForm" class="article-form">
-      <CustomHeader header="Write a New Article"/>
-      <input v-model="newArticle.Title" placeholder="Article Title" required />
-      <input v-model="newArticle.Author" placeholder="Author Name" required />
-      
-      <select v-model="newArticle.Category" required>
-        <option disabled value="">Select Category</option>
-        <option v-for="cat in categories" :key="cat">{{ cat }}</option>
-      </select>
-      
-      <textarea v-model="newArticle.Description" placeholder="Brief Description" rows="3" required></textarea>
-      
-      <!-- Content Section -->
-      <div v-for="(paragraph, index) in newArticle.Content" :key="index">
-        <textarea 
-          v-model="newArticle.Content[index]" 
-          :placeholder="'Content'" 
-          rows="4" 
-          @keydown="handleContentEnter($event, index)" 
-          required>
-        </textarea>
-      </div>
-      
-      <button @click="publishArticle" class="btn article-form-button">Publish Article</button>
-      <button @click="showArticleForm = false" class="btn article-form-button">Cancel</button>
-    </div>
-
-    <!-- Sort Options -->
     <div class="sort-container">
       <CustomHeader header="Sort By:" />
       <div class="sort-dropdown">
         <select id="sort" v-model="sortOption">
           <option value="date">{{ sortOptions.date }}</option>
+          <option value="dateAsc">{{ sortOptions.dateAsc }}</option>
           <option value="likes">{{ sortOptions.likes }}</option>
+          <option value="likesAsc">{{ sortOptions.likesAsc }}</option>
         </select>
       </div>
     </div>
@@ -289,11 +202,12 @@ onMounted(fetchArticles);
         @click="goToArticleDetails(article.id)"
       >
         <h1 class="article-card-title">{{ article.Title }}</h1>
-
         <div class="article-info">
           <p class="article-author"><b>Author: {{ article.Author || 'Unknown' }}</b></p>
           <p class="article-date">{{ article.displayDate || 'No Date' }}</p>
         </div>
+
+        <img v-if="article.ImageUrl" :src="article.ImageUrl" alt="Article Image" class="article-image" />
 
         <div class="partition-line"></div>
         <p>{{ article.Description || 'No description available' }}</p>
@@ -325,12 +239,7 @@ onMounted(fetchArticles);
       <p>No articles found in {{ capitalizeCategory(category) }}.</p>
     </div>
     
-    <!-- "Back to Top" and "Write Article" buttons -->
     <ToTop />
-    <button v-if="userRole === 'admin'" @click="showArticleForm = true" class="write-article-button">
-      Write Article
-    </button>
-
   </div>
 </template>
 
@@ -430,6 +339,14 @@ onMounted(fetchArticles);
   font-size: 0.9em;
 }
 
+.article-image {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 10px 0; /* Add spacing above and below */
+  object-fit: cover; /* Ensure image covers the area without distortion */
+}
+
 .partition-line {
   width: 100%;
   height: 2px;
@@ -478,8 +395,14 @@ button.active i {
   margin-top: 10px;
 }
 
-button.saved i {
-  color: #FFD700;
+.saved button i {
+  color: white; /* White color when not saved */
+  background-color: transparent; /* Ensure alignment */
+}
+
+.saved button.saved i {
+  color: black; /* Black color when saved */
+  background-color: transparent; /* No background needed for saved state */
 }
 
 button:hover i {
