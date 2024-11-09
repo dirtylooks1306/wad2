@@ -142,6 +142,7 @@ function showPopUp() {
 
 //Function to set user location
 function setLocation() {
+  nearest = null;
   var location = document.getElementById("userLocation").value
   axios.get('https://maps.googleapis.com/maps/api/geocode/json', {
     params: {
@@ -188,6 +189,7 @@ function clear() {
 }
 //Function to update user location when marker is dragged
 function updateLocation(event) {
+  nearest = null;
   steps.value = []; // Reset the steps reference each time the user sets the location
   const newPosition = event.latLng;
   markerLat.value = newPosition.lat();
@@ -304,8 +306,8 @@ onMounted(() => {
       <form id="searchLocation">
         <button type="button" class="btn btn-success m-2 p-1" @click="findNearest()"><span>Find nearest A&E</span></button>
       </form>
-      <span id="nearest">Nearest hospital: <strong>{{ nearest }}</strong></span>
-      <div id="changeLocation">
+      <span id="nearest" v-if="nearest">Nearest hospital: <strong>{{ nearest }}</strong></span>
+      <div id="changeLocation" class="d-flex align-items-center justify-content-center">
         <input id="userLocation" type="text" class="rounded-2 p-1" placeholder="Change location" @keyup.enter="setLocation">
         <button type="button" class="btn btn-primary m-2 p-1" @click="setLocation"><span>Change Location</span></button>
       </div>
