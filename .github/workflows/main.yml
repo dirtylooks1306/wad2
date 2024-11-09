@@ -22,10 +22,7 @@ jobs:
 
       # Step 3: Install dependencies
       - name: Clean install dependencies
-        run: |
-          rm -rf node_modules
-          rm -f package-lock.json
-          npm install
+        run: npm ci
 
 
       # Step 4: Build the app using Vite
