@@ -28,7 +28,7 @@
   </div>
 
   <!-- Remaining sections unchanged -->
-
+  <div>nigger</div>
   <footer>
     <p class="text-center">CradleCare © 2024</p>
   </footer>
