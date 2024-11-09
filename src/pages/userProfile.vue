@@ -28,9 +28,9 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import ForumSidebar from '../components/ForumSidebar.vue';
+import ForumSidebar from '../components/forumsideBar.vue';
 import NavBar from "../components/navBar.vue";
-import forumCard from '../components/forumCard.vue';
+import ForumCard from '../components/forumCard.vue';
 import { db, collection, query, where, getDocs } from '../firebaseConfig.js';
 
 const route = useRoute();

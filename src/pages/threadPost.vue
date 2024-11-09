@@ -51,7 +51,7 @@
 
 <script setup>
 import NavBar from "../components/navBar.vue";
-import ForumSidebar from '../components/ForumSidebar.vue';
+import ForumSidebar from '../components/forumsideBar.vue';
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { db, doc, getDoc, auth } from '../firebaseConfig.js';
