@@ -19,6 +19,7 @@
       </div>
     </div>
   </header>
+  
   <div class="secondary-background p-3">
     <div class="container-fluid">
       <CustomHeader header="Article" />
@@ -73,23 +74,23 @@ const carouselItems = ref([]);
 
 // Function to fetch top 3 articles by Likes
 const fetchTopArticles = async () => {
-try {
-  const articlesCollection = collection(db, "articles");
-  const q = query(articlesCollection, orderBy("Likes", "desc"), limit(3));
-  const querySnapshot = await getDocs(q);
+  try {
+    const articlesCollection = collection(db, "articles");
+    const q = query(articlesCollection, orderBy("Likes", "desc"), limit(3));
+    const querySnapshot = await getDocs(q);
 
-  carouselItems.value = querySnapshot.docs.map(doc => ({
-    id: doc.id, // Add the document ID to the item
-    title: doc.data().Title || "Untitled",
-    description: doc.data().Description || "No description available.",
-    image: doc.data().ImageURL || "src/assets/placeholder.svg",  // Ensure there is an ImageURL field or use a placeholder
-    alt: doc.data().Alt || "Article Image",  // Placeholder alt text
-    icon1: "src/assets/heart.svg",  // Static icon paths as defined in carousel component
-    icon2: "src/assets/bookmark.svg"
-  }));
-} catch (error) {
-  console.error("Error fetching top articles:", error.message);
-}
+    carouselItems.value = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      title: doc.data().Title || "Untitled",
+      description: doc.data().Description || "No description available.",
+      image: doc.data().ImageUrl || null, // Use ImageUrl or fallback to null
+      alt: doc.data().Alt || "Article Image", 
+      icon1: "src/assets/heart.svg", 
+      icon2: "src/assets/bookmark.svg"
+    }));
+  } catch (error) {
+    console.error("Error fetching top articles:", error.message);
+  }
 };
 
 // Fetch top articles on component mount
@@ -97,7 +98,7 @@ onMounted(fetchTopArticles);
 
 // Function to navigate to the article details page
 const goToArticleDetails = (itemId) => {
-router.push({ name: 'ArticleDetails', params: { id: itemId } });
+  router.push({ name: 'ArticleDetails', params: { id: itemId } });
 };
 </script>
 
