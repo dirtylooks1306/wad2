@@ -19,6 +19,7 @@
       </div>
     </div>
   </header>
+  
   <div class="secondary-background p-3">
     <div class="container-fluid">
       <CustomHeader header="Article" />
@@ -26,8 +27,6 @@
       <Carousel :items="carouselItems" @item-click="goToArticleDetails" />
     </div>
   </div>
-
-  <!-- Remaining sections unchanged -->
 
   <footer>
     <p class="text-center">CradleCare © 2024</p>
@@ -48,23 +47,23 @@ const carouselItems = ref([]);
 
 // Function to fetch top 3 articles by Likes
 const fetchTopArticles = async () => {
-try {
-  const articlesCollection = collection(db, "articles");
-  const q = query(articlesCollection, orderBy("Likes", "desc"), limit(3));
-  const querySnapshot = await getDocs(q);
+  try {
+    const articlesCollection = collection(db, "articles");
+    const q = query(articlesCollection, orderBy("Likes", "desc"), limit(3));
+    const querySnapshot = await getDocs(q);
 
-  carouselItems.value = querySnapshot.docs.map(doc => ({
-    id: doc.id, // Add the document ID to the item
-    title: doc.data().Title || "Untitled",
-    description: doc.data().Description || "No description available.",
-    image: doc.data().ImageURL || "src/assets/placeholder.svg",  // Ensure there is an ImageURL field or use a placeholder
-    alt: doc.data().Alt || "Article Image",  // Placeholder alt text
-    icon1: "src/assets/heart.svg",  // Static icon paths as defined in carousel component
-    icon2: "src/assets/bookmark.svg"
-  }));
-} catch (error) {
-  console.error("Error fetching top articles:", error.message);
-}
+    carouselItems.value = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      title: doc.data().Title || "Untitled",
+      description: doc.data().Description || "No description available.",
+      image: doc.data().ImageUrl || null, // Use ImageUrl or fallback to null
+      alt: doc.data().Alt || "Article Image", 
+      icon1: "src/assets/heart.svg", 
+      icon2: "src/assets/bookmark.svg"
+    }));
+  } catch (error) {
+    console.error("Error fetching top articles:", error.message);
+  }
 };
 
 // Fetch top articles on component mount
@@ -72,7 +71,7 @@ onMounted(fetchTopArticles);
 
 // Function to navigate to the article details page
 const goToArticleDetails = (itemId) => {
-router.push({ name: 'ArticleDetails', params: { id: itemId } });
+  router.push({ name: 'ArticleDetails', params: { id: itemId } });
 };
 </script>
 
@@ -108,10 +107,10 @@ h1 .line-2 {
   font-family: "Cherry Bomb", sans-serif;
 }
 .header {
-margin: auto;
-display: flex;
-flex-direction: column;
-align-items: center;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 img {
   max-width: 100%;
@@ -139,5 +138,19 @@ img {
 footer {
   margin-top: 40px;
   padding: 20px 0px;
+}
+
+/* Placeholder for articles without an image */
+.carousel-placeholder {
+  width: 500px;
+  height: 400px;
+  background-color: #ffffff;
+  border: 2px solid #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+  font-size: 1.2em;
+  text-align: center;
 }
 </style>
