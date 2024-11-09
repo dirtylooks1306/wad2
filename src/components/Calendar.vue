@@ -148,7 +148,8 @@ export default {
         id: info.event.id,
         title: info.event.title,
         date: formattedDate,
-        time: formattedTime
+        time: formattedTime,
+        dismissed:false,
       };
       this.showModal = true;
     },
@@ -165,6 +166,7 @@ export default {
           title,
           start: `${date}T${startTime}`,
           end: `${date}T${endTime}`,
+          dismissed: false
         };
 
         const newCalendarEvent = this.calendar.addEvent(event);
@@ -277,6 +279,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  animation: fadeIn 0.3s ease;
 }
 
 .modal-content {
@@ -284,17 +287,19 @@ export default {
   padding: 20px;
   border-radius: 5px;
   max-width: 300px;
-  width: 100%;
+  width: 90%;
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 button {
-   background-color: #A3C4BC; 
-   color: #FFFFFF;
-   padding: 8px 16px;
-   margin: 3px;
-   border: none;
-   border-radius: 12px;
-   cursor: pointer;
+  background-color: #A3C4BC;
+  color: #FFFFFF;
+  padding: 6px 12px; /* Smaller padding */
+  font-size: 0.9rem; /* Smaller font size */
+  margin: 3px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
 }
 
 button:hover {
@@ -389,13 +394,12 @@ select {
 }
 @media screen and (min-width: 1400px) {
   .modal-content {
-  background: white;
-  padding: 20px;
-  border-radius: 5px;
-  max-width: 900px;
-  width: 100%;
-  font-size: 30px;
+    max-width: 900px;
+    font-size: 1.5rem;
+  }
 }
-  
+
+select{
+  font-size: 1.1rem;
 }
 </style>

@@ -164,12 +164,12 @@ onAuthStateChanged(auth, async (user) => {
 		<div class="left-align">
 			<CustomHeader header="GrowthTracker" />
 			<div class="child-selector mb-3">
-			<label for="childDropdown" class="me-2">Select Child:</label>
-			<select id="childDropdown" v-model="selectedChildId" @change="handleChildSelection">
-				<option v-for="child in children" :key="child.id" :value="child.id">
-				{{ child.name }}
-				</option>
-			</select>
+				<label for="childDropdown" class="me-2">Select Child:</label>
+				<select id="childDropdown" v-model="selectedChildId" @change="handleChildSelection">
+					<option v-for="child in children" :key="child.id" :value="child.id">
+					{{ child.name }}
+					</option>
+				</select>
 			</div>
 		</div>
 		</div>

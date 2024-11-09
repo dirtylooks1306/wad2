@@ -193,22 +193,27 @@
 						id="notificationDropdown"
 						data-bs-toggle="dropdown"
 						aria-expanded="false"
+						@click="handleNotificationTabClick"
 					/>
-					<span
-						v-if="notificationCount > 0"
-						class="notification-badge"
-						>{{ notificationCount }}</span
-					>
+					<span v-if="notificationCount > 0" class="notification-badge">{{ notificationCount }}</span>
 
-					<div
-						class="dropdown-menu dropdown-menu-end p-3"
-						aria-labelledby="notificationDropdown"
-					>
-						<p class="mb-0">
-							You have {{ notificationCount }} new notifications.
-						</p>
+					<div class="dropdown-menu dropdown-menu-end p-3" aria-labelledby="notificationDropdown">
+						<p class="mb-2 fw-bold">You have {{ notificationCount }} new notifications.</p>
+						
+						<ul v-if="notifications.length > 0" class="notification-list">
+							<li v-for="notification in notifications" :key="notification.eventId" class="notification-item mb-2 p-2">
+								{{ notification.message }}
+							</li>
+						</ul>
+
+						<p v-else class="text-muted">No new notifications at this time.</p>
+
+						<!-- Style for the 'Mark all as read' button to make it more prominent -->
+						<button v-if="notifications.length > 0" class="btn btn-sm btn-primary mt-2" @click="clearNotifications">Mark all as read</button>
 					</div>
 				</div>
+
+
 
 				<!-- Login/Register or Profile Image -->
 				<router-link
@@ -264,20 +269,27 @@
 
 <script setup>
 import { useRoute } from "vue-router";
-import { computed, ref, onMounted } from "vue";
+import { computed, ref, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
-import { auth, signOut, doc, getDoc, db } from "../firebaseConfig.js";
+import { auth, signOut, doc, getDoc, db, getDocs, collection, query, where, writeBatch } from "../firebaseConfig.js";
 import { onAuthStateChanged } from "firebase/auth";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { faBell } from "@fortawesome/free-solid-svg-icons";
 import { library } from "@fortawesome/fontawesome-svg-core";
+import { useIntervalFn } from "@vueuse/core";
 
 library.add(faBell);
+const profileImage = ref("");
 const route = useRoute();
 const router = useRouter();
-
-const profileImage = ref("../assets/icons/profile.png");
 const user = ref(null);
+const children = ref([]);
+const notificationCount = ref(0); // Count of events within 24 hours
+const notifications = ref([]); // Store upcoming events for display
+const events = ref([]);
+const dismissedNotifications = new Set();
+const isDropdownOpen = ref(false);
+
 const isExploreActive = computed(
 	() => route.path.startsWith("/articles") || route.path === "/saved"
 );
@@ -301,6 +313,7 @@ const fetchUserData = async () => {
 	onAuthStateChanged(auth, async (currentUser) => {
 		if (currentUser) {
 			// Get the user's document reference
+			
 			const userDocRef = doc(db, "users", currentUser.uid);
 
 			// Fetch the user document
@@ -316,10 +329,86 @@ const fetchUserData = async () => {
 	});
 };
 
+const fetchAndMonitorEvents = async () => {
+	onAuthStateChanged(auth, async (currentUser) => {
+		if (currentUser) {
+			const childrenRef = collection(db, "users", currentUser.uid, "children");
+			const snapshot = await getDocs(childrenRef);
+			children.value = snapshot.docs.map((doc) => doc.id);
+			const currentTime = new Date();
+
+			notifications.value = [];
+			notificationCount.value = 0;
+			events.value = [];
+
+			for (let i = 0; i < children.value.length; i++) {
+				// Query to get events that are undismissed and in the future
+				const eventsRef = collection(db, "users", currentUser.uid, "children", children.value[i], "events");
+				const eventsQuery = query(eventsRef, where("dismissed", "==", false));
+
+				const eventsSnapshot = await getDocs(eventsQuery);
+				eventsSnapshot.forEach((doc) => {
+					const eventData = doc.data();
+					const eventDate = new Date(eventData.start); // Convert Firestore Timestamp to JS Date
+
+					// Only add events that have not passed
+					if (eventDate > currentTime) {
+						events.value.push({
+							childId: children.value[i],
+							...eventData,
+							eventId: doc.id
+						});
+					}
+				});
+			}
+			// Check for events within the next 24 hours
+			events.value.forEach((event) => {
+				const eventDate = new Date(event.start);
+				const timeDifference = eventDate - currentTime;
+
+				if (timeDifference > 0 && timeDifference <= 24 * 60 * 60 * 1000) {
+					notifications.value.push({
+						message: `You have an appointment at ${eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} for ${event.title}.`,
+						eventId: event.eventId,
+						timeRemaining: Math.floor(timeDifference / (60 * 60 * 1000)), // Hours remaining
+						childId: event.childId,
+					});
+					notificationCount.value += 1;
+				}
+			});
+		}
+	});
+};
+
+const clearNotifications = async () => {
+	const currentUser = auth.currentUser;
+	if (currentUser) {
+		const batch = writeBatch(db);
+		notifications.value.forEach((notification) => {
+			const eventRef = doc(db, "users", currentUser.uid, "children", notification.childId, "events", notification.eventId);
+			batch.update(eventRef, { dismissed: true }); // Update dismissed status to true
+		});
+
+		await batch.commit(); 
+
+		notifications.value = [];
+		notificationCount.value = 0;
+	}
+};
+
+const handleNotificationTabClick = () => {
+	isDropdownOpen.value = !isDropdownOpen.value;
+};
+
+const { pause, resume } = useIntervalFn(fetchAndMonitorEvents, 0.1 * 60 * 1000, { immediate: true });
+
+
 onMounted(() => {
 	fetchUserData();
+	resume();
 	onAuthStateChanged(auth, (currentUser) => {
 		user.value = currentUser;
+		
 	});
 });
 </script>
@@ -397,6 +486,10 @@ onMounted(() => {
 	.navbar-collapse {
 		text-align: center;
 	}
+	.notification-bell {
+        margin-right: 10px;
+        font-size: 1.25rem; 
+    }
 }
 
 @media (max-width: 440px) {
@@ -413,10 +506,11 @@ onMounted(() => {
 }
 
 .notification-bell {
-	font-size: 1.5rem; /* Increase icon size */
+	font-size: 1.5rem; 
 	cursor: pointer;
-	color: #333; /* Optional: Customize color */
+	color: #333; 
 	position: relative;
+	padding: 20px;
 }
 
 .notification-badge {
@@ -430,4 +524,59 @@ onMounted(() => {
 	border-radius: 50%;
 	font-weight: bold;
 }
+
+/* Notification Badge */
+.notification-badge {
+    background-color: #dc3545; /* Red badge for visibility */
+    color: white;
+    border-radius: 50%;
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+}
+
+/* Notification Dropdown */
+.dropdown-menu {
+    width: 300px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Notification List Styling */
+.notification-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* Notification Item Styling */
+.notification-item {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.notification-item:hover {
+    background-color: #e9ecef;
+    cursor: pointer;
+}
+
+/* 'Mark all as read' Button Styling */
+.btn-link {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.btn-link:hover {
+    text-decoration: underline;
+}
+
+.btn-primary {
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
 </style>
