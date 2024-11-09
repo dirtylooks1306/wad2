@@ -52,7 +52,4 @@ export {
   getDownloadURL,
   onSnapshot,
   addDoc,
-  storage,
-  uploadBytesResumable,
-  getDownloadURL
 };
