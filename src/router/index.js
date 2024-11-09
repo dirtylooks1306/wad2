@@ -98,7 +98,7 @@ const routes = [
     },
 
     {
-        path: '/forum/user/:id',
+        path: '/forum/user/:username',
         component: UserProfile,
     },
 

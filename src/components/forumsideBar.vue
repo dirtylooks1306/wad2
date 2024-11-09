@@ -337,11 +337,11 @@ label[for=forum-footer-toggle] {
   transform: translate(-50%);
 }
 #forum-toggle:checked ~ #forum-header #forum-toggle-burger {
-  background: var(--forumbar-light-primary);
+  background: black;
 }
 #forum-toggle:checked ~ #forum-header #forum-toggle-burger:before, #forum-toggle:checked ~ #forum-header #forum-toggle-burger::after {
   width: 16px;
-  background: var(--forumbar-light-secondary);
+  background: black;
   transform: translate(0, 0) rotate(0deg);
 }
 #forum-toggle:checked ~ #forum-content .forum-button span {
@@ -369,7 +369,7 @@ label[for=forum-footer-toggle] {
   top: 1vw;
   z-index: 999;
   height: calc(80% - 1vw);
-  background: #f5e1e1;
+  background: #EED4D4;
   border-radius: 16px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
   display: flex;
@@ -404,7 +404,7 @@ label[for=forum-footer-toggle] {
   left: 16px;
   width: calc(var(--forumbar-width) - 16px);
   min-height: 80px;
-  background: var(--forumbar-dark-primary);
+  background: #EED4D4;
   border-radius: 16px;
   z-index: 2;
   display: flex;

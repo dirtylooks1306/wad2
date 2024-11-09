@@ -58,23 +58,19 @@
       </div>
     </div>
 
-    <div class="interactiveBar mt-3" @click.stop  >
-        <button class="like-button" @click="likePost">
-          <i class="fa-solid fa-thumbs-up"></i> {{ post.likes }}
-        </button>
-        <button class="dislike-button" @click="dislikePost">
-          <i class="fa-solid fa-thumbs-down"></i>
-        </button>
-    </div>
+    <div class="interactiveBar mt-3" @click.stop>
+        <button @click="likePost" class="interactive-buttons">👍 Like ({{ post.likes }})</button>
+        <button @click="navigateToPost" class="interactive-buttons"><i class="fa-solid fa-comments"></i> Comments</button>
+        <button @click="bookmarkPost" class="interactive-buttons">🔖 Bookmark</button>
     </div>
 
-
+    </div>
 </template>
 
 <script setup>
-import { ref, defineProps } from 'vue';
+import { ref, defineProps, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { db, collection, where, getDocs, query} from '../firebaseConfig.js';
+import { db, auth, doc, updateDoc, getDoc, arrayRemove, arrayUnion} from '../firebaseConfig.js';
 
 const props = defineProps({
   post: {
@@ -85,6 +81,27 @@ const props = defineProps({
 
 const router = useRouter();
 const showModal = ref(false);
+const user = ref(auth.currentUser);
+
+onMounted(() => {
+  adjustButtons();
+});
+
+const adjustButtons = async () => {
+  const userDocRef = doc(db, 'users', user.value.uid);
+  const userDoc = await getDoc(userDocRef);
+  const userData = userDoc.exists() ? userDoc.data() : {};
+
+  if (userData.liked && userData.liked.includes(props.post.id)) {
+    document.querySelector('.interactive-buttons:nth-child(1)').style.backgroundColor = '#FF9689';
+    document.querySelector('.interactive-buttons:nth-child(1)').style.color = 'white';
+  }
+
+  if (userData.savedPosts && userData.savedPosts.includes(props.post.id)) {
+    document.querySelector('.interactive-buttons:nth-child(3)').style.backgroundColor = '#FF9689';
+    document.querySelector('.interactive-buttons:nth-child(3)').style.color = 'white';
+  }
+}
 
 // Function to navigate to the individual forum post
 const navigateToPost = () => {
@@ -152,14 +169,82 @@ const truncateDesc = (text, maxLength) => {
   return text;
 };
 
-const likePost = () => {
-  // Implement like functionality (gets document from forum collection in firebase with post.id, increments likes by 1)
+const bookmarkPost = async () => {
+  const user = auth.currentUser;
+  if (!user) return;
 
+  const userDocRef = doc(db, 'users', user.uid);
+  const postDocRef = doc(db, 'forum', props.post.id);
+
+  try {
+    // Get the current user's saved array
+    const userDoc = await getDoc(userDocRef);
+    const userData = userDoc.exists() ? userDoc.data() : {};
+    const userSaved = userData.savedPosts || [];
+
+    if (userSaved.includes(props.post.id)) {
+      // Unsave the post
+      await updateDoc(userDocRef, {
+        savedPosts: arrayRemove(props.post.id)
+      });
+      await updateDoc(postDocRef, {
+        saves: props.post.saves - 1 || 0
+      });
+      props.post.saves -= 1; // Update locally for immediate feedback
+    } else {
+      // Save the post
+      await updateDoc(userDocRef, {
+        savedPosts: arrayUnion(props.post.id)
+      });
+      await updateDoc(postDocRef, {
+        saves: props.post.saves + 1 || 1
+      });
+      props.post.saves += 1; // Update locally for immediate feedback
+    }
+  } catch (error) {
+    console.error("Error updating save status:", error);
+  }
+}
+
+const likePost = async () => {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const userDocRef = doc(db, 'users', user.uid);
+  const postDocRef = doc(db, 'forum', props.post.id);
+
+  try {
+    // Get the current user's likes array
+    const userDoc = await getDoc(userDocRef);
+    const userData = userDoc.exists() ? userDoc.data() : {};
+    const userLiked = userData.liked || [];
+
+    if (userLiked.includes(props.post.id)) {
+      // Unlike the post
+      await updateDoc(userDocRef, {
+        liked: arrayRemove(props.post.id)
+      });
+      await updateDoc(postDocRef, {
+        likes: props.post.likes - 1
+      });
+      props.post.likes -= 1; // Update locally for immediate feedback
+      adjustButtons();
+    } else {
+      // Like the post
+      await updateDoc(userDocRef, {
+        liked: arrayUnion(props.post.id)
+      });
+      await updateDoc(postDocRef, {
+        likes: props.post.likes + 1
+      });
+      props.post.likes += 1; // Update locally for immediate feedback
+      adjustButtons();
+  } 
+  }catch (error) {
+    console.error("Error updating like status:", error);
+  }
 };
 
-const dislikePost = () => {
-  // Implement dislike functionality (gets document from forum collection in firebase wit)
-};
 </script>
 
 <style scoped>
@@ -167,46 +252,21 @@ const dislikePost = () => {
 .interactiveBar {
   display: flex;
   gap: 10px;
-  align-items: center;
-  margin-top: 15px;
 }
 
-.like-button,
-.dislike-button {
-  display: flex;
-  align-items: center;
-  padding: 8px 12px;
-  font-size: 14px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+.interactive-buttons {
+  background-color: transparent;
+  border: #ff6e61 solid 1px;
+  color: black;
 }
 
-.like-button {
+.interactive-buttons:hover {
   background-color: #FF9689;
-  color: #fff;
+  color: white;
 }
 
-.like-button i {
-  margin-right: 5px;
-}
-
-.like-button:hover {
-  background-color: #ff6e61;
-}
-
-.dislike-button {
-  background-color: #E0E0E0;
-  color: #555;
-}
-
-.dislike-button i {
-  margin-right: 5px;
-}
-
-.dislike-button:hover {
-  background-color: #d3d3d3;
+.interactive-buttons:active {
+  background-color: #FF9689;
 }
 
 .post-card {
@@ -215,7 +275,7 @@ const dislikePost = () => {
   padding: 15px;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  background-color: #D9C5B2;
+  background-color: #EED4D4;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   position: relative;
   cursor: pointer;
