@@ -294,8 +294,8 @@ table {
 	border-collapse: collapse;
 	overflow: hidden;
 	box-shadow: 0 0 20px rgba(0,0,0,0.1);
-  	margin:auto;
-	
+	margin:auto;
+	background-color: rgb(229, 229, 234);
 }
 
 th,
