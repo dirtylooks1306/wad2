@@ -1,0 +1,50 @@
+name: Deploy to AWS S3 and CloudFront
+
+on:
+  push:
+    branches:
+      - master  # Triggers on pushes to the master branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the repository
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Step 2: Set up Node.js (for Vite)
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'  # Ensure this matches your project's Node.js version requirements
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: npm ci  # Use npm ci for faster, reliable builds in CI
+
+      # Step 4: Build the app using Vite
+      - name: Build the app
+        run: npm run build  # This assumes your Vite build command is `npm run build`
+
+      # Step 5: Deploy to S3
+      - name: Deploy to S3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          aws s3 sync ./dist s3://cradlecare4smu.com --delete
+      # Replace `./dist` with your actual Vite build output directory (typically `dist` by default).
+      # Replace `your-bucket-name` with your S3 bucket name.
+
+      # Step 6: Invalidate CloudFront cache
+      - name: Invalidate CloudFront cache
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          aws cloudfront create-invalidation --distribution-id EXWSXBI677FCC --paths "/*"
+      # Replace `YOUR_DISTRIBUTION_ID` with your actual CloudFront distribution ID.
