@@ -2,7 +2,7 @@
 import { onAuthStateChanged } from "firebase/auth";
 import { ref, onMounted, watch } from "vue";
 import { db, auth, collection, getDocs, doc } from "../firebaseConfig";
-import NavBar from "../components/navbar.vue";
+import NavBar from "../components/navBar.vue";
 import CustomHeader from "../components/CustomHeader.vue";
 import CalendarComponent from "../components/Calendar.vue";
 import VaccineCheckList from "../components/VaccineCheckList.vue";
