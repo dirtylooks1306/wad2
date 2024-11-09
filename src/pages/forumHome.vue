@@ -26,7 +26,7 @@
 import { ref, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { db, collection, doc, getDoc, getDocs, query, orderBy, limit, where, auth } from '../firebaseConfig.js';
-import NavBar from '../components/NavBar.vue';
+import NavBar from "../components/navBar.vue";
 import ForumSidebar from '../components/ForumSidebar.vue';
 import ForumRightbar from '../components/ForumRightbar.vue';
 import ForumCard from '../components/forumCard.vue';

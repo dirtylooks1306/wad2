@@ -50,7 +50,7 @@
 </template>
 
 <script setup>
-import navBar from '../components/navBar.vue';
+import NavBar from "../components/navBar.vue";
 import ForumSidebar from '../components/ForumSidebar.vue';
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';

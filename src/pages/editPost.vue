@@ -67,7 +67,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { db, storage, auth, doc, getDoc, updateDoc, ref as storageRef, arrayRemove, uploadBytes, getDownloadURL, deleteDoc, listAll, deleteObject, collection, getDocs } from '../firebaseConfig.js';
-import NavBar from '../components/NavBar.vue';
+import NavBar from "../components/navBar.vue";
 
 const route = useRoute();
 const router = useRouter();
