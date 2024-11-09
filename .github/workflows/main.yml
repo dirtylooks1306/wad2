@@ -21,8 +21,12 @@ jobs:
           node-version: '16'  # Ensure this matches your project's Node.js version requirements
 
       # Step 3: Install dependencies
-      - name: Install dependencies
-        run: npm ci  # Use npm ci for faster, reliable builds in CI
+      - name: Clean install dependencies
+        run: |
+          rm -rf node_modules
+          rm -f package-lock.json
+          npm install
+
 
       # Step 4: Build the app using Vite
       - name: Build the app
