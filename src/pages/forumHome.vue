@@ -10,6 +10,7 @@
         <div class="forum-cards-container">
           <div v-for="forumPost in forumPosts" :key="forumPost.id" class="forum-card-wrapper">
             <ForumCard :post="forumPost" />
+            <hr />
           </div>
         </div>
       </div>
@@ -166,16 +167,6 @@ onMounted(() => {
   display: flex;
 }
 
-.forum-content {
-  flex-grow: 1;
-  padding: 20px;
-  border-radius: 8px;
-  margin-left: 280px;
-  transition: margin-left 0.3s ease-in-out;
-  display: flex;
-  justify-content: center;
-}
-
 .forum-cards-container {
   display: flex;
   flex-direction: column;
@@ -253,13 +244,6 @@ onMounted(() => {
 
   .right-sidebar {
     display: none; /* Hide right sidebar on small screens */
-  }
-}
-
-@media (max-width: 768px) {
-  .forum-content {
-    margin-left: 90px;
-    padding: 10px;
   }
 }
 

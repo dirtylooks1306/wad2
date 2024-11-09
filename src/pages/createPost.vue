@@ -1,5 +1,5 @@
 <template>
-  <NavBar/>
+  <NavBar />
   <div class="container my-5 new-post-container">
     <h2 class="text-center mb-4">Create a New Post</h2>
     <form @submit.prevent="submitPost" class="post-form">
@@ -26,12 +26,14 @@
         ></textarea>
       </div>
       <div class="form-group mb-3">
-        <label for="media">Upload Media</label>
-        <input type="file" id="media" multiple @change="handleFileUpload" class="form-control" />
+        <label for="media">Upload Media (Max 10 Photos)</label>
+        <input type="file" id="media" multiple @change="handleFileUpload" class="form-control"/>
+        
+        <!-- Media Preview Section -->
         <div v-if="mediaPreviews.length" class="preview-container mt-3">
           <h3>Media Preview</h3>
           <div class="preview-grid row row-cols-auto g-2">
-            <div v-for="(src, index) in mediaPreviews" :key="index" class="col position-relative">
+            <div v-for="(src, index) in mediaPreviews" :key="index" class="col position-relative preview-item">
               <img :src="src" alt="Uploaded media preview" class="img-thumbnail" />
               <button @click.prevent="removeFile(index)" class="btn-close remove-button" aria-label="Close"></button>
             </div>
@@ -57,7 +59,8 @@ import {
   getDoc,
   ref as storageRef,
   uploadBytes,
-  getDownloadURL } from '../firebaseConfig.js';
+  getDownloadURL 
+} from '../firebaseConfig.js';
 import NavBar from '../components/navBar.vue';
 
 const newPost = ref({
@@ -70,11 +73,24 @@ const mediaPreviews = ref([]);
 const selectedFiles = ref([]);
 const submissionMessage = ref('');
 
-// Function to handle file uploads and generate previews
+// Function to handle file uploads and enforce the 10-photo limit
 const handleFileUpload = (event) => {
-  selectedFiles.value = Array.from(event.target.files);
-  mediaPreviews.value = selectedFiles.value.map((file) => URL.createObjectURL(file));
+  const files = Array.from(event.target.files);
+  const totalFiles = selectedFiles.value.length + files.length;
+
+  // If total files exceed 10, only take the number needed to reach 10
+  if (totalFiles > 10) {
+    const filesToAdd = files.slice(0, 10 - selectedFiles.value.length);
+    submissionMessage.value = 'You can only upload a maximum of 10 photos.';
+    selectedFiles.value.push(...filesToAdd);
+    mediaPreviews.value.push(...filesToAdd.map((file) => URL.createObjectURL(file)));
+    return;
+  }
+
+  selectedFiles.value.push(...files);
+  mediaPreviews.value.push(...files.map((file) => URL.createObjectURL(file)));
 };
+
 
 // Function to remove a specific file and its preview
 const removeFile = (index) => {
@@ -150,7 +166,7 @@ const submitPost = async () => {
       selectedFiles.value = [];
       mediaPreviews.value = [];
 
-      //add docid into user's document under field array createdPosts
+      // Add docId into user's document under field array createdPosts
       const userDocRef = doc(db, 'users', user.uid);
       const userDoc = await getDoc(userDocRef);
       if (userDoc.exists()) {
@@ -178,14 +194,30 @@ const submitPost = async () => {
   max-width: 700px;
   border: 1px solid #ddd;
   border-radius: 8px;
-  background-color: #D9C5B2;
+  background-color: #EED4D4;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   padding: 20px;
 }
 
-.preview-item img {
+.preview-container {
+  margin-top: 20px;
+}
+
+.preview-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.preview-item {
+  position: relative;
   width: 100px;
   height: 100px;
+}
+
+.preview-item img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   border-radius: 4px;
   border: 1px solid #ccc;

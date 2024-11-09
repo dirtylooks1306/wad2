@@ -17,7 +17,7 @@
             required
             class="form-control mb-2"
           ></textarea>
-          <button type="submit" class="btn btn-primary">Submit Comment</button>
+          <button type="submit" style="background-color:#FF6E61;">Submit Comment</button>
         </form>
       </div>
       <p v-else class="text-muted">You must be logged in to comment.</p>
@@ -78,7 +78,7 @@
     max-width: 700px;
     margin: 0 auto;
     padding: 20px;
-    background-color: #D9C5B2;
+    background-color: #EED4D4;
     border: 1px solid #ddd;
     border-radius: 8px;
   }

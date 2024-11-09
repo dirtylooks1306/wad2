@@ -1,13 +1,13 @@
 <template>
   <NavBar />
   <ForumSidebar />
-  <div class="user-profile-container">
+  <div class="user-profile-container" v-if="!error">
     <div class="user-info">
       <img :src="user.profileimage" alt="User Avatar" class="user-avatar" />
       <div class="user-details">
         <h2>{{ user.username }}</h2>
-        <p><strong>Bio:</strong> {{ user.bio }}</p>
-        <p>Posts: {{ userPosts.length }}</p>
+        <p><strong>Bio:</strong> {{ user.bio || 'Too busy taking care of my child. No time to write a bio!' }}</p>
+        <p>Posts: {{ userPosts.length }} | Likes: {{ totalLikes }} | Saves: {{ totalSaves }}</p>
       </div>
     </div>
 
@@ -15,27 +15,13 @@
     <div v-if="loading" class="loading-message">Loading posts...</div>
     <div v-else-if="userPosts.length === 0" class="no-posts-message">This user has not posted anything yet.</div>
     <div v-else class="post-list">
-      <div v-for="post in userPosts" :key="post.id" class="post-card">
-        <h4>{{ post.title }}</h4>
-        <p>{{ post.desc }}</p>
-        <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">
-        <div class="carousel-inner">
-          <div v-for="(image, index) in post.media" :key="index" :class="['carousel-item', { active: index === 0 }]">
-            <img :src="image" class="d-block w-100 carousel-image" :alt="'Image ' + (index + 1)" />
-          </div>
-        </div>
-        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
-          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-          <span class="visually-hidden">Previous</span>
-        </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
-          <span class="carousel-control-next-icon" aria-hidden="true"></span>
-          <span class="visually-hidden">Next</span>
-        </button>
-      </div>
-        <router-link :to="`/forum/thread/${post.id}`" class="read-more">Read More</router-link>
-      </div>
+      <forumCard v-for="post in userPosts" :key="post.id" :post="post"/>
     </div>
+  </div>
+  
+  <!-- Display "User not found" if there is an error -->
+  <div v-else class="error-message">
+    <p>User not found</p>
   </div>
 </template>
 
@@ -44,6 +30,7 @@ import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import ForumSidebar from '../components/ForumSidebar.vue';
 import NavBar from '../components/NavBar.vue';
+import forumCard from '../components/forumCard.vue';
 import { db, collection, query, where, getDocs } from '../firebaseConfig.js';
 
 const route = useRoute();
@@ -52,23 +39,29 @@ const username = route.params.username;
 const user = ref({
   username: '',
   bio: '',
-  profileimage: ''
+  profileimage: '',
 });
 
 const userPosts = ref([]);
 const loading = ref(true);
 const error = ref(null);
+const totalLikes = ref(0);
+const totalSaves = ref(0);
 
 const fetchUserData = async () => {
   try {
+    console.log("Fetching user data for:", username);
+
     // Retrieve the user data from the 'users' collection where 'username' matches the route parameter
     const q = query(collection(db, 'users'), where('username', '==', username));
     const querySnapshot = await getDocs(q);
 
     if (!querySnapshot.empty) {
-      user.value = querySnapshot.docs[0].data(); // Get the first matching document
+      user.value = querySnapshot.docs[0].data();
+      console.log("User data found:", user.value);
     } else {
       error.value = 'User not found';
+      console.error("User not found for username:", username);
     }
   } catch (err) {
     console.error("Error fetching user data:", err);
@@ -78,11 +71,19 @@ const fetchUserData = async () => {
 
 const fetchUserPosts = async () => {
   try {
+    console.log("Fetching posts for author:", username);
+
     // Retrieve posts from the 'forum' collection where 'author' matches the username
     const q = query(collection(db, 'forum'), where('author', '==', username));
     const querySnapshot = await getDocs(q);
 
     userPosts.value = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    
+    // Calculate total likes and saves
+    totalLikes.value = userPosts.value.reduce((sum, post) => sum + (post.likes || 0), 0);
+    totalSaves.value = userPosts.value.reduce((sum, post) => sum + (post.saves || 0), 0);
+
+    console.log("Total likes:", totalLikes.value, "Total saves:", totalSaves.value);
   } catch (err) {
     console.error("Error fetching user posts:", err);
     error.value = 'Failed to fetch user posts';
@@ -94,7 +95,9 @@ const fetchUserPosts = async () => {
 // Fetch data when the component is mounted
 onMounted(async () => {
   await fetchUserData();
-  await fetchUserPosts();
+  if (!error.value) {
+    await fetchUserPosts();
+  }
 });
 </script>
 
@@ -103,7 +106,7 @@ onMounted(async () => {
   max-width: 800px;
   margin: 20px auto;
   padding: 25px;
-  background-color: #D9C5B2; /* Soft pastel background */
+  background-color: white; /* Soft pastel background */
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
@@ -123,7 +126,7 @@ h2, h3 {
   width: 150px;
   height: 150px;
   border-radius: 50%;
-  border: 3px solid #FF9689; /* Use theme color for border */
+  border: 3px solid white; /* Use theme color for border */
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
 }
 
@@ -139,39 +142,11 @@ h2, h3 {
   color: #FF6E61; /* Theme color for messages */
 }
 
-.post-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.post-card {
-  padding: 15px;
-  border: 1px solid #FF9689; /* Border matching theme */
-  border-radius: 8px;
-  background-color: #ffffff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.post-card h4 {
+.error-message {
+  text-align: center;
+  font-size: 18px;
   color: #FF6E61;
-  margin: 0 0 10px;
-}
-
-.post-card p {
-  margin: 0 0 15px;
-  color: #666;
-}
-
-.read-more {
-  color: #FF6E61;
-  text-decoration: none;
-  font-weight: bold;
-  transition: color 0.3s;
-}
-
-.read-more:hover {
-  color: #FF9689;
+  margin-top: 20px;
 }
 
 .user-details strong {
