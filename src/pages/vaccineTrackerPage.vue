@@ -73,7 +73,7 @@ onMounted(() => {
   <div class="row">
     <!-- Dropdown for selecting a child -->
     <div class="col-12 mb-4 d-flex justify-content-center">
-      <div class="dropdown-container">
+      <div class="dropdown-container mt-3">
         <label for="childSelect" class="dropdown-label">Select Child:</label>
         <select v-model="selectedChildId" id="childSelect" class="form-control dropdown-select">
           <option v-for="child in children" :key="child.id" :value="child.id">
@@ -122,25 +122,25 @@ onMounted(() => {
 }
 
 .dropdown-container {
-  max-width: 400px; /* Wider dropdown */
-  width: 100%;
   display: flex;
-  flex-direction: column;
   align-items: center;
+  gap: 10px; 
+  max-width: 400px;
+  width: 100%;
 }
 
 .dropdown-label {
-  font-weight: bold;
-  font-size: 18px;
+  font-size: 1rem; 
   color: #333;
-  margin-bottom: 10px;
+  margin: 0; 
+  white-space: nowrap;
 }
 
 .dropdown-select {
   width: 100%;
   padding: 12px;
   font-size: 18px;
-  font-weight: bold; /* Bolder font for dropdown text */
+  font-weight: bold; 
   border-radius: 10px;
   border: 2px solid #a3c4bc;
   background-color: #f0f4f8;

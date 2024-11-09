@@ -1,24 +1,27 @@
 <script setup>
-import { onMounted, ref, computed, watch } from 'vue';
+import { onMounted, ref, reactive, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import NavBar from "../components/navBar.vue";
 import CustomHeader from "../components/CustomHeader.vue";
 import ToTop from '../components/ToTop.vue';
 import { collection, addDoc, query, where, getDocs, doc, updateDoc, increment, runTransaction, Timestamp } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
-import { db, auth } from "../firebaseConfig.js";
+import { db, auth, getDoc } from "../firebaseConfig.js";
 
 const route = useRoute();
 const router = useRouter();
 const articles = ref([]);
 const userReactions = ref({});
 const userId = ref(null);
+const userRole = ref(null);
 const showArticleForm = ref(false); // Controls form visibility
-const newArticle = ref({
+
+// Initialize newArticle with a default structure using reactive to handle nested properties
+const newArticle = reactive({
   Title: '',
   Author: '',
   Category: '',
   Description: '',
-  Paragraphs: [''], // Start with one paragraph
+  Content: [''] // Initialize Content as an array with one empty string
 });
 
 // New state for sorting options
@@ -37,9 +40,15 @@ const isSavedView = computed(() => category.value.toLowerCase() === 'saved');
 const categories = ['Activities', 'Education', 'Nutrition'];
 
 // Listen for authentication state changes
-auth.onAuthStateChanged((user) => {
+auth.onAuthStateChanged(async (user) => {
   if (user) {
     userId.value = user.uid;
+    const userDocRef = doc(db, "users", user.uid);
+    const userDoc = await getDoc(userDocRef);
+
+    if (userDoc.exists()) {
+      userRole.value = userDoc.data().role;
+    } 
     fetchArticles();
   } else {
     userId.value = null;
@@ -101,29 +110,25 @@ watch(sortOption, sortArticles);
 
 // Function to publish a new article
 const publishArticle = async () => {
-  if (!userId.value || !newArticle.value.Title || !newArticle.value.Author || !newArticle.value.Category || !newArticle.value.Description || !newArticle.value.Paragraphs[0]) return;
+  if (!userId.value || !newArticle.Title || !newArticle.Author || !newArticle.Category || !newArticle.Description || !newArticle.Content[0]) return;
 
   try {
     const articlesCollection = collection(db, "articles");
     const articleData = {
-      Title: newArticle.value.Title,
-      Author: newArticle.value.Author,
-      Filter: newArticle.value.Category,
-      Description: newArticle.value.Description,
+      Title: newArticle.Title,
+      Author: newArticle.Author,
+      Filter: newArticle.Category,
+      Description: newArticle.Description,
       Date: Timestamp.fromDate(new Date()), // Store date as a Firestore Timestamp
       Likes: 0,
       Dislikes: 0,
       Saved: false,
+      Content: newArticle.Content // Store all paragraphs in the Content array
     };
-    // Dynamically add paragraphs
-    newArticle.value.Paragraphs.forEach((paragraph, index) => {
-      if (paragraph) {
-        articleData[`Para${index + 1}`] = paragraph;
-      }
-    });
 
     await addDoc(articlesCollection, articleData);
-    newArticle.value = { Title: '', Author: '', Category: '', Description: '', Paragraphs: [''] }; // Reset form fields
+    // Reset form fields after publishing
+    Object.assign(newArticle, { Title: '', Author: '', Category: '', Description: '', Content: [''] });
     showArticleForm.value = false; // Close the form
     fetchArticles(); // Refresh articles list
   } catch (error) {
@@ -131,9 +136,14 @@ const publishArticle = async () => {
   }
 };
 
-// Add a new paragraph field
-const addParagraph = () => {
-  newArticle.value.Paragraphs.push('');
+// Function to handle Enter key in content input field
+const handleContentEnter = (event, index) => {
+  if (event.key === 'Enter') {
+    event.preventDefault(); // Prevent new line in the current text area
+    if (newArticle.Content[index]) {
+      newArticle.Content.splice(index + 1, 0, ''); // Insert new empty content block after the current one
+    }
+  }
 };
 
 // Toggle save status
@@ -245,25 +255,32 @@ onMounted(fetchArticles);
       
       <textarea v-model="newArticle.Description" placeholder="Brief Description" rows="3" required></textarea>
       
-      <!-- Paragraphs Section -->
-      <div v-for="(paragraph, index) in newArticle.Paragraphs" :key="index">
-        <textarea v-model="newArticle.Paragraphs[index]" :placeholder="'Paragraph ' + (index + 1)" rows="4" required></textarea>
+      <!-- Content Section -->
+      <div v-for="(paragraph, index) in newArticle.Content" :key="index">
+        <textarea 
+          v-model="newArticle.Content[index]" 
+          :placeholder="'Content'" 
+          rows="4" 
+          @keydown="handleContentEnter($event, index)" 
+          required>
+        </textarea>
       </div>
       
-      <button @click="addParagraph" class="btn article-form-button">Add Paragraph</button>
       <button @click="publishArticle" class="btn article-form-button">Publish Article</button>
       <button @click="showArticleForm = false" class="btn article-form-button">Cancel</button>
     </div>
 
     <!-- Sort Options -->
-    <div class="sort-button" :class="{ 'form-active': showArticleForm }">
-      <CustomHeader header = "Sort By:"/>
-      <select id="sort" v-model="sortOption">
-        <option value="date">{{ sortOptions.date }}</option>
-        <option value="likes">{{ sortOptions.likes }}</option>
-      </select>
+    <div class="sort-container">
+      <CustomHeader header="Sort By:" />
+      <div class="sort-dropdown">
+        <select id="sort" v-model="sortOption">
+          <option value="date">{{ sortOptions.date }}</option>
+          <option value="likes">{{ sortOptions.likes }}</option>
+        </select>
+      </div>
     </div>
-    
+
     <div v-if="formattedArticles.length" class="articles-grid">
       <div
         v-for="article in formattedArticles"
@@ -283,17 +300,24 @@ onMounted(fetchArticles);
         <div class="partition-line"></div>
 
         <div class="article-meta">
-          <span class="likes">
-            <button @click.stop="likeArticle(article.id)" :class="{ active: userReactions[article.id] === 'liked' }">👍</button>
-            <span>{{ article.Likes ?? 0 }}</span>
+          <span class="reaction">
+            <button @click.stop="likeArticle(article.id)" :class="{ active: userReactions[article.id] === 'liked' }">
+              <i class="fas fa-thumbs-up"></i>
+            </button>
+            <span class="reaction-count">{{ article.Likes ?? 0 }}</span>
           </span>
-          <span class="dislikes">
-            <button @click.stop="dislikeArticle(article.id)" :class="{ active: userReactions[article.id] === 'disliked' }">👎</button>
-            <span>{{ article.Dislikes ?? 0 }}</span>
+          <span class="reaction">
+            <button @click.stop="dislikeArticle(article.id)" :class="{ active: userReactions[article.id] === 'disliked' }">
+              <i class="fas fa-thumbs-down"></i>
+            </button>
+            <span class="reaction-count">{{ article.Dislikes ?? 0 }}</span>
           </span>
-          <span class="saved">
-            <button @click.stop="toggleSaved(article.id)" :class="{ saved: article.Saved }">🔖</button>
-          </span>
+        </div>
+
+        <div class="saved">
+          <button @click.stop="toggleSaved(article.id)" :class="{ saved: article.Saved }">
+            <i class="fas fa-bookmark"></i>
+          </button>
         </div>
       </div>
     </div>
@@ -303,7 +327,10 @@ onMounted(fetchArticles);
     
     <!-- "Back to Top" and "Write Article" buttons -->
     <ToTop />
-    <button @click="showArticleForm = true" class="write-article-button">Write Article</button>
+    <button v-if="userRole === 'admin'" @click="showArticleForm = true" class="write-article-button">
+      Write Article
+    </button>
+
   </div>
 </template>
 
@@ -325,6 +352,29 @@ onMounted(fetchArticles);
   margin: 0 auto;
 }
 
+.sort-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.sort-dropdown select {
+  padding: 8px 12px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #f5f5f5;
+  color: #555;
+  cursor: pointer;
+  transition: border-color 0.3s;
+}
+
+.sort-dropdown select:focus {
+  outline: none;
+  border-color: #ff9689;
+}
+
 .articles-grid {
   display: flex;
   flex-wrap: wrap;
@@ -343,6 +393,7 @@ onMounted(fetchArticles);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  position: relative;
 }
 
 .article-card:hover {
@@ -390,60 +441,54 @@ onMounted(fetchArticles);
 
 .article-meta {
   display: flex;
-  justify-content: space-between;
+  gap: 12px;
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
   align-items: center;
-  margin-top: 0.5em;
 }
 
-.likes, .dislikes {
+.reaction {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 3px;
 }
 
-.likes {
-  margin-right: 10px;
-}
-
-.saved {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-}
-
-.sort-button {
-  align-items: center;
-  margin-top: 20px;
-  margin-bottom: 20px;
+.reaction-count {
+  font-size: 0.9em;
+  color: #555;
 }
 
 button {
   background-color: transparent;
-  border: 1px solid #ccc;
-  padding: 8px;
-  border-radius: 5px;
+  border: none;
   cursor: pointer;
-  transition: background-color 0.3s, color 0.3s;
+  color: #555;
+  font-size: 1.2em;
 }
 
-button.active {
+button.active i {
   color: #007bff;
-  font-weight: bold;
-  background-color: #e6f0ff;
 }
 
-button.saved {
+.saved {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+button.saved i {
   color: #FFD700;
-  background-color: #e6f0ff;
 }
 
-button:hover {
-  background-color: #f0f0f0;
+button:hover i {
+  color: #0056b3;
 }
 
 .write-article-button {
   position: fixed;
-  bottom: 20px;
+  top: 90px;
   right: 20px;
   background-color: #007bff;
   color: #fff;
@@ -487,27 +532,26 @@ button:hover {
 }
 
 .article-form button.article-form-button {
-  color: #fff; /* Visible color for both themes */
-  background-color: #007bff; /* Blue background for contrast */
+  color: #fff;
+  background-color: #007bff;
   border: none;
   font-size: 16px;
   font-family: "Cherry Bomb", sans-serif;
 }
 
 .article-form button.article-form-button:hover {
-  background-color: #0056b3; /* Darker blue on hover */
+  background-color: #0056b3;
 }
 
 #to-top {
   position: fixed;
-  bottom: 90px; /* Sets the position above the "Write Article" button */
+  bottom: 20px;
   right: 20px;
   background-color: #333;
   color: white;
   padding: 10px 20px;
   border-radius: 5px;
   cursor: pointer;
-  display: none;
   z-index: 1000;
 }
 </style>

@@ -5,6 +5,16 @@ import {
 	faTrash
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import {
+    db,
+	getDoc,
+	doc,
+	setDoc,
+    storage,
+    ref as sRef,
+    uploadBytes,
+    getDownloadURL,
+} from "../firebaseConfig.js";
 
 library.add(faTrash); // Add trash icon
 </script>
@@ -44,6 +54,7 @@ library.add(faTrash); // Add trash icon
                             :style="{ zIndex: getZIndex(index) }"
                             :isFlipped="isFlipped(index)"
                             @deleteEntry="deleteEntry"
+                            @updateEntry="updateEntry"
                             v-if="isWideEnough" 
                             />
                             <Page
@@ -55,6 +66,7 @@ library.add(faTrash); // Add trash icon
                             :style="{ zIndex: getZIndex(i) }"
                             :isFlipped="isFlipped(i)"
                             @deleteEntry="deleteEntry"
+                            @updateEntry="updateEntry"
                             />
                         </div>
                     </div>
@@ -73,7 +85,7 @@ library.add(faTrash); // Add trash icon
 <script>
     export default {
         name: 'Diary',
-        emits: ['deleteEntry'],
+        emits: ['deleteEntry', 'deleteDiary', 'toggled'],
         data() {
             return {
                 open: false, //For collapsible
@@ -90,11 +102,16 @@ library.add(faTrash); // Add trash icon
         props: {
             dbDiary: Object,
         },
-        emits: ['deleteDiary'],
         methods: {
             //Passes toggle event to diaryPage to open or close the collapsible
             toggle() {
                 this.open = !this.open;
+                if (this.open) {
+                    this.$emit('toggled', this.dbDiary.id);
+                }
+                else {
+                    this.$emit('toggled', "");
+                }
             },
             checkWidth() {
                 this.isWideEnough = window.innerWidth >= 768;
@@ -186,6 +203,29 @@ library.add(faTrash); // Add trash icon
             },
             deleteDiary(name) {
                 this.$emit('deleteDiary', name);
+            },
+            //Add Firebase function to update entries here
+            async updateEntry(entry, index) {
+                const entryRef = doc(db, "diary", this.dbDiary.id, "Entries", entry.id); 
+                const snapshot = await getDoc(entryRef);
+                if (snapshot.exists) {
+                    //Add new image in Firebase storage if user chooses to replace image
+                    if (entry.imageURL) {
+                        //Logic for uploading files to Firestore (only happen if user chooses to upload an image)
+                        const fileRef = sRef(storage, `DiaryImages/${this.dbDiary.id}/${entry.imageURL.name}`);
+                        await uploadBytes(fileRef, entry.imageURL);
+                        const fileURL = await getDownloadURL(fileRef);
+                        entry.imageURL = fileURL;
+                    }
+                    entry.date = new Date(entry.date) || null;
+                    await setDoc(entryRef, entry);
+                    //Update the entry inside local userDiaries array
+                    this.dbDiary.entries[index] = {
+                        id: entry.id,
+                        ...entry,
+                        date: entry.date ? entry.date.toLocaleDateString() : 'No Date',
+                    };
+                }
             }
         },
         computed: {
@@ -209,11 +249,6 @@ library.add(faTrash); // Add trash icon
             const prevBtn = this.$refs.prevBtn;
             const nextBtn = this.$refs.nextBtn;
             window.addEventListener('resize', this.checkWidth)
-            /*
-            //Event listeners
-            prevBtn.addEventListener("click", this.prevPage);
-            nextBtn.addEventListener("click", this.nextPage);
-            */
         },
         beforeDestroy() {
             window.removeEventListener('resize', this.checkWidth)

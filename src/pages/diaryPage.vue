@@ -22,8 +22,6 @@ import { onAuthStateChanged } from "firebase/auth";
 /*
 Side Quests:
 - Make changes to emergencyPage banner
-Top Priority:
-- Modify diary animations if possible
 */
 </script>
  
@@ -31,27 +29,32 @@ Top Priority:
 	<NavBar />
   <div class="container-fluid p-3">
     <CustomHeader header="DIARY"/>
+    <div v-if="children.length === 0" class="modal-overlay">
+      <div class="modal-content">
+				<h2 class="modal-title">No Children Registered</h2>
+				<p class="modal-message">It looks like you haven't registered any children yet.</p>
+				<p class="modal-subtext">Please visit your profile page to add a child and start recording wonderful memories of your children.</p>
+				<button class="modal-button" @click="redirectToProfile">Go to Profile Page</button>
+			</div>
+    </div>
     <div class="centered-container">
-      <!--
-      <h1>Diary Page</h1>
-      <p>Insert media and text about your parenting journey here.</p>
-      -->
       <div class="diaries">
         <Diary v-for="(diary, i) in userDiaries" 
         :dbDiary="diary" 
         :key="i"
         @deleteEntry="deleteEntry"
-        @deleteDiary="deleteDiary"/>
+        @deleteDiary="deleteDiary"
+        @toggled="setOwnerName"/>
       </div>
     </div>
-    <div class="form-block container-fluid w-100">
+    <div class="form-block container-fluid w-75">
       <DiaryForm :entryData="newEntry"
       :diaries="userDiaries" 
       :children="children"
       :entryError="entryError"
       :diaryError="diaryError"
       @submitEntry="submitEntry"
-      @addDiary="addDiary"/>
+      :owner="selectedOwnerName"/>
     </div>
   </div>
 </template>
@@ -73,6 +76,7 @@ Top Priority:
         newEntry: {},
         entryError: "",
         diaryError: "",
+        selectedOwnerName: "", //To pass to the diary component
       }
     },
     methods: {
@@ -163,16 +167,6 @@ Top Priority:
         return entries; // Returns value of entries array to be used in mounted function
       },
       async addDiary(name) {
-        //Check first if diary already exists for the selected person
-        for (let d of this.userDiaries) {
-          if (d.id === name) {
-            this.diaryError = "Diary already exists!";
-            setTimeout(() => {
-              this.diaryError = "";
-            }, 3000);
-            return; //Exit the function if diary exists, stops repeated addition of identical diaries
-          }
-        }
         //If diary does not exist, proceed with creating the new diary
         const newDiary = doc(db, "diary", name);
         await setDoc(newDiary, { created: true }); //Create new path for new diary owner
@@ -188,10 +182,6 @@ Top Priority:
           id: name,
           entries: [],
         })
-        this.diaryError = "Diary added successfully";
-        setTimeout(() => {
-          this.diaryError = "";
-        }, 3000);
       },
       async deleteDiary(name) {
         const toRemove = doc(db, "diary", name);
@@ -206,6 +196,12 @@ Top Priority:
           this.diaryError = "";
         }, 3000);
       },
+      setOwnerName(name) {
+        this.selectedOwnerName = name;
+      },
+      redirectToProfile() {
+        this.$router.push("/profile");
+      }
     },
     async mounted() {
       window.vm = this;
@@ -236,19 +232,21 @@ Top Priority:
             const dateB = new Date(b.date);
             return dateA - dateB;
           });
-          this.loading = false;
           for (let d of this.dbDiaries) {
             const entries = await this.getEntries(d.id);
             d.entries = entries;
           }
           //Retrieves the user's diaries collection (if any)
-          for (let d of this.dbDiaries) {
-            if (this.children.includes(d.id)) {
-              this.userDiaries.push(d)
+          for (let child of this.children) {
+            const existingDiary = this.dbDiaries.find(diary => diary.id === child);
+            if (!existingDiary) {
+              await this.addDiary(child)
+            } else if (this.children.includes(existingDiary.id)) {
+              this.userDiaries.push(existingDiary);
             }
           }
           //console.log(this.userDiaries); //Ensures the diaries database is populated
-          return this.userDiaries //Ensure the return of user's diaries
+          this.loading = false;
         } else {
           this.$router.push("/login");
         }
@@ -261,5 +259,70 @@ Top Priority:
 .centered-container {
 	width: 100%;
 	margin: 10px auto;
+}
+
+/* Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2); /* Softer shadow */
+    padding: 30px;
+    max-width: 400px;
+    text-align: center;
+    animation: fadeIn 0.3s ease; /* Subtle fade-in animation */
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.modal-message {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #555;
+    margin-bottom: 15px;
+}
+
+.modal-subtext {
+    font-size: 0.9rem;
+    color: #777;
+    margin-bottom: 20px;
+}
+
+.modal-button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.modal-button:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 </style>

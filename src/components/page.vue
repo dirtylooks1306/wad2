@@ -2,27 +2,76 @@
     <div :class="['paper', { flipped: isFlipped }]" :style="{ zIndex: zIndex }" v-if="isWideEnough">
       <div class="front" :key="frontIndex" v-if="front">
         <div class="front-content d-block">
+          <div v-if="!isEditing">
             <h3 class=text-center>{{ front.header }}</h3>
             <p class="text-center">{{ front.date }}</p>
             <hr>
             <img :src="front.imageURL" class="border rounded-1 d-block mx-auto" v-if="front.imageURL" style="max-width: 300px; height: 150px;">
             <p class="p-3">{{ front.body }}</p>
-            <button type="button" class="btn btn-danger p-1 d-flex mx-auto" @click="deleteFrontEntry">Delete Entry</button>
-        </div>
-      </div>
-      <div class="front d-flex justify-content-center align-items-center" v-if="!front"> <!-- Center content of empty page -->
-        <div class="front-content">
-          <h3 class="text-center">Log a new entry!</h3>
+            <span class="d-flex justify-content-around">
+              <button type="button" class="btn btn-primary p-1" @click="toggleEdit(front, frontIndex)">Edit Entry</button>
+              <button type="button" class="btn btn-danger p-1" @click="deleteFrontEntry">Delete Entry</button>
+            </span>
+          </div>
+          <div v-else>
+            <form @submit.prevent="saveEntry">
+              <div class="mb-3">
+                <label for="header" class="form-label">Header:</label>
+                <input type="text" id="header" v-model="editData.header" class="form-control">
+              </div>
+              <div class="mb-3">
+                <label for="date" class="form-label">Date:</label>
+                <input type="date" id="date" v-model="editData.date" class="form-control">
+              </div>
+              <div class="mb-3">
+                <label for="imageURL" class="form-label">Image URL:</label>
+                <input type="file" id="imageFile" class="form-control" @change="setImage">
+              </div>
+              <div class="mb-3">
+                <label for="body" class="form-label">Body:</label>
+                <textarea id="body" v-model="editData.body" class="form-control"></textarea>
+              </div>
+              <button type="submit" class="btn btn-success p-1 d-flex mx-auto">Save Changes</button>
+              <button type="button" class="btn btn-secondary p-1 d-flex mx-auto mt-2" @click="toggleEdit">Cancel</button>
+            </form>
+          </div>
         </div>
       </div>
       <div class="back" :key="backIndex" v-if="back">
         <div class="back-content d-block">
+          <div v-if="!isEditing">
             <h3 class=text-center>{{ back.header }}</h3>
             <p class="text-center">{{ back.date }}</p>
             <hr>
             <img :src="back.imageURL" class="border rounded-1 d-block mx-auto" v-if="back.imageURL" style="max-width: 300px; height: 150px;">
             <p class="p-3">{{ back.body }}</p>
-            <button type="button" class="btn btn-danger p-1 d-flex mx-auto" @click="deleteBackEntry">Delete Entry</button>
+            <span class="d-flex justify-content-around">
+              <button type="button" class="btn btn-primary p-1" @click="toggleEdit(back, backIndex)">Edit Entry</button>
+              <button type="button" class="btn btn-danger p-1" @click="deleteFrontEntry">Delete Entry</button>
+            </span>
+          </div>
+          <div v-else>
+            <form @submit.prevent="saveEntry">
+              <div class="mb-3">
+                <label for="header" class="form-label">Header:</label>
+                <input type="text" id="header" v-model="editData.header" class="form-control">
+              </div>
+              <div class="mb-3">
+                <label for="date" class="form-label">Date:</label>
+                <input type="date" id="date" v-model="editData.date" class="form-control">
+              </div>
+              <div class="mb-3">
+                <label for="imageURL" class="form-label">Image URL:</label>
+                <input type="file" id="imageFile" class="form-control" @change="setImage">
+              </div>
+              <div class="mb-3">
+                <label for="body" class="form-label">Body:</label>
+                <textarea id="body" v-model="editData.body" class="form-control"></textarea>
+              </div>
+              <button type="submit" class="btn btn-success p-1 d-flex mx-auto">Save Changes</button>
+              <button type="button" class="btn btn-secondary p-1 d-flex mx-auto mt-2" @click="toggleEdit">Cancel</button>
+            </form>
+          </div>
         </div>
       </div>
       <div class="back d-flex justify-content-center align-items-center" v-if="!back"> <!-- Center content of empty page -->
@@ -50,6 +99,9 @@ export default {
   data() {
     return {
       isWideEnough: window.innerWidth >= 768,
+      isEditing: false,
+      editData: {},
+      entryIndex: null  // Track the index of the entry being edited
     }
   },
   props: {
@@ -64,7 +116,7 @@ export default {
     index: Number,
     entry: Object
   },
-  emits: ['deleteEntry'],
+  emits: ['deleteEntry', 'updateEntry'],
   methods: {
     deleteFrontEntry() {
       this.$emit('deleteEntry', this.frontIndex) //Emit frontIndex on deletion
@@ -74,12 +126,46 @@ export default {
     },
     deleteEntry() {
       this.$emit('deleteEntry', this.index)
+    },
+    currentDate() {
+      const today = new Date();
+      const day = String(today.getDate()).padStart(2, "0");
+      const month = String(today.getMonth() + 1).padStart(2, "0");
+      const year = today.getFullYear();
+      return `${year}-${month}-${day}`;
+    },
+    toggleEdit(entry, index) {
+      this.isEditing = !this.isEditing;
+      if (this.isEditing) {
+        // Clone `front` data into `editData` for editing
+        this.editData = entry;
+        this.entryIndex = index;  // Save the index of the entry being edited
+      } else {
+        this.entryIndex = null;  // Reset the index when not editing
+      }
+    },
+    setImage() {
+      const fileInput = document.getElementById('imageFile');
+      this.editData.imageURL = fileInput.files[0];
+    },
+    async saveEntry() {
+      if (this.entryIndex !== null) {
+        const updatedDoc = { ...this.editData };
+        this.isEditing = false;
+        this.$emit('updateEntry', updatedDoc, this.entryIndex);
+      } else {
+        console.log("Error updating entry.");
+      }
     }
   },
 };
 </script>
 
 <style scoped>
+.form-label, input, textarea {
+  font-family: sans-serif;
+}
+
 .paper {
   position: absolute;
   width: 100%;
