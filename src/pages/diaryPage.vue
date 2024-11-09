@@ -29,6 +29,14 @@ Side Quests:
 	<NavBar />
   <div class="container-fluid p-3">
     <CustomHeader header="DIARY"/>
+    <div v-if="children.length === 0" class="modal-overlay">
+      <div class="modal-content">
+				<h2 class="modal-title">No Children Registered</h2>
+				<p class="modal-message">It looks like you haven't registered any children yet.</p>
+				<p class="modal-subtext">Please visit your profile page to add a child and start recording wonderful memories of your children.</p>
+				<button class="modal-button" @click="redirectToProfile">Go to Profile Page</button>
+			</div>
+    </div>
     <div class="centered-container">
       <div class="diaries">
         <Diary v-for="(diary, i) in userDiaries" 
@@ -190,6 +198,9 @@ Side Quests:
       },
       setOwnerName(name) {
         this.selectedOwnerName = name;
+      },
+      redirectToProfile() {
+        this.$router.push("/profile");
       }
     },
     async mounted() {
@@ -248,5 +259,70 @@ Side Quests:
 .centered-container {
 	width: 100%;
 	margin: 10px auto;
+}
+
+/* Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2); /* Softer shadow */
+    padding: 30px;
+    max-width: 400px;
+    text-align: center;
+    animation: fadeIn 0.3s ease; /* Subtle fade-in animation */
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.modal-message {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #555;
+    margin-bottom: 15px;
+}
+
+.modal-subtext {
+    font-size: 0.9rem;
+    color: #777;
+    margin-bottom: 20px;
+}
+
+.modal-button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.modal-button:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 </style>
