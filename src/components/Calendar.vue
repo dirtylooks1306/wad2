@@ -43,7 +43,8 @@
 import { Calendar } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import { collection, addDoc, getDocs, deleteDoc, doc, db } from "../firebaseConfig";
+import { collection, addDoc, getDocs, deleteDoc, doc, db, auth } from "../firebaseConfig";
+import { onAuthStateChanged } from "firebase/auth";
 
 export default {
   name: 'CalendarComponent',
@@ -58,6 +59,7 @@ export default {
       calendar: null,
       showModal: false,
       modalMode: 'add',
+      userId: null,
       newEvent: {
         title: '',
         date: '',
@@ -114,9 +116,12 @@ export default {
         hour12: false
       }
     });
-    this.calendar.render();
-
-    this.fetchEvents();
+    onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        this.userId = currentUser.uid;
+        this.calendar.render();
+        this.fetchEvents();
+      }});
   },
   watch: {
     childId: 'fetchEvents' // Refetch events whenever childId changes
@@ -133,7 +138,7 @@ export default {
         month: 'short', 
         day: 'numeric', 
         year: 'numeric' 
-      });
+      }); 
       const formattedTime = info.event.start.toLocaleTimeString('en-US', {
         hour: '2-digit',
         minute: '2-digit',
@@ -165,7 +170,7 @@ export default {
         const newCalendarEvent = this.calendar.addEvent(event);
 
         try {
-          const userEventsRef = collection(db, "users", "user2", "children", this.childId, "events");
+          const userEventsRef = collection(db, "users", this.userId, "children", this.childId, "events");
           const docRef = await addDoc(userEventsRef, event);
           newCalendarEvent.setProp('id', docRef.id);
           await this.fetchEvents();
@@ -198,7 +203,7 @@ export default {
     async deleteEvent() {
       if (this.selectedEvent && this.childId) {
         try {
-          const eventDocRef = doc(db, "users", "user2", "children", this.childId, "events", this.selectedEvent.id);
+          const eventDocRef = doc(db, "users", this.userId, "children", this.childId, "events", this.selectedEvent.id);
           await deleteDoc(eventDocRef);
           const calendarEvent = this.calendar.getEventById(this.selectedEvent.id);
           if (calendarEvent) {
@@ -212,11 +217,9 @@ export default {
     },
     async fetchEvents() {
       if (!this.childId) return;
-      
       try {
-        const userEventsRef = collection(db, "users", "user2", "children", this.childId, "events");
+        const userEventsRef = collection(db, "users", this.userId, "children", this.childId, "events");
         const querySnapshot = await getDocs(userEventsRef);
-        
         this.calendar.getEvents().forEach(event => event.remove());
         this.loadHolidays();
         querySnapshot.forEach(doc => {
@@ -257,7 +260,8 @@ export default {
         ? this.timeOptions // No start time selected, return all times
         : this.timeOptions.slice(startTimeIndex + 1); // Only times after start time
     }
-  }
+  },
+
 };
 </script>
 
