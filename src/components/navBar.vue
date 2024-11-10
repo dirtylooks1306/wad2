@@ -50,7 +50,7 @@
 						>
 							Explore articles
 						</a>
-						<ul class="dropdown-menu">
+						<ul class="dropdown-menu ">
 							<li>
 								<router-link
 									class="dropdown-item"
@@ -134,7 +134,7 @@
 						>
 							Explore trackers
 						</a>
-						<ul class="dropdown-menu">
+						<ul class="dropdown-menu ">
 							<li>
 								<router-link
 									to="/growthtracker"
@@ -200,7 +200,7 @@
 					<div class="dropdown-menu dropdown-menu-end p-3" aria-labelledby="notificationDropdown">
 						<p class="mb-2 fw-bold">You have {{ notificationCount }} new notifications.</p>
 						
-						<ul v-if="notifications.length > 0" class="notification-list">
+						<ul v-if="notifications.length > 0" class="notification-list ">
 							<li v-for="notification in notifications" :key="notification.eventId" class="notification-item mb-2 p-2">
 								{{ notification.message }}
 							</li>
@@ -241,7 +241,7 @@
 							<img :src="profileImage" class="profile-icon" />
 						</router-link>
 						<ul
-							class="dropdown-menu dropdown-menu-end"
+							class="dropdown-menu dropdown-menu-end profile"
 							aria-labelledby="profileDropdown"
 						>
 							<li>
@@ -461,9 +461,7 @@ li{
 	border: none;
 }
 
-.dropdown-menu {
-	background-color: #fbf4eb !important;
-}
+
 
 .active-item {
 	font-weight: bold;
@@ -487,15 +485,22 @@ li{
 }
 
 @media (max-width: 768px) {
-	.navbar-collapse {
-		text-align: center;
-	}
-	.notification-bell {
-        margin-right: 10px;
-        font-size: 1.25rem; 
-    }
+/* Ensure dropdown is below the button */
+.dropdown-menu {
+  position: absolute; 
+  left: 0; 
+  top: 100%; 
+  margin-top: 0.5rem; 
+  width:10%;
 }
 
+
+  /* Show dropdown smoothly when active in mobile mode */
+  .dropdown-menu.show {
+    max-height: 300px; /* Adjust as needed */
+    opacity: 1;
+  }
+}
 @media (max-width: 440px) {
 	.text-logo {
 		display: none;
@@ -543,11 +548,16 @@ li{
 
 /* Notification Dropdown */
 .dropdown-menu {
-    width: 300px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+	background-color: #fbf4eb !important;
 }
-
+.dropdown-menu-end{
+	width:250px;
+} 
+.profile{
+	width: 150px !important;
+}
 /* Notification List Styling */
 .notification-list {
     list-style: none;
