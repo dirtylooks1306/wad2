@@ -28,30 +28,31 @@
     </div>
   </div>
   <div class="container-fluid p-3">
-			<CustomHeader header="GrowthTracker" />
-      <div class="row">
-        <div class="col-md-1"></div>
+    <CustomHeader header="GrowthTracker" />
+    <div class="row align-items-center">
+      <div class="col-md-1"></div>
+      
+      <div class="col-md-5 text-start mt-3 d-flex flex-column justify-content-between carousel-content">
+        <div>
+          <h3 class="carousel-title">Begin Your Little One's Journey to Healthy Growth!</h3>
+          <hr class="title-divider" />
+          <p>Stay informed and engaged—check out the Growth Tracker to celebrate every milestone!</p>
+        </div>
         
-        <div class="col-md-5 text-start mt-3 d-flex flex-column justify-content-between carousel-content">
-          <div>
-            <h3 class="carousel-title">Begin Your Little One's Journey to Healthy Growth!</h3>
-            <hr class="title-divider" />
-            <p>Stay informed and engaged—check out the Growth Tracker to celebrate every milestone!</p>
-          </div>
-          
-          <!-- Read More button positioned at the bottom left -->
-          <router-link to="/growthtracker">
-          <button class="btn btn-primary read-more-button">
-            GrowthTracker
-          </button>
+        <!-- "Read More" button positioned at the bottom -->
+        <router-link to="/growthtracker">
+          <button class="btn btn-primary read-more-button">GrowthTracker</button>
         </router-link>
-        </div>
-        <div class="col-md-5 d-flex justify-content-center align-items-center">
-          <img src="../assets/homepageBaby.jpg" class="d-block p-3 carousel-image" />
-        </div>
-        <div class="col-md-1"></div>
       </div>
-		</div>
+
+      <div class="col-md-5 d-flex justify-content-center align-items-center">
+        <img src="../assets/homepageBaby.jpg" class="d-block p-3 carousel-image" />
+      </div>
+      
+      <div class="col-md-1"></div>
+    </div>
+  </div>
+
   <!-- Remaining sections unchanged -->
 
   <footer class="footer">
@@ -161,9 +162,10 @@ h2{
   border-radius: 8px;
 }
 .carousel-content {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
 }
 .carousel-image {
   width: 100%;

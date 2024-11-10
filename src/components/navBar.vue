@@ -415,7 +415,7 @@ onMounted(() => {
 
 <style scoped>
 li{
-	font-family: 'Gloria Hallelujah', cursive;
+	font-family: "Comic Sans MS", "Comic Sans", cursive;
 
 }
 #belownavBar {
