@@ -340,11 +340,13 @@ onMounted(fetchArticles);
 }
 
 .article-image {
-  width: 100%;
+  max-width: 100%;
+  max-height: 150px;
+  width: auto;
   height: auto;
   border-radius: 8px;
-  margin: 10px 0; /* Add spacing above and below */
-  object-fit: cover; /* Ensure image covers the area without distortion */
+  margin: 10px 0;
+  object-fit: contain;
 }
 
 .partition-line {
@@ -396,13 +398,13 @@ button.active i {
 }
 
 .saved button i {
-  color: white; /* White color when not saved */
-  background-color: transparent; /* Ensure alignment */
+  color: white;
+  background-color: transparent;
 }
 
 .saved button.saved i {
-  color: black; /* Black color when saved */
-  background-color: transparent; /* No background needed for saved state */
+  color: black;
+  background-color: transparent;
 }
 
 button:hover i {
