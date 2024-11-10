@@ -247,17 +247,6 @@ onMounted(() => {
   pointer-events: none;
 }
 
-@media (max-width: 767px) {
-  .forum-content {
-    margin-left: 90px;
-    padding: 10px;
-  }
-
-  .right-sidebar {
-    display: none;
-  }
-}
-
 .forum-home-container {
   display: flex;
   flex-direction: column;

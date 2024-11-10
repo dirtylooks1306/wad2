@@ -1,5 +1,5 @@
 <template>
-  <div id="forum-bar">
+  <div id="forum-bar" :class="{ 'mobile-view': isMobileView }">
     <input id="forum-toggle" type="checkbox" />
     <div id="forum-header"><a id="forum-title">Forum</a>
       <label for="forum-toggle"><i :class="iconClass" @click="toggleIcon"></i> </label>
@@ -422,4 +422,5 @@ label[for=forum-toggle] {
   justify-content: center;
   cursor: pointer;
 }
+
 </style>
