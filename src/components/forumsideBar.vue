@@ -2,69 +2,80 @@
   <div id="forum-bar">
     <input id="forum-toggle" type="checkbox" />
     <div id="forum-header"><a id="forum-title">Forum</a>
-      <label for="forum-toggle"><span id="forum-toggle-burger"></span></label>
+      <label for="forum-toggle"><i :class="iconClass" @click="toggleIcon"></i> </label>
       <hr />
     </div>
     <div id="forum-content">
-      <div class="forum-button">
-        <i class="fas fa-solid fa-plus"></i>
-        <router-link to="/forum/create-post"><span>Create</span></router-link>
-      </div>
+      <router-link to="/forum/create-post">
+        <div class="forum-button">
+          <i class="fas fa-solid fa-plus"></i>
+          <span>Create</span>
+        </div>
+      </router-link>
       <hr />
-      <div class="forum-button">
-        <i class="fas fa-chart-line"></i>
-        <router-link to="/forum/trending"><span>Trending</span></router-link>
-      </div>
+      <router-link to="/forum/trending">
+        <div class="forum-button">
+          <i class="fas fa-chart-line"></i>
+          <span>Trending</span>
+        </div>
+      </router-link>
       <hr />
-      <div class="forum-button">
-        <i class="fas fa-solid fa-fire"></i>
-        <router-link to="/forum/new"><span>New</span></router-link>
-      </div>
+      <router-link to="/forum/new">
+        <div class="forum-button">
+          <i class="fas fa-solid fa-fire"></i>
+          <span>New</span>
+        </div>
+      </router-link>
       <hr />
-      <div class="forum-button">
-        <i class="fas fa-thumbtack"></i>
-        <router-link to="/forum/saved"><span>Saved</span></router-link>
-      </div>
+      <router-link to="/forum/saved">
+        <div class="forum-button">
+          <i class="fas fa-thumbtack"></i>
+          <span>Saved</span>
+        </div>
+      </router-link>
       <hr />
-      <div class="forum-button">
-        <i class="fas fa-solid fa-clock"></i>
-        <router-link to="/forum/recently-viewed"><span>Recently Viewed</span></router-link>
-      </div>
+      <router-link to="/forum/recently-viewed">
+        <div class="forum-button">
+          <i class="fas fa-solid fa-clock"></i>
+          <span>History</span>
+        </div>
+      </router-link>
       <hr />
       <div id="forum-content-highlight"></div>
     </div>
     <input id="forum-footer-toggle" type="checkbox" />
     <div id="forum-footer">
-      <div id="forum-footer-heading">
-        <div id="forum-footer-avatar">
-          <img :src="userData.profileimage" alt="Author profile" class="profile-image" />
+      <router-link :to="`/forum/user/${userData.username}`">
+        <div id="forum-footer-heading">
+          <div id="forum-footer-avatar">
+            <img :src="userData.profileimage" alt="Author profile" class="profile-image" />
+          </div>
+          
+          <div id="forum-footer-titlebox">
+            <span id="forum-footer-title">{{ userData.username }}</span>
+            <!-- <span id="forum-footer-subtitle">{{ userData.role || 'user' }}</span> -->
+          </div>
         </div>
-        <div id="forum-footer-titlebox">
-          <span id="forum-footer-title">{{ userData.username }}</span>
-          <span id="forum-footer-subtitle">{{ userData.role || 'user' }}</span>
-        </div>
-        <label for="forum-footer-toggle"><i class="fas fa-caret-up"></i></label>
-      </div>
-      <div id="forum-footer-content">
-        <p>Hello, {{ userData.username }}!</p>
-      </div>
+      </router-link>
     </div>
   </div>
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
+
+import { ref, onMounted, computed } from 'vue';
 import { auth, db, doc, getDoc } from '../firebaseConfig.js';
 
 export default {
   name: 'ForumSidebar',
   setup() {
+    
     const userData = ref({
       username: 'Loading...',
       profileimage: 'default-profile.png', // Path to a default image
       role: 'user'
     });
-
+    const isHamburger = ref(false);
     const fetchUserData = async () => {
       try {
         const currentUser = await auth.currentUser;
@@ -86,19 +97,25 @@ export default {
         console.error('Error fetching user data:', error);
       }
     };
-
+    const toggleIcon = () => {
+      isHamburger.value = !isHamburger.value;
+    };
     onMounted(() => {
       fetchUserData();
     });
 
     return {
-      userData
+      userData,
+      isHamburger,
+      toggleIcon,
+      iconClass: computed(() => (isHamburger.value ? 'fas fa-bars' : 'fas fa-arrow-left'))
     };
   }
 };
 </script>
 
 <style scoped>
+
 .profile-image {
   width: 40px;
   height: 40px;
