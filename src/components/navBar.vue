@@ -414,9 +414,9 @@ onMounted(() => {
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2&display=swap');
 li{
-	font-family: "Comic Sans MS", "Comic Sans", cursive;
-
+	font-family: 'Baloo 2', sans-serif;
 }
 #belownavBar {
 	height: 80px;

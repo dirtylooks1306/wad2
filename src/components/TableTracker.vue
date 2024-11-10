@@ -92,72 +92,74 @@
         <div class="row">
         <div class="col-md-1"></div>
         <div class="col-md-10">
-        <table class="inner-table m-5">
-          <thead>
-            <tr>
-              <th>Date of Record</th>
-              <th>Current Age</th>
-              <th>Weight (in kg)</th>
-              <th>Height / Length (in cm)</th>
-              <th>Remarks</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-        <tbody>
-          <tr v-for="(post, index) in limitedPosts" :key="`post-${index}`">
-            <td>
-              <!-- If editing this post, show input; otherwise, show plain text -->
-              <span v-if="editingPost?.id !== post.id">{{ post.date || "" }}</span>
-              <input
-                v-else
-                type="date"
-                v-model="editingPost.date"
-              />
-            </td>
-            <td>
-              <span v-if="editingPost?.id !== post.id">{{ post.age || "" }}</span>
-              <select v-else v-model="editingPost.age">
-                <option value="0-2 months">0-2 months</option>
-                <option value="2-4 months">2-4 months</option>
-                <option value="4-6 months">4-6 months</option>
-                <option value="6-9 months">6-9 months</option>
-                <option value="9-12 months">9-12 months</option>
-                <option value="12-18 months">12-18 months</option>
-                <option value="18-24 months">18-24 months</option>
-              </select>
-            </td>
-            <td>
-              <span v-if="editingPost?.id !== post.id">{{ post.weight || "" }}</span>
-              <input
-                v-else
-                type="number"
-                v-model="editingPost.weight"
-              />
-            </td>
-            <td>
-              <span v-if="editingPost?.id !== post.id">{{ post.height || "" }}</span>
-              <input
-                v-else
-                type="number"
-                v-model="editingPost.height"
-              />
-            </td>
-            <td>
-              <span v-if="editingPost?.id !== post.id">{{ post.remarks || "" }}</span>
-              <textarea v-else v-model="editingPost.remarks"></textarea>
-            </td>
-            <td>
-              <!-- Edit, Save, and Cancel buttons -->
-              <button class="m-1 p-2 pe-3 ps-3" v-if="editingPost?.id !== post.id" @click="editPost(post)">
-                Edit
-              </button>
-              <button class="m-1 p-2 pe-3 ps-3 " v-else @click="savePost(post.id)">Save</button>
-              <button class="m-1 p-2" v-if="editingPost?.id === post.id" @click="cancelEdit">Cancel</button>
-              <button class="m-1 p-2" @click="deletePost(post.id)">Delete</button>
-            </td>
-          </tr>
-        </tbody>
-        </table>
+		<div class="inner-table-wrapper">
+			<table class="inner-table m-5">
+			<thead>
+				<tr>
+				<th>Date of Record</th>
+				<th>Current Age</th>
+				<th>Weight (in kg)</th>
+				<th>Height / Length (in cm)</th>
+				<th>Remarks</th>
+				<th>Actions</th>
+				</tr>
+			</thead>
+			<tbody>
+			<tr v-for="(post, index) in limitedPosts" :key="`post-${index}`">
+				<td>
+				<!-- If editing this post, show input; otherwise, show plain text -->
+				<span v-if="editingPost?.id !== post.id">{{ post.date || "" }}</span>
+				<input
+					v-else
+					type="date"
+					v-model="editingPost.date"
+				/>
+				</td>
+				<td>
+				<span v-if="editingPost?.id !== post.id">{{ post.age || "" }}</span>
+				<select v-else v-model="editingPost.age">
+					<option value="0-2 months">0-2 months</option>
+					<option value="2-4 months">2-4 months</option>
+					<option value="4-6 months">4-6 months</option>
+					<option value="6-9 months">6-9 months</option>
+					<option value="9-12 months">9-12 months</option>
+					<option value="12-18 months">12-18 months</option>
+					<option value="18-24 months">18-24 months</option>
+				</select>
+				</td>
+				<td>
+				<span v-if="editingPost?.id !== post.id">{{ post.weight || "" }}</span>
+				<input
+					v-else
+					type="number"
+					v-model="editingPost.weight"
+				/>
+				</td>
+				<td>
+				<span v-if="editingPost?.id !== post.id">{{ post.height || "" }}</span>
+				<input
+					v-else
+					type="number"
+					v-model="editingPost.height"
+				/>
+				</td>
+				<td>
+				<span v-if="editingPost?.id !== post.id">{{ post.remarks || "" }}</span>
+				<textarea v-else v-model="editingPost.remarks"></textarea>
+				</td>
+				<td>
+				<!-- Edit, Save, and Cancel buttons -->
+				<button class="m-1 p-2 pe-3 ps-3" v-if="editingPost?.id !== post.id" @click="editPost(post)">
+					Edit
+				</button>
+				<button class="m-1 p-2 pe-3 ps-3 " v-else @click="savePost(post.id)">Save</button>
+				<button class="m-1 p-2" v-if="editingPost?.id === post.id" @click="cancelEdit">Cancel</button>
+				<button class="m-1 p-2" @click="deletePost(post.id)">Delete</button>
+				</td>
+			</tr>
+			</tbody>
+			</table>
+		</div>
       </div>
         <div class="col-md-1"></div>
       </div>
@@ -231,6 +233,7 @@ export default {
 	justify-content: center;
 	margin-top: 20px;
 }
+
 .modal {
   display: flex;
   align-items: center;
@@ -268,7 +271,10 @@ export default {
   margin: 5px;
   border-radius: 5px;
 }
-
+.inner-table-wrapper {
+  overflow-x: auto; /* Allows horizontal scrolling for the table */
+  width: 100%; /* Ensures the wrapper takes full width */
+}
 .inner-table {
   border-collapse: collapse;
   width: 100%;

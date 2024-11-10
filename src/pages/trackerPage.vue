@@ -213,14 +213,16 @@ onAuthStateChanged(auth, async (user) => {
 		</div>
 	
 		<div>
-			<div class="table-tracker text-center">
-				<div class="center">
-					<TableTracker
-						:posts="posts"
-						@delete-post="handleDeletePost"
-						@update-post="handleUpdatePost"
-						class="m-3"
-					/>
+			<div class="table-wrapper">
+				<div class="table-tracker text-center">
+					<div class="center">
+						<TableTracker
+							:posts="posts"
+							@delete-post="handleDeletePost"
+							@update-post="handleUpdatePost"
+							class="m-3"
+						/>
+					</div>
 				</div>
 			</div>
 
@@ -271,16 +273,30 @@ onAuthStateChanged(auth, async (user) => {
 	font-size: 1rem;
 }
 
-/* Table Tracker Section */
+.table-wrapper {
+  overflow-x: auto; /* Enable horizontal scrolling on the wrapper */
+  margin: 0 -10px; /* Adjust margins to align with screen */
+}
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2&display=swap');
 .table-tracker {
 	background-color: #ffffff;
 	padding: 20px;
 	border-radius: 8px;
 	box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
-	font-family: 'Gloria Hallelujah', cursive;
+	font-family: 'Baloo 2', sans-serif;
 	margin-bottom: 20px;
 	width: 100%;
 	text-align: center;
+	overflow-x: auto;
+	min-width: 600px;
+}
+
+.table-tracker .table-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #ddd;
 }
 .center {
 	display: flex;
@@ -379,6 +395,24 @@ onAuthStateChanged(auth, async (user) => {
 	height: 100px;
 	border-radius: 50%; /* Make the image circular */
 	object-fit: cover;
+}
+
+@media (max-width: 768px) {
+  .table-tracker {
+    font-size: 0.9rem; /* Reduce font size for mobile */
+    padding: 10px; /* Reduce padding */
+
+  }
+
+  .table-tracker .table-row {
+    flex-direction: column; /* Stack each cell vertically */
+    text-align: left;
+  }
+
+  .table-tracker .table-row > div {
+    padding: 8px 0; /* Adjust padding for mobile */
+    text-align: left;
+  }
 }
 
 
