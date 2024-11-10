@@ -26,7 +26,6 @@ const fetchLocations = async() => {
   }
 }
 onMounted(fetchLocations);
-//console.log(locationList); -> Successfully retrieved hospital locations from Firebase
 //Segment end
 
 //Segment to help users find nearest distance to hospital
@@ -105,7 +104,7 @@ function findNearest() {
     }
   }
   nearest = nearestHospital.name;
-  //Test directionsRenderer service
+  //After finding nearest hospital, get the directions from user's current location to the nearest hospital
   var directionsService = new google.maps.DirectionsService();
   var request = {
     origin: { lat: userLat.value, lng: userLng.value },
@@ -114,8 +113,7 @@ function findNearest() {
   };
   directionsService.route(request, (response, status) => {
     if (status === "OK") {
-      //console.log(response);
-      const legs = response.routes[0].legs[0]; //Assuming a single route with one leg
+      const legs = response.routes[0].legs[0]; //Assuming that there is only one route with one leg
       legs.steps.forEach((step) => {
         steps.value.push({
           instruction: step.instructions,
@@ -127,7 +125,7 @@ function findNearest() {
       console.error("Failed to set directions");
     }
   })
-  //Change the marker coordinates after directions are set?
+  //Change the marker coordinates after directions are set
   markerLat.value = nearestHospital.lat;
   markerLng.value = nearestHospital.lng;
 };
@@ -151,8 +149,6 @@ function setLocation() {
     }
   })
   .then(response => {
-    //console.log(response.data)
-    //console.log(response.data.results[0].geometry.location);
     steps.value = []; // Reset the steps reference each time the user sets the location
     let coordinates = response.data.results[0].geometry.location;
     userLat.value = coordinates.lat;
@@ -175,7 +171,6 @@ function setLocation() {
     });
   })
   .catch(error => {
-    //console.log(error.message);
     document.getElementById("errorMsg").innerText = "Please enter a valid location.";
     setTimeout(() => {
       document.getElementById("errorMsg").innerText = "";
@@ -222,11 +217,10 @@ onMounted(() => {
 			<div class="col-12">
 				<img
 					src="../assets/hospital.jpg"
-					class="img-fluid"
+					class="img-fluid opacity-50"
 					id="background-image"
 					alt=""
 				/>
-				<!-- To change image, refer to Pinterest -->
 				<h5 class="img-overlay-center position-absolute">
 					EMERGENCY RESOURCES
 				</h5>

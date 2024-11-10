@@ -19,10 +19,6 @@ import {
 } from "../firebaseConfig.js";
 import { orderBy } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
-/*
-Side Quests:
-- Make changes to emergencyPage banner
-*/
 </script>
  
 <template>
@@ -81,10 +77,8 @@ Side Quests:
     },
     methods: {
       async submitEntry(formData) {
-        //console.log(formData); //Debugging image path
         //Part 1: Retrieve form data and assign variables
         const diaryOwner = formData.name;
-        //console.log(this.newEntry); //Ensure form data is successfully retrieved
         //Part 2: Update database with new entry
         for (let d of this.userDiaries) {
           if (d.id === diaryOwner) {
@@ -129,7 +123,7 @@ Side Quests:
                 id: `Entry ${entryId}`,
                 ...this.newEntry,
                 date: this.newEntry.date ? this.newEntry.date.toLocaleDateString() : 'No Date',
-              }) //Bug happens when new entry is submitted while diary is in closed state -> Paper overlaps the Next Page button but works as per normal after button is pressed
+              })
             };
             this.entryError = "Entry successfully added!";
             setTimeout(() => {
@@ -139,7 +133,6 @@ Side Quests:
         }
       },
       async deleteEntry(name, index) {
-        //console.log(name, index); //Ensure that name and entry is correct
         for (let d of this.userDiaries) {
           if (d.id === name) {
             //Delete entry from Firebase
@@ -163,7 +156,6 @@ Side Quests:
           body: doc.data().body,
           imageURL: doc.data().imageURL,
         }))
-        //console.log(entries); //Entries successfully retrieved
         return entries; // Returns value of entries array to be used in mounted function
       },
       async addDiary(name) {
@@ -205,11 +197,9 @@ Side Quests:
     },
     async mounted() {
       window.vm = this;
-      //console.log(storage); //Storage works
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           this.userId = user.uid;
-          //console.log(user.uid); //Check whether user ID is obtained
           //Retrieves all of user's children
           var childrenList = [];
           const childrenRef = collection(db, "users", this.userId, "children");
@@ -245,7 +235,6 @@ Side Quests:
               this.userDiaries.push(existingDiary);
             }
           }
-          //console.log(this.userDiaries); //Ensures the diaries database is populated
           this.loading = false;
         } else {
           this.$router.push("/login");
