@@ -197,7 +197,7 @@ const createChartHeight = () => {
 				},
 				title: {
 					display: true,
-					text: "Weight Over Time",
+					text: "Height Over Time",
 				},
 			},
 			scales: {

@@ -8,17 +8,31 @@
 				View All Logs
 			</button>
 		</div>
+
 		<div class="center">
 			<table class="container m-3" id="main">
 			<tbody>
 				<tr>
+					<th>Date of Birth</th>
+					<td
+						v-for="(post, index) in limitedPosts"
+						:key="`date-${index}`"
+					>
+					{{ post.dateOfBirth }}
+					</td>
+					<td
+						v-for="n in Math.max(0, 6 - limitedPosts.length)"
+						:key="`date-empty-${n}`"
+					></td>
+				</tr>
+				<tr>
 					<th>Date of Record</th>
-					<th
+					<td
 						v-for="(post, index) in limitedPosts"
 						:key="`date-${index}`"
 					>
 						{{ post.date || "" }}
-					</th>
+					</td>
 					<td
 						v-for="n in Math.max(0, 6 - limitedPosts.length)"
 						:key="`date-empty-${n}`"
@@ -187,20 +201,18 @@ export default {
 			try {
 					const index = this.posts.findIndex((p) => p.id === postId)
 					if (index !== -1) {
-				console.log(5)
 						this.$emit('update-post', { ...this.editingPost }); // Emit the event to the parent to update post
 					}
-			this.editingPost = null;
+					this.editingPost = null;
 					this.closeModal();
 			} catch (error) {
 			console.error(error);
 			}
-				},
+		},
 		editPost(post) {
 			this.editingPost = { ...post };
 		},
 		cancelEdit() {
-		// Cancel editing and reset editingPost
 			this.editingPost = null;
 		},
 		deletePost(postId) {

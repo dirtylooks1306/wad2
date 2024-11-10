@@ -157,7 +157,7 @@ const listenForResponse = (parentMessageId) => {
 
                     <!-- Bot Message aligned to the left -->
                     <div v-if="message.response" class="message bot-message">
-                    <p><strong>Bot:</strong> {{ message.response }}</p>
+                    <p><strong>Cradle Chat:</strong> {{ message.response }}</p>
                     </div>
                 </div>
 			</div>

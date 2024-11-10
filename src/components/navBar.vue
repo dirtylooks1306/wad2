@@ -400,7 +400,7 @@ const handleNotificationTabClick = () => {
 	isDropdownOpen.value = !isDropdownOpen.value;
 };
 
-const { pause, resume } = useIntervalFn(fetchAndMonitorEvents, 0.1 * 60 * 1000, { immediate: true });
+const { pause, resume } = useIntervalFn(fetchAndMonitorEvents, 8000, { immediate: true });
 
 
 onMounted(() => {
@@ -414,6 +414,10 @@ onMounted(() => {
 </script>
 
 <style scoped>
+li{
+	font-family: 'Gloria Hallelujah', cursive;
+
+}
 #belownavBar {
 	height: 80px;
 }
