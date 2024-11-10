@@ -186,6 +186,7 @@ const submitPost = async () => {
   } else {
     submissionMessage.value = 'You must be logged in to submit a post.';
   }
+  router.push('/forum');
 };
 </script>
 

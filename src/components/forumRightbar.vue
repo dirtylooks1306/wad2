@@ -119,7 +119,7 @@ const toggleSidebar = () => {
 }
 
 .widget ul li a:hover {
-  color: #FF9689;
+  color: #FF6E61;
 }
 
 /* Tags styling */
@@ -130,7 +130,7 @@ const toggleSidebar = () => {
 }
 
 .tag {
-  background-color: #B89C89;
+  background-color: var(--forumbar-dark-secondary);
   color: #FFF;
   padding: 5px 10px;
   border-radius: 16px;
@@ -139,7 +139,7 @@ const toggleSidebar = () => {
 }
 
 .tag:hover {
-  background-color: #FF9689;
+  background-color: #FF6E61;
   color: white;
 }
 
