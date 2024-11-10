@@ -2,11 +2,14 @@
 import NavBar from "../components/navBar.vue";
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { auth, signOut, db, collection, doc, getDocs, setDoc, addDoc, query, where, updateDoc, deleteDoc  } from "../firebaseConfig.js";
+import { auth, signOut, db, collection, doc, getDocs, getDoc, addDoc, query, where, updateDoc, deleteDoc, storage, ref as sRef  } from "../firebaseConfig.js";
 import { setPersistence, browserLocalPersistence,onAuthStateChanged } from "firebase/auth";
+import { getDownloadURL, ref as storageRef, uploadBytes } from "firebase/storage";
 // State for user information and child details
 const user = ref(null);
 const username = ref("");
+const profileImage = ref("");
+const fileInput = ref(null); // Reference to the file input element
 const router = useRouter();
 
 // Child details form fields
@@ -15,10 +18,11 @@ const childName = ref("");
 const childAge = ref(getCurrentDate());
 const childWeight = ref("");
 const childHeight = ref("");
-const childGender = ref("");
+const childGender = ref("male");
+const imageFile = ref(null); 
 const children = ref([]); // Array to store the list of children
 const successMessage = ref("");
-
+const errorMessage = ref("");
 // Track expanded and edit mode for each child
 const expandedChildId = ref(null); // ID of the currently expanded child
 const editModeChildId = ref(null); // ID of the child being edited
@@ -35,6 +39,7 @@ const fetchUserData = async () => {
     if (currentUser) {
       try {
         const userDocRef = doc(db, "users", currentUser.uid);
+
         const childrenCollectionRef = collection(userDocRef, "children");
 
         // Get the user's children
@@ -53,6 +58,7 @@ const fetchUserData = async () => {
         const querySnapshot = await getDocs(q);
         querySnapshot.forEach((doc) => {
           username.value = doc.data().username;
+          profileImage.value = doc.data().profileimage;
         });
 
         user.value = currentUser;
@@ -65,37 +71,84 @@ const fetchUserData = async () => {
   });
 };
 
+const triggerFileInput = () => {
+  fileInput.value.click(); // Programmatically click the file input
+};
 
-// Function to handle form submission and save child data to Firestore
+const handleImageSelection = async (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    imageFile.value = file;
+    await updateProfileImage(); // Automatically upload the image upon selection
+  }
+};
+
+const updateProfileImage = async () => {
+  if (imageFile.value) {
+    try {
+      const imageRef = sRef(storage, `ProfileImages/${auth.currentUser.uid}/${imageFile.value.name}-${Date.now()}`);
+      await uploadBytes(imageRef, imageFile.value);
+      const imageUrl = await getDownloadURL(imageRef);
+      profileImage.value = imageUrl;
+      const userDocRef = doc(db, "users", auth.currentUser.uid);
+      await updateDoc(userDocRef, {profileimage: imageUrl});
+      
+    } catch (error) {
+      console.error("Error uploading profile image:", error);
+    }
+  }
+};
+
+const handleImageUpload = (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    imageFile.value = file;
+  }
+};
+
+
 const saveChildData = async () => {
   if (!childName.value || !childAge.value || !childWeight.value || !childGender.value) {
-    alert("Please fill in all the details.");
+    errorMessage.value = "Please fill in all the details.";
     return;
   }
 
+  let imageUrl = "https://firebasestorage.googleapis.com/v0/b/cradlecare-5870f.appspot.com/o/ProfileImages%2Fimages.jpg?alt=media&token=b608cb96-680e-475c-8730-b009ec748aed";
+
   try {
+    // Upload the image if selected
+
+    if (imageFile.value) {
+      const imageRef = sRef(storage, `ProfileImages/${auth.currentUser.uid}/${childName.value}-${Date.now()}`);
+      await uploadBytes(imageRef, imageFile.value);
+      imageUrl = await getDownloadURL(imageRef);
+    }
+
+    // Reference to the user's document and children collection
     const userDocRef = doc(db, "users", auth.currentUser.uid);
     const childrenCollectionRef = collection(userDocRef, "children");
 
-    // Add a new child document to the children subcollection
+    // Add the new child data to Firestore with image URL
     const newChildRef = await addDoc(childrenCollectionRef, {
       name: childName.value,
       age: childAge.value,
       weight: childWeight.value,
-      gender: childGender.value
+      height: childHeight.value,
+      gender: childGender.value,
+      imageUrl: imageUrl // Save the image URL in Firestore
     });
 
-    // Use the generated ID for the new child
     const newChildId = newChildRef.id;
 
-    // Add the new child with the ID to the local `children` array for immediate UI update
+    // Add the new child to the local `children` array for immediate UI update
     children.value.push({
       id: newChildId,
       name: childName.value,
       age: childAge.value,
       weight: childWeight.value,
       height: childHeight.value,
-      gender: childGender.value
+      gender: childGender.value,
+      imageUrl: imageUrl
     });
 
     // Clear form fields
@@ -104,14 +157,14 @@ const saveChildData = async () => {
     childWeight.value = "";
     childHeight.value = "";
     childGender.value = "";
+    imageFile.value = null; // Clear the image file
 
     isNewUser.value = false; // Mark as existing user after saving details
     successMessage.value = "Child details saved successfully!";
     setTimeout(() => {
       successMessage.value = "";
     }, 3000);
-  }
-  catch (error) {
+  } catch (error) {
     console.error("Error saving child data:", error);
   }
 };
@@ -144,16 +197,23 @@ const toggleEditMode = (childId) => {
 };
 const updateChildData = async (child) => {
   try {
+    let imageUrl = "";
     const userDocRef = doc(db, "users", auth.currentUser.uid);
     const childDocRef = doc(userDocRef, "children", child.id);
+    const imageRef = sRef(storage, `ProfileImages/${auth.currentUser.uid}/${childName.value}-${Date.now()}`);
+    await uploadBytes(imageRef, imageFile.value);
+    imageUrl = await getDownloadURL(imageRef);
     await updateDoc(childDocRef, {
       name: child.name,
       age: child.age,
       weight: child.weight,
       height: child.height,
-      gender: child.gender
+      gender: child.gender,
+      imageUrl: imageUrl
     });
-    editModeChildId.value = null; // Exit edit mode
+    editModeChildId.value = null;
+    refreshPage()
+
   } catch (error) {
     console.error("Error updating child data:", error);
   }
@@ -166,29 +226,26 @@ function getCurrentDate() {
   const year = today.getFullYear();
   return `${year}-${month}-${day}`;
 }
+
+function refreshPage () {
+  window.location.reload();
+};
 // Fetch user data when the component is mounted
 onMounted(() => {
   fetchUserData();
 });
 
-// Function to handle logout
-const handleLogout = async () => {
-  try {
-    await signOut(auth);
-    user.value = null; // Clear the user data
-    router.push('/login'); // Redirect to the login page after logging out
-  } catch (error) {
-    console.error("Error logging out:", error);
-  }
-};
+
 </script>
 
 <template>
   <NavBar />
   <div class="profile-container" v-if="user">
     <h1>Welcome, {{ username || 'User' }}!</h1>
-
-    <!-- Form to add new child -->
+    <div v-if="profileImage" class="profile-image-container" @click="triggerFileInput">
+      <img :src="profileImage" alt="Profile Image" class="profile-image">
+      <input type="file" ref="fileInput" @change="handleImageSelection" accept="image/*" class="file-input" />
+    </div>
     <div v-if="children.length > 0">
         <h2>Your Children:</h2>
         <div v-for="child in children" :key="child.id" class="child-card">
@@ -203,6 +260,8 @@ const handleLogout = async () => {
             <div v-if="editModeChildId === child.id">
               <label class="m-1">Child's Name:</label>
               <input v-model="child.name" class="form-control" />
+              <label class="m-1">Child's Date of Birth:</label>
+              <input v-model="child.age" class="form-control" />
               <label class="m-1">Child's Weight:</label>
               <input v-model="child.weight" type="number" class="form-control" />
               <label class="m-1">Child's Height:</label>
@@ -212,19 +271,28 @@ const handleLogout = async () => {
                 <option value="male">Male</option>
                 <option value="female">Female</option>
               </select>
+              <label for="childImage">Upload Image:</label>
+              <input type="file" id="childImage" @change="handleImageUpload" class="form-control" accept="image/*" />
               <button @click="updateChildData(child)" class="btn btn-save">Save</button>
               <button @click="toggleEditMode(null)" class="btn btn-cancel">Cancel</button>
             </div>
-            <div v-else>
-              <p><strong>Date of birth:</strong> {{ child.age }} </p>
-              <p><strong>Weight:</strong> {{ child.weight }} kg</p>
-              <p><strong>Height:</strong> {{ child.height }} cm</p>
-              <p><strong>Gender:</strong> {{ child.gender }}</p>
-              <button @click="toggleEditMode(child.id)" class="btn btn-edit">Edit</button>
-              <button @click="deleteChild(child.id)" class="btn btn-delete">Delete</button>
+            <div v-else >
+              <div class="child-info-container">
+              <div class="child-info-text">
+                <p><strong>Date of birth:</strong> {{ child.age }}</p>
+                <p><strong>Weight:</strong> {{ child.weight }} kg</p>
+                <p><strong>Height:</strong> {{ child.height }} cm</p>
+                <p><strong>Gender:</strong> {{ child.gender }}</p>
+              </div>
+              <img :src="child.imageUrl" class="child-image-small" alt="Child Image" />
+            </div>
+                <button @click="toggleEditMode(child.id)" class="btn btn-edit">Edit</button>
+                <button @click="deleteChild(child.id)" class="btn btn-delete">Delete</button>
             </div>
           </div>
+          
         </div>
+        
       </div>
     <div v-if="isNewUser || children.length === 0">
       <h2>Please add your child's details:</h2>
@@ -256,21 +324,24 @@ const handleLogout = async () => {
         <div class="form-group">
           <label for="childGender">Gender:</label>
           <select v-model="childGender" id="childGender" class="form-control" required>
-            <option value="">Select Gender</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
           </select>
         </div>
 
+        <div class="form-group">
+          <label for="childImage">Upload Image:</label>
+          <input type="file" id="childImage" @change="handleImageUpload" class="form-control" accept="image/*" />
+        </div>
+
+        <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
         <button type="submit" class="btn btn-primary">Save Details</button>
       </form>
       <div v-if="successMessage" class="success-message">{{ successMessage }}</div>
     </div>
 
-    <!-- Display list of children -->
 
-
-    <button @click="handleLogout" class="btn btn-danger">Logout</button>
+  
   </div>
 </template>
 
@@ -285,6 +356,14 @@ const handleLogout = async () => {
   border-radius: 10px;
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
   text-align: center;
+}
+.profile-image {
+  border: 1px solid black;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 20px;
 }
 
 .child-details-form .form-group {
@@ -356,5 +435,55 @@ const handleLogout = async () => {
   font-size: 14px;
   margin-top: 10px;
 }
+.error-message {
+  color: red;
+  font-weight: bold;
+  margin-top: 10px;
+}
+.child-info-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.child-info-text p {
+  margin: 10px;
+  font-size: 0.9rem;
+}
+
+.child-image-small {
+  width: 100px;
+  height: auto;
+  border-radius: 8px;
+  margin: 10px;
+}
+
+.child-buttons {
+  margin-top: 10px;
+}
+
+.profile-image-container {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.profile-image {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  transition: transform 0.3s, opacity 0.3s;
+}
+
+.profile-image-container:hover .profile-image {
+  transform: scale(1.05);
+  opacity: 0.8;
+}
+
+.file-input {
+  display: none;
+}
+
 
 </style>

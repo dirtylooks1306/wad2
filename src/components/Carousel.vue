@@ -13,40 +13,20 @@
 				<div class="container">
 					<div class="row">
 						<div class="col-md-1"></div>
-						<div
-							class="col-md-5 d-flex justify-content-center align-items-center"
-						>
-							<img
-								:src="item.image"
-								class="d-block w-100 p-3"
-								:alt="item.alt"
-							/>
+						<div class="col-md-5 d-flex justify-content-center align-items-center">
+							<img :src="item.image" class="d-block w-100 p-3" :alt="item.alt" />
 						</div>
-						<div class="col-md-5 text-start mt-3">
-							<div class="text-end">
-								<button
-									type="button"
-									class="small-icon-button heart"
-									@click="toggleIcon1"
-								>
-									<img
-										:src="item.icon1"
-										:class="{ active: icon1Active }"
-									/>
-								</button>
-								<button
-									type="button"
-									class="small-icon-button bookmark"
-									@click="toggleIcon2"
-								>
-									<img
-										:src="item.icon2"
-										:class="{ active: icon2Active }"
-									/>
-								</button>
+						<div class="col-md-5 text-start mt-3 d-flex flex-column justify-content-between carousel-content">
+							<div>
+								<h3 class="carousel-title">{{ item.title }}</h3>
+								<hr class="title-divider" />
+								<p>{{ item.description }}</p>
 							</div>
-							<h3>{{ item.title }}</h3>
-							<p>{{ item.description }}</p>
+							
+							<!-- Read More button positioned at the bottom left -->
+							<button class="btn btn-primary read-more-button" @click="$emit('item-click', item.id)">
+								Read More
+							</button>
 						</div>
 						<div class="col-md-1"></div>
 					</div>
@@ -73,26 +53,7 @@
 		</button>
 	</div>
 </template>
-<style scoped>
-.carousel-item img {
-	max-width: 100%;
-	height: auto;
-}
 
-.small-icon-button img.active {
-    filter: invert(17%) sepia(100%) saturate(7496%) hue-rotate(1deg) brightness(101%) contrast(107%);
-    fill:red;
-}
-
-.small-icon-button.active {
-  background-color: black; 
-}
-
-
-.carousel-inner {
-	text-align: center;
-}
-</style>
 <script>
 export default {
 	name: "Carousel",
@@ -119,3 +80,54 @@ export default {
 	},
 };
 </script>
+
+<style scoped>
+.carousel-item img {
+	max-width: 100%;
+	height: auto;
+}
+
+/* Style for the title in Cherry Bomb font aligned left */
+.carousel-title {
+    font-family: "Cherry Bomb", sans-serif;
+    font-size: 24px;
+    color: #ff9689;
+    text-align: left;
+    margin-bottom: 10px;
+}
+
+/* Partition line below the title */
+.title-divider {
+    border-top: 4px solid #ff9689;
+    margin-bottom: 15px;
+}
+
+/* Carousel content container to align "Read More" button at bottom */
+.carousel-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Style for the Read More button as a primary blue button at the bottom */
+.read-more-button {
+    font-family: "Cherry Bomb", sans-serif;
+    font-size: 16px;
+    color: #fff;
+    align-self: flex-start;
+    margin-top: auto;
+}
+
+.small-icon-button img.active {
+    filter: invert(17%) sepia(100%) saturate(7496%) hue-rotate(1deg) brightness(101%) contrast(107%);
+    fill: red;
+}
+
+.small-icon-button.active {
+    background-color: black;
+}
+
+.carousel-inner {
+	text-align: center;
+}
+</style>

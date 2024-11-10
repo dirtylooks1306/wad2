@@ -43,7 +43,8 @@
 import { Calendar } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import { collection, addDoc, getDocs, deleteDoc, doc, db } from "../firebaseConfig";
+import { collection, addDoc, getDocs, deleteDoc, doc, db, auth } from "../firebaseConfig";
+import { onAuthStateChanged } from "firebase/auth";
 
 export default {
   name: 'CalendarComponent',
@@ -58,6 +59,7 @@ export default {
       calendar: null,
       showModal: false,
       modalMode: 'add',
+      userId: null,
       newEvent: {
         title: '',
         date: '',
@@ -114,9 +116,12 @@ export default {
         hour12: false
       }
     });
-    this.calendar.render();
-
-    this.fetchEvents();
+    onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        this.userId = currentUser.uid;
+        this.calendar.render();
+        this.fetchEvents();
+      }});
   },
   watch: {
     childId: 'fetchEvents' // Refetch events whenever childId changes
@@ -133,7 +138,7 @@ export default {
         month: 'short', 
         day: 'numeric', 
         year: 'numeric' 
-      });
+      }); 
       const formattedTime = info.event.start.toLocaleTimeString('en-US', {
         hour: '2-digit',
         minute: '2-digit',
@@ -143,7 +148,8 @@ export default {
         id: info.event.id,
         title: info.event.title,
         date: formattedDate,
-        time: formattedTime
+        time: formattedTime,
+        dismissed:false,
       };
       this.showModal = true;
     },
@@ -160,12 +166,13 @@ export default {
           title,
           start: `${date}T${startTime}`,
           end: `${date}T${endTime}`,
+          dismissed: false
         };
 
         const newCalendarEvent = this.calendar.addEvent(event);
 
         try {
-          const userEventsRef = collection(db, "users", "user2", "children", this.childId, "events");
+          const userEventsRef = collection(db, "users", this.userId, "children", this.childId, "events");
           const docRef = await addDoc(userEventsRef, event);
           newCalendarEvent.setProp('id', docRef.id);
           await this.fetchEvents();
@@ -198,7 +205,7 @@ export default {
     async deleteEvent() {
       if (this.selectedEvent && this.childId) {
         try {
-          const eventDocRef = doc(db, "users", "user2", "children", this.childId, "events", this.selectedEvent.id);
+          const eventDocRef = doc(db, "users", this.userId, "children", this.childId, "events", this.selectedEvent.id);
           await deleteDoc(eventDocRef);
           const calendarEvent = this.calendar.getEventById(this.selectedEvent.id);
           if (calendarEvent) {
@@ -212,11 +219,9 @@ export default {
     },
     async fetchEvents() {
       if (!this.childId) return;
-      
       try {
-        const userEventsRef = collection(db, "users", "user2", "children", this.childId, "events");
+        const userEventsRef = collection(db, "users", this.userId, "children", this.childId, "events");
         const querySnapshot = await getDocs(userEventsRef);
-        
         this.calendar.getEvents().forEach(event => event.remove());
         this.loadHolidays();
         querySnapshot.forEach(doc => {
@@ -257,7 +262,8 @@ export default {
         ? this.timeOptions // No start time selected, return all times
         : this.timeOptions.slice(startTimeIndex + 1); // Only times after start time
     }
-  }
+  },
+
 };
 </script>
 
@@ -273,6 +279,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  animation: fadeIn 0.3s ease;
 }
 
 .modal-content {
@@ -280,17 +287,19 @@ export default {
   padding: 20px;
   border-radius: 5px;
   max-width: 300px;
-  width: 100%;
+  width: 90%;
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 button {
-   background-color: #A3C4BC; 
-   color: #FFFFFF;
-   padding: 8px 16px;
-   margin: 3px;
-   border: none;
-   border-radius: 12px;
-   cursor: pointer;
+  background-color: #A3C4BC;
+  color: #FFFFFF;
+  padding: 6px 12px; /* Smaller padding */
+  font-size: 0.9rem; /* Smaller font size */
+  margin: 3px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
 }
 
 button:hover {
@@ -346,6 +355,19 @@ button:hover {
 ::v-deep .fc-day-sun .fc-daygrid-day-frame {
    background-color: #FFE9D6; /* Soft pastel peach for weekends */
 }
+
+::v-deep .fc-day-today .fc-daygrid-day-frame {
+    background-color: #f0cadf; /* Bright yellow background */
+    border: 2px solid #FFA500; /* Orange border for contrast */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); /* Add a shadow for depth */
+    color: #000; /* Dark text for readability */
+    font-weight: bold; /* Bold font to make the text stand out */
+}
+
+/* Optional: Add hover effect specifically for today's date */
+::v-deep .fc-day-today .fc-daygrid-day-frame:hover {
+    background-color: #e49ac3; /* Slightly darker shade on hover */
+}
 input[type="text"],
 select {
    width: 100%;
@@ -385,13 +407,12 @@ select {
 }
 @media screen and (min-width: 1400px) {
   .modal-content {
-  background: white;
-  padding: 20px;
-  border-radius: 5px;
-  max-width: 900px;
-  width: 100%;
-  font-size: 30px;
+    max-width: 900px;
+    font-size: 1.5rem;
+  }
 }
-  
+
+select{
+  font-size: 1.1rem;
 }
 </style>

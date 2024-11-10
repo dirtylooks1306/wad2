@@ -1,10 +1,10 @@
 <template>
-  <div class="post-card">
-  <!-- <div class="post-card" @click="navigateToPost"> -->
-    <div class="post-header">
-      <img :src="post.profileimage" alt="Author profile" class="profile-image" />
-      <div class="author-details">
-        <p class="author-name">{{ post.author }}</p>
+  <!-- <div class="post-card"> -->
+  <div class="post-card" @click="navigateToPost">
+    <div class="post-header" @click.stop>
+      <img :src="post.profileimage" alt="Author profile" class="profile-image" @click="navigateToProfile"/>
+      <div class="author-details" >
+        <p class="author-name" @click="navigateToProfile">{{ post.author }}</p>
         <p class="post-time">{{ timeElapsed(post.date) }}</p>
       </div>
     </div>
@@ -37,7 +37,7 @@
     <p v-else class="post-desc">{{ truncateDesc(post.desc, 400) }}</p>
 
     <!-- Modal for Full-Screen Image Browsing -->
-    <div v-if="showModal" class="modal" @click.self="closeFullScreen">
+    <div v-if="showModal" class="modal" @click.stop>
       <div class="modal-content">
         <button class="close-button" @click="closeFullScreen">✕</button>
         <div id="modalCarousel" class="carousel slide" data-bs-ride="carousel">
@@ -58,17 +58,19 @@
       </div>
     </div>
 
-    <div class="interactiveBar">
-      <span class="like-count"><button @click="likePost"><i class="fa-solid fa-thumbs-up"></i></button>{{ post.likes }}<button @click="dislikePost"><i class="fa-solid fa-thumbs-down"></i></button></span>
+    <div class="interactiveBar mt-3" @click.stop>
+        <button @click="likePost" class="interactive-buttons">👍 Like ({{ post.likes }})</button>
+        <button @click="navigateToPost" class="interactive-buttons"><i class="fa-solid fa-comments"></i> Comments</button>
+        <button @click="bookmarkPost" class="interactive-buttons">🔖 Bookmark</button>
     </div>
 
-  </div>
-
+    </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, defineProps, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { db, auth, doc, updateDoc, getDoc, arrayRemove, arrayUnion} from '../firebaseConfig.js';
 
 const props = defineProps({
   post: {
@@ -79,10 +81,42 @@ const props = defineProps({
 
 const router = useRouter();
 const showModal = ref(false);
+const user = ref(auth.currentUser);
+
+onMounted(() => {
+  adjustButtons();
+});
+
+const adjustButtons = async () => {
+  const userDocRef = doc(db, 'users', user.value.uid);
+  const userDoc = await getDoc(userDocRef);
+  const userData = userDoc.exists() ? userDoc.data() : {};
+
+  if (userData.liked && userData.liked.includes(props.post.id)) {
+    document.querySelector('.interactive-buttons:nth-child(1)').style.backgroundColor = '#FF9689';
+    document.querySelector('.interactive-buttons:nth-child(1)').style.color = 'white';
+  }
+
+  if (userData.savedPosts && userData.savedPosts.includes(props.post.id)) {
+    document.querySelector('.interactive-buttons:nth-child(3)').style.backgroundColor = '#FF9689';
+    document.querySelector('.interactive-buttons:nth-child(3)').style.color = 'white';
+  }
+}
 
 // Function to navigate to the individual forum post
 const navigateToPost = () => {
   router.push(`/forum/thread/${props.post.id}`);
+};
+
+const navigateToProfile = async () => {
+  const user = props.post.author;
+  console.log(user);
+
+  try {
+    router.push(`/forum/user/${props.post.author}`);
+  } catch (error) {
+    console.error('Error navigating to profile:', error);
+  }
 };
 
 // Function to open the full-screen image modal
@@ -135,32 +169,95 @@ const truncateDesc = (text, maxLength) => {
   return text;
 };
 
-const likePost = () => {
-  // Implement like functionality (gets document from forum collection in firebase with post.id, increments likes by 1)
+const bookmarkPost = async () => {
+  const user = auth.currentUser;
+  if (!user) return;
 
+  const userDocRef = doc(db, 'users', user.uid);
+  const postDocRef = doc(db, 'forum', props.post.id);
+
+  try {
+    // Get the current user's saved array
+    const userDoc = await getDoc(userDocRef);
+    const userData = userDoc.exists() ? userDoc.data() : {};
+    const userSaved = userData.savedPosts || [];
+
+    if (userSaved.includes(props.post.id)) {
+      // Unsave the post
+      await updateDoc(userDocRef, {
+        savedPosts: arrayRemove(props.post.id)
+      });
+      await updateDoc(postDocRef, {
+        saves: props.post.saves - 1 || 0
+      });
+      props.post.saves -= 1; // Update locally for immediate feedback
+    } else {
+      // Save the post
+      await updateDoc(userDocRef, {
+        savedPosts: arrayUnion(props.post.id)
+      });
+      await updateDoc(postDocRef, {
+        saves: props.post.saves + 1 || 1
+      });
+      props.post.saves += 1; // Update locally for immediate feedback
+    }
+  } catch (error) {
+    console.error("Error updating save status:", error);
+  }
+}
+
+const likePost = async () => {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const userDocRef = doc(db, 'users', user.uid);
+  const postDocRef = doc(db, 'forum', props.post.id);
+
+  try {
+    // Get the current user's likes array
+    const userDoc = await getDoc(userDocRef);
+    const userData = userDoc.exists() ? userDoc.data() : {};
+    const userLiked = userData.liked || [];
+
+    if (userLiked.includes(props.post.id)) {
+      // Unlike the post
+      await updateDoc(userDocRef, {
+        liked: arrayRemove(props.post.id)
+      });
+      await updateDoc(postDocRef, {
+        likes: props.post.likes - 1
+      });
+      props.post.likes -= 1; // Update locally for immediate feedback
+      adjustButtons();
+    } else {
+      // Like the post
+      await updateDoc(userDocRef, {
+        liked: arrayUnion(props.post.id)
+      });
+      await updateDoc(postDocRef, {
+        likes: props.post.likes + 1
+      });
+      props.post.likes += 1; // Update locally for immediate feedback
+      adjustButtons();
+  } 
+  }catch (error) {
+    console.error("Error updating like status:", error);
+  }
 };
 
-const dislikePost = () => {
-  // Implement dislike functionality (gets document from forum collection in firebase wit)
-};
 </script>
 
 <style scoped>
+/* Interactive Bar Styling */
 .interactiveBar {
   display: flex;
   gap: 10px;
-  flex-wrap: wrap; /* Allows buttons to wrap on smaller screens */
-  justify-content: center; /* Center the buttons on smaller screens */
 }
 
 .interactive-buttons {
   background-color: transparent;
   border: #ff6e61 solid 1px;
   color: black;
-  font-size: 1rem;
-  padding: 10px 15px;
-  border-radius: 5px;
-  transition: all 0.2s ease;
 }
 
 .interactive-buttons:hover {
@@ -172,28 +269,13 @@ const dislikePost = () => {
   background-color: #FF9689;
 }
 
-/* Responsive adjustments for smaller screens */
-@media (max-width: 768px) {
-  .interactive-buttons {
-    font-size: 0.9rem; /* Slightly smaller font size */
-    padding: 8px 12px; /* Smaller padding */
-    flex: 1 1 100%; /* Make buttons take full width if they wrap */
-    max-width: 150px; /* Limit max width to keep buttons manageable */
-  }
-
-  .interactiveBar {
-    gap: 5px; /* Reduce the gap between buttons */
-    justify-content: space-around; /* Evenly distribute buttons in smaller screens */
-  }
-}
-
 .post-card {
-  max-width: 600px; /* Set a maximum width for the card */
+  max-width: 650px; /* Set a maximum width for the card */
   margin: 15px auto; /* Center the card horizontally */
   padding: 15px;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  background-color: #D9C5B2;
+  background-color: #EED4D4;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   position: relative;
   cursor: pointer;
@@ -324,6 +406,7 @@ const dislikePost = () => {
   color: #000;
   font-size: 24px;
   cursor: pointer;
+  z-index: 999;
 }
 
 @media (max-width: 768px) {
@@ -337,4 +420,14 @@ const dislikePost = () => {
   }
 }
 
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+}
 </style>

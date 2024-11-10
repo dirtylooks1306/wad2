@@ -73,12 +73,20 @@ const handleRegister = async () => {
 
   try {
     // Create the user with email and password
+    const usersCollection = collection(db, "users");
+    const usersSnapshot = await getDocs(usersCollection);
+    const isFirstUser = usersSnapshot.empty;
     const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value);
 
+
+    const role = isFirstUser ? "admin" : "user";
     // Create a user document in the "users" collection with the username as the field
     await setDoc(doc(db, "users", userCredential.user.uid), {
       username: username.value,
       email: email.value, // Optionally store the email in the document as well
+      role: role,
+      isFirstLogin: true,
+      profileimage: "https://firebasestorage.googleapis.com/v0/b/cradlecare-5870f.appspot.com/o/ProfileImages%2FRosenSG.png?alt=media&token=7b56b776-850e-4ab3-b022-54a9286d540f"
     });
 
     successMessage.value = "Registration successful! Redirecting...";

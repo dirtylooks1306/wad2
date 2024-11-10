@@ -207,7 +207,6 @@ watch(
 
 
 <style>
-/* Toggle Button Styles */
 .sidebar-toggle {
     background-color: #333;
     color: #fff;
@@ -216,7 +215,7 @@ watch(
     cursor: pointer;
     font-size: 18px;
     border-radius: 8px;
-    transition: background-color 0.3s ease, transform 0.2s ease;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -227,18 +226,26 @@ watch(
     transform: scale(1.05);
 }
 
-/* Sidebar Styles */
-.sidebar {
-    width: 100%;
-    padding: 15px;
-    background-color: #edcfb4;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    margin-top: 8px;
-    animation: fadeIn 0.5s ease-out;
+.sidebar-toggle:active {
+    transform: scale(0.95);
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Sidebar Header Styles */
+.sidebar {
+    width: 100%;
+    padding: 20px;
+    background-color: #edcfb4;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    margin-top: 15px;
+    animation: fadeIn 0.5s ease-out;
+    transition: box-shadow 0.3s ease;
+}
+
+.sidebar:hover {
+    box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.15);
+}
+
 .sidebar h2 {
     color: #333;
     font-size: 24px;
@@ -247,24 +254,24 @@ watch(
     border-bottom: 2px solid #a3c4bc;
     padding-bottom: 10px;
     text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
-/* Vaccine Section Styling */
 .vaccine {
     background-color: #ffffff;
     padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+    box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.05);
     margin-bottom: 20px;
-    transition: box-shadow 0.3s ease;
+    transition: box-shadow 0.3s ease, transform 0.2s ease;
     border-left: 5px solid #a3c4bc;
 }
 
 .vaccine:hover {
-    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
 }
 
-/* Vaccine Header */
 .vaccine h3 {
     color: #333;
     font-size: 20px;
@@ -273,7 +280,6 @@ watch(
     padding-bottom: 5px;
 }
 
-/* Doses List */
 ul {
     list-style: none;
     padding: 0;
@@ -283,9 +289,9 @@ li {
     margin: 0.7rem 0;
     display: flex;
     align-items: center;
+    gap: 10px;
 }
 
-/* Checkbox Styling */
 input[type="checkbox"] {
     appearance: none;
     width: 20px;
@@ -293,7 +299,7 @@ input[type="checkbox"] {
     margin-right: 10px;
     border: 2px solid #ddd;
     border-radius: 4px;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
     cursor: pointer;
     position: relative;
 }
@@ -304,14 +310,14 @@ input[type="checkbox"]:checked {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M20.292 5.292a1 1 0 0 1 1.415 1.415l-12 12a1 1 0 0 1-1.415 0l-6-6a1 1 0 1 1 1.415-1.415L8.293 16.293l11.292-11.001z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: center;
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.15);
 }
 
-/* Checkbox Hover Effect */
 input[type="checkbox"]:hover {
     border-color: #a3c4bc;
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* Label Styling */
 label {
     font-size: 16px;
     color: #333;
@@ -319,4 +325,10 @@ label {
     align-items: center;
     gap: 10px;
 }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 </style>

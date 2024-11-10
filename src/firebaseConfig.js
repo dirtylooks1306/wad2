@@ -1,9 +1,9 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword , sendPasswordResetEmail, signOut} from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js';
-import { getFirestore, collection, addDoc, doc, setDoc, getDoc, updateDoc, deleteDoc, getDocs, query, where,onSnapshot  } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
-import { getStorage, ref, uploadBytesResumable, getDownloadURL, uploadBytes } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-storage.js";
-// import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { getFirestore, collection, addDoc, doc, setDoc, getDoc, updateDoc, deleteDoc, getDocs, query, where,onSnapshot, arrayRemove, arrayUnion, orderBy, Timestamp, limit, writeBatch } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
+import { getStorage, ref, uploadBytesResumable, getDownloadURL, uploadBytes, listAll, deleteObject } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-storage.js";
+
 // import { getAnalytics } from "firebase/analytics";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -37,19 +37,27 @@ export {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
   signOut,
+  arrayRemove,
   collection,
   doc,
   setDoc,
   getDoc,
   updateDoc,
+  arrayUnion,
   deleteDoc,
   getDocs,
   query,
   where,
+  listAll,
+  deleteObject,
   ref,
   uploadBytesResumable,
   uploadBytes,
   getDownloadURL,
   onSnapshot,
-  addDoc
+  addDoc,
+  orderBy,
+  Timestamp,
+  limit,
+  writeBatch
 };

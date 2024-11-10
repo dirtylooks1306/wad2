@@ -1,32 +1,47 @@
 <template>
-    <div class="thread-post-container">
-      <h2>{{ thread.title }}</h2>
-      <div class="thread-details">
-        <p class="thread-desc">{{ thread.desc }}</p>
-        <p class="thread-meta">Posted by {{ thread.author }} on {{ thread.date }}</p>
-      </div>
-  
-      <h3>Comments</h3>
-      <div v-if="loading" class="loading-message">Loading comments...</div>
-      <div v-else-if="comments.length === 0" class="no-comments-message">No comments yet. Be the first to comment!</div>
-      <div v-else class="comments-list">
-        <div v-for="comment in comments" :key="comment.id" class="comment-card">
-          <p><strong>{{ comment.author }}</strong>:</p>
-          <p>{{ comment.text }}</p>
-          <p class="comment-meta">{{ comment.date }}</p>
+  <navBar />
+  <ForumSidebar />
+  <div class="post-thread-container container">
+    <div class="post-content p-4 rounded shadow-sm position-relative">
+      <!-- Edit Button (Visible only to the author) -->
+      <button v-if="isAuthor" @click="goToEditPage" class="edit-button position-absolute top-0 end-0 m-2">
+        <i class="fa-solid fa-edit"></i> Edit
+      </button>
+      
+      <!-- Author Section -->
+      <div class="author-info d-flex align-items-center mb-3">
+        <img :src="post.profileimage" alt="Author profile" class="author-avatar" />
+        <div class="author-details ms-3">
+          <h5 class="author-name mb-0">{{ post.author }}</h5>
+          <small class="text-muted">{{ formattedDate }}</small>
         </div>
       </div>
-  
-      <div class="add-comment">
-        <h4>Add a Comment</h4>
-        <form @submit.prevent="submitComment">
-          <textarea
-            v-model="newComment"
-            placeholder="Write your comment here"
-            required
-          ></textarea>
-          <button type="submit" class="submit-button">Submit Comment</button>
-        </form>
+
+      <!-- Post Content -->
+      <h2 class="post-title">{{ post.title }}</h2>
+      <p class="post-description">{{ post.desc }}</p>
+
+      <!-- Carousel for Media -->
+      <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel" v-if="post.media && post.media.length">
+        <div class="carousel-inner">
+          <div v-for="(image, index) in post.media" :key="index" :class="['carousel-item', { active: index === 0 }]">
+            <img :src="image" class="d-block w-100 carousel-image" :alt="'Image ' + (index + 1)" />
+          </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Next</span>
+        </button>
+      </div>
+
+      <!-- Post Actions -->
+      <div class="post-actions mt-3 d-flex align-items-center">
+        <button class="btn btn-outline-primary me-2" @click="likePost">👍 Like ({{ post.likes }})</button>
+        <button class="btn btn-outline-secondary" @click="bookmarkPost">🔖 Bookmark</button>
       </div>
     </div>
 
@@ -39,7 +54,7 @@ import NavBar from "../components/navBar.vue";
 import ForumSidebar from '../components/forumsideBar.vue';
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { db, doc, getDoc, auth, updateDoc  } from '../firebaseConfig.js';
+import { db, doc, getDoc, auth } from '../firebaseConfig.js';
 import CommentSection from '../components/Comments.vue';
 
 const route = useRoute();
@@ -100,21 +115,6 @@ const loadCurrentUser = async () => {
         currentUser.value = user;
         currentUsername.value = userDoc.data().username;
         console.log("Current user data:", currentUser.value);
-    // Add postId into recentlyViewed array if it's not already there. Ensure that the array is not more than 10 items.
-    if (userDoc.data().recentlyViewed) {
-      let recentlyViewed = [...userDoc.data().recentlyViewed]; // Make a copy of the array
-      if (!recentlyViewed.includes(postId)) {
-        // Limit array to 10 items
-        if (recentlyViewed.length >= 10) {
-          recentlyViewed.pop(); // Remove the oldest item
-        }
-        recentlyViewed.unshift(postId); // Add new item to the front
-        await updateDoc(userDocRef, { recentlyViewed }); // Update Firestore
-      }
-    } else {
-      await updateDoc(userDocRef, { recentlyViewed: [postId] }); // Initialize recentlyViewed array
-    }
-
       } else {
         console.error("User document not found.");
       }

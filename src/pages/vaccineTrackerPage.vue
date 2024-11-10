@@ -2,20 +2,27 @@
 import { onAuthStateChanged } from "firebase/auth";
 import { ref, onMounted, watch } from "vue";
 import { db, auth, collection, getDocs, doc } from "../firebaseConfig";
-import NavBar from "../components/NavBar.vue";
+import NavBar from "../components/navBar.vue";
 import CustomHeader from "../components/CustomHeader.vue";
 import CalendarComponent from "../components/Calendar.vue";
 import VaccineCheckList from "../components/VaccineCheckList.vue";
+import ChatBot from "../components/ChatBot.vue";
 
 const children = ref([]);
 const isNewUser = ref(false);
 const selectedChildId = ref(null); // Selected child ID
 const vaccineRecords = ref({});
-
+const currentUserValue = ref(null);
+const defaultQuestions = ref([
+  "Are vaccines linked to autism or other developmental disorders?",
+  "Is it safe for my baby to get multiple vaccines at once?",
+  "What vaccines does my 2 month-old baby need and when?",
+]);
 // Fetch user data including children
 const fetchUserData = async (currentUser) => {
   if (currentUser) {
     try {
+      currentUserValue.value = currentUser.uid;
       const childrenCollectionRef = collection(db, "users", currentUser.uid, "children");
       const childrenSnapshot = await getDocs(childrenCollectionRef);
       children.value = childrenSnapshot.docs.map((doc) => ({
@@ -66,7 +73,7 @@ onMounted(() => {
   <div class="row">
     <!-- Dropdown for selecting a child -->
     <div class="col-12 mb-4 d-flex justify-content-center">
-      <div class="dropdown-container">
+      <div class="dropdown-container mt-3">
         <label for="childSelect" class="dropdown-label">Select Child:</label>
         <select v-model="selectedChildId" id="childSelect" class="form-control dropdown-select">
           <option v-for="child in children" :key="child.id" :value="child.id">
@@ -91,7 +98,10 @@ onMounted(() => {
         <CalendarComponent :childId="selectedChildId"/>
       </div>
     </div>
+
+    <ChatBot :userId="currentUserValue" :defaultQuestions="defaultQuestions"/>
   </div>
+
 </template>
 
 <style scoped>
@@ -112,25 +122,25 @@ onMounted(() => {
 }
 
 .dropdown-container {
-  max-width: 400px; /* Wider dropdown */
-  width: 100%;
   display: flex;
-  flex-direction: column;
   align-items: center;
+  gap: 10px; 
+  max-width: 400px;
+  width: 100%;
 }
 
 .dropdown-label {
-  font-weight: bold;
-  font-size: 18px;
+  font-size: 1rem; 
   color: #333;
-  margin-bottom: 10px;
+  margin: 0; 
+  white-space: nowrap;
 }
 
 .dropdown-select {
   width: 100%;
   padding: 12px;
   font-size: 18px;
-  font-weight: bold; /* Bolder font for dropdown text */
+  font-weight: bold; 
   border-radius: 10px;
   border: 2px solid #a3c4bc;
   background-color: #f0f4f8;
@@ -155,5 +165,8 @@ onMounted(() => {
   margin-top: 8px;
   text-align: center;
 }
+
+
+
 
 </style>
