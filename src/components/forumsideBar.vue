@@ -113,7 +113,7 @@ export default {
   position: relative;
   width: 16px;
   height: 2px;
-  background: var(--forumbar-dark-primary);
+  background: #EED4D4;
   border-radius: 99px;
   transition: background 0.2s;
 }
@@ -139,8 +139,8 @@ export default {
   position: relative;
   flex: 1;
   width: var(--forumbar-width);
-  background: var(--forumbar-dark-primary);
-  box-shadow: 0 0 0 16px var(--forumbar-dark-primary);
+  background: #EED4D4;
+  box-shadow: 0 0 0 16px var(#EED4D4);
   direction: rtl;
   overflow-x: hidden;
   transition: width 0.2s;
@@ -160,7 +160,7 @@ export default {
   top: -70px;
   width: calc(100% - 16px);
   height: 54px;
-  background: var(--background);
+  background: var(--forumbar-dark-secondary);
   background-attachment: fixed;
   border-radius: 16px 0 0 16px;
   transition: top 0.2s;
@@ -186,7 +186,6 @@ export default {
   height: 54px;
   display: flex;
   align-items: center;
-  color: var(--forumbar-light-secondary);
   direction: ltr;
   cursor: pointer;
   z-index: 1;
@@ -199,31 +198,31 @@ export default {
   transition: min-width 0.2s;
 }
 .forum-button:nth-of-type(1):hover {
-  color: var(--forumbar-dark-primary);
+  color: var(--forumbar-light-secondary);
 }
 .forum-button:nth-of-type(1):hover ~ #forum-content-highlight {
   top: 16px;
 }
 .forum-button:nth-of-type(2):hover {
-  color: var(--forumbar-dark-primary);
+  color: var(--forumbar-light-secondary);
 }
 .forum-button:nth-of-type(2):hover ~ #forum-content-highlight {
   top: 70px;
 }
 .forum-button:nth-of-type(3):hover {
-  color: var(--forumbar-dark-primary);
+  color: var(--forumbar-light-secondary);
 }
 .forum-button:nth-of-type(3):hover ~ #forum-content-highlight {
   top: 124px;
 }
 .forum-button:nth-of-type(4):hover {
-  color: var(--forumbar-dark-primary);
+  color: var(--forumbar-light-secondary);
 }
 .forum-button:nth-of-type(4):hover ~ #forum-content-highlight {
   top: 178px;
 }
 .forum-button:nth-of-type(5):hover {
-  color: var(--forumbar-dark-primary);
+  color: var(--forumbar-light-secondary);
 }
 .forum-button:nth-of-type(5):hover ~ #forum-content-highlight {
   top: 232px;
@@ -399,7 +398,6 @@ label[for=forum-footer-toggle] {
   left: 16px;
   width: calc(var(--forumbar-width) - 16px);
   min-height: 80px;
-  background: var(--forumbar-dark-primary);
   border-radius: 16px;
   z-index: 2;
   display: flex;

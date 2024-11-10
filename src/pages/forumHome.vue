@@ -63,39 +63,73 @@ onMounted(() => {
 .forum-home-container {
   display: flex;
   flex-direction: column;
+  align-items: center; /* Center align everything on small screens */
 }
 
 .forum-layout {
   display: flex;
+  width: 100%; /* Ensure it takes full width */
+  max-width: 1200px; /* Add max-width for larger screens */
+  margin: 0 auto; /* Center align the layout on larger screens */
 }
 
 .forum-content {
   flex-grow: 1;
   padding: 20px;
   border-radius: 8px;
-  margin-left: 280px;
-  transition: margin-left 0.3s ease-in-out;
-  display: flex;
-  justify-content: center;
+  max-width: 800px;
 }
 
-.forum-cards-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  max-width: 800px; /* Adjust max-width to fit your design */
+/* Adjustments for the left sidebar */
+.forum-content {
+  margin-left: 280px; /* Leave space for left sidebar on larger screens */
 }
 
-.forum-card-wrapper {
-  width: 100%;
-  margin-bottom: 20px; /* Add space between cards */
-}
-
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .forum-content {
-    margin-left: 90px;
+    margin-left: 0; /* Remove left margin on medium screens */
+  }
+
+  .right-sidebar {
+    display: none; /* Hide right sidebar on smaller screens */
+  }
+}
+
+/* Make adjustments for screens smaller than 767px */
+@media (max-width: 767px) {
+  .forum-layout {
+    flex-direction: column; /* Stack elements vertically */
+  }
+
+  /* Hide the left sidebar on smaller screens */
+  .ForumSidebar {
+    display: none; /* Hide sidebar */
+  }
+
+  /* Adjust the main content area for mobile */
+  .forum-content {
+    margin-left: 0;
     padding: 10px;
+    width: 100%; /* Take full width */
+  }
+
+  /* Adjust forum cards */
+  .forum-cards-container {
+    width: 100%;
+    padding: 10px;
+  }
+
+  /* Stack interactive buttons vertically on mobile */
+  .interactiveBar {
+    flex-direction: column;
+    gap: 5px; /* Reduce gap for mobile */
+  }
+
+  .interactive-buttons {
+    font-size: 0.9rem; /* Smaller font for mobile */
+    padding: 8px 12px; /* Smaller padding for mobile */
+    width: 100%; /* Make buttons full width */
+    max-width: 200px; /* Limit max width */
   }
 }
 </style>

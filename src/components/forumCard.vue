@@ -148,10 +148,45 @@ const dislikePost = () => {
 <style scoped>
 .interactiveBar {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 10px;
+  gap: 10px;
+  flex-wrap: wrap; /* Allows buttons to wrap on smaller screens */
+  justify-content: center; /* Center the buttons on smaller screens */
 }
+
+.interactive-buttons {
+  background-color: transparent;
+  border: #ff6e61 solid 1px;
+  color: black;
+  font-size: 1rem;
+  padding: 10px 15px;
+  border-radius: 5px;
+  transition: all 0.2s ease;
+}
+
+.interactive-buttons:hover {
+  background-color: #FF9689;
+  color: white;
+}
+
+.interactive-buttons:active {
+  background-color: #FF9689;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+  .interactive-buttons {
+    font-size: 0.9rem; /* Slightly smaller font size */
+    padding: 8px 12px; /* Smaller padding */
+    flex: 1 1 100%; /* Make buttons take full width if they wrap */
+    max-width: 150px; /* Limit max width to keep buttons manageable */
+  }
+
+  .interactiveBar {
+    gap: 5px; /* Reduce the gap between buttons */
+    justify-content: space-around; /* Evenly distribute buttons in smaller screens */
+  }
+}
+
 .post-card {
   max-width: 600px; /* Set a maximum width for the card */
   margin: 15px auto; /* Center the card horizontally */
@@ -180,6 +215,17 @@ const dislikePost = () => {
   object-fit: contain;
   width: 100%;
   height: auto;
+}
+
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
 }
 
 /* Responsive adjustments */
@@ -291,26 +337,4 @@ const dislikePost = () => {
   }
 }
 
-.close-button {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: transparent;
-  border: none;
-  color: #fff;
-  font-size: 24px;
-  cursor: pointer;
-}
-
-.read-more {
-  display: inline-block;
-  margin-top: 10px;
-  color: #007bff;
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.read-more:hover {
-  text-decoration: underline;
-}
 </style>

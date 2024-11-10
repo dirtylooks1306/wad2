@@ -35,7 +35,7 @@
           </div>
         </div>
       </div>
-      <button type="submit" class="submit-button">Submit Post</button>
+      <button type="submit" style="background-color: #ff6e61;" class="w-100 submit-button">Submit Post</button>
     </form>
     <p v-if="submissionMessage" class="submission-message">{{ submissionMessage }}</p>
   </div>
