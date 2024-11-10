@@ -137,7 +137,7 @@ export default {
     toggleEdit(entry, index) {
       this.isEditing = !this.isEditing;
       if (this.isEditing) {
-        // Clone `front` data into `editData` for editing
+        // Set initial form fields of editing page to the current entry
         this.editData = entry;
         this.entryIndex = index;  // Save the index of the entry being edited
       } else {
