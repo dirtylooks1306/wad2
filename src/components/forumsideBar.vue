@@ -195,35 +195,10 @@ export default {
 .forum-button .fas {
   transition: min-width 0.2s;
 }
-.forum-button:nth-of-type(1):hover {
-  color: var(--forumbar-dark-secondary);
-}
-.forum-button:nth-of-type(1):hover ~ #forum-content-highlight {
-  top: 16px;
-}
-.forum-button:nth-of-type(2):hover {
-  color: var(--forumbar-dark-secondary);
-}
-.forum-button:nth-of-type(2):hover ~ #forum-content-highlight {
-  top: 70px;
-}
-.forum-button:nth-of-type(3):hover {
-  color: var(--forumbar-dark-secondary);
-}
-.forum-button:nth-of-type(3):hover ~ #forum-content-highlight {
-  top: 124px;
-}
-.forum-button:nth-of-type(4):hover {
-  color: var(--forumbar-dark-secondary);
-}
-.forum-button:nth-of-type(4):hover ~ #forum-content-highlight {
-  top: 178px;
-}
-.forum-button:nth-of-type(5):hover {
-  color: var(--forumbar-dark-secondary);
-}
-.forum-button:nth-of-type(5):hover ~ #forum-content-highlight {
-  top: 232px;
+.forum-button:hover {
+  background-color: #ff9689;
+  border-radius: 10px 10px 10px 10px;
+  color: #ffffff;
 }
 
 #forum-bar .fas {

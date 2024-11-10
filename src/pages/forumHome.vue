@@ -16,7 +16,7 @@
       </div>
 
       <!-- Right Sidebar -->
-      <ForumRightbar v-show="isSidebarVisible" />
+      <!-- <ForumRightbar v-show="isSidebarVisible" /> -->
     </div>
   </div>
   <ToTop />
