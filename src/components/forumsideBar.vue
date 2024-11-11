@@ -2,7 +2,7 @@
   <div id="forum-bar" :class="{ 'mobile-view': isMobileView }">
     <input id="forum-toggle" type="checkbox" />
     <div id="forum-header"><a id="forum-title">Forum</a>
-      <label for="forum-toggle"><i :class="iconClass" @click="toggleIcon"></i> </label>
+      <label for="forum-toggle"><i class="fa-solid fa-bars"></i> </label>
       <hr />
     </div>
     <div id="forum-content">
@@ -359,7 +359,7 @@ label[for=forum-footer-toggle] {
   left: 1vw;
   top: 1vw;
   z-index: 999;
-  height: calc(80% - 1vw);
+  height: 600px;
   background: #EED4D4;
   border-radius: 16px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
@@ -370,6 +370,63 @@ label[for=forum-footer-toggle] {
   overflow: hidden;
   user-select: none;
   transition: height 0.3s ease; /* Smooth transition */
+}
+@media  (max-width: 767px) {
+  #forum-header{
+    visibility: hidden;
+  }
+  #forum-footer-titlebox{
+    visibility: hidden;
+  }
+  #forum-footer-avatar {
+    position: relative;
+
+    left: 8px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    overflow: hidden;
+    transform: translate(0);
+    transition: 0.2s;
+  }
+  #forum-footer-heading{
+    position: relative;
+    width: 80px;
+    height: 54px;
+    display: flex;
+    align-items: center;
+  }
+  #forum-bar {
+  width: 80px;
+  position: fixed;
+  margin-top: 100px;
+  left: 1vw;
+  top: 1vw;
+  z-index: 999;
+  height: 450px;
+  background: #EED4D4;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  color: var(--forumbar-light-primary);
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  overflow: hidden;
+  user-select: none;
+  transition: height 0.3s ease; /* Smooth transition */
+}
+#forum-content {
+  margin: -16px 0;
+  padding: 16px 0;
+  position: relative;
+  flex: 1;
+  width: 80%;
+  background: #EED4D4;
+  box-shadow: 0 0 0 16px var(#EED4D4);
+  direction: rtl;
+  overflow-x: hidden;
+  transition: width 0.2s;
+}
 }
 
 #forum-bar hr {

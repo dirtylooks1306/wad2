@@ -145,15 +145,6 @@ onMounted(() => {
     { threshold: 0.1 }
   );
 
-  const forumContent = document.querySelector('.forum-content');
-  if (forumContent) {
-    observer.observe(forumContent);
-  }
-
-  // Adjust visibility on resize
-  window.addEventListener('resize', () => {
-    isSidebarVisible.value = window.innerWidth > 767;
-  });
 });
 </script>
 
@@ -199,16 +190,8 @@ onMounted(() => {
   pointer-events: none;
 }
 
-@media (max-width: 767px) {
-  .forum-content {
-    margin-left: 90px;
-    padding: 10px;
-  }
 
-  .right-sidebar {
-    display: none;
-  }
-}
+
 
 .forum-home-container {
   display: flex;
@@ -224,7 +207,6 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   width: 100%;
-  max-width: 800px;
 }
 
 .forum-card-wrapper {
@@ -263,9 +245,16 @@ onMounted(() => {
   padding: 20px;
   border-radius: 8px;
   margin-left: 280px; /* Adjust for left sidebar */
-  max-width: 800px; /* Keep content width controlled */
 }
-
+@media (max-width: 778px){
+  .forum-content {
+  flex-grow: 1;
+  padding: 20px;
+  border-radius: 8px;
+  margin-left: 80px; /* Adjust for left sidebar */
+  margin-right: 10px;
+}
+}
 .forum-cards-container {
   display: flex;
   flex-direction: column;
