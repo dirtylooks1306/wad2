@@ -116,7 +116,7 @@ const createChartWeight = () => {
 		},
 		options: {
 			responsive: true,
-			maintainAspectRatio: true, // Allows the chart to fill its container
+			maintainAspectRatio: false, // Allows the chart to fill its container
 			plugins: {
 				legend: {
 					position: "top",
@@ -363,7 +363,7 @@ watch(
 	}
 
 	.chart-container {
-		max-height: 400px;
+		height: auto;
 	}
 
 	.desktop-tabs {

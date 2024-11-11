@@ -162,7 +162,7 @@
 		</div>
       </div>
         <div class="col-md-1"></div>
-      </div>
+      	</div>
 
 			</div>
 		</div>
@@ -360,5 +360,25 @@ thead {
 	justify-content: center;
 	align-items: center;
 	flex-direction: column; /* Stack items vertically */
+}
+@media (max-width: 768px) {
+  .table-container {
+    overflow-x: auto; /* Allows horizontal scrolling */
+  }
+
+  .table-container table {
+    min-width: 600px; /* Ensure table has a minimum width for better readability */
+  }
+
+  .table-container th,
+  .table-container td {
+    white-space: nowrap; /* Prevent text from wrapping */
+  }
+  .table-container th,
+.table-container td {
+  padding: 10px;
+  text-align: right;
+  white-space: nowrap; /* Prevent text wrapping in cells */
+}
 }
 </style>
