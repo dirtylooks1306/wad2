@@ -414,9 +414,10 @@ onMounted(() => {
 </script>
 
 <style scoped>
-li{
-	font-family: "Comic Sans MS", "Comic Sans", cursive;
+@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap');
 
+li{
+	font-family: 'Comic Neue', sans-serif;
 }
 #belownavBar {
 	height: 80px;
@@ -555,6 +556,8 @@ li{
 }
 .dropdown-menu-end{
 	width:250px;
+	right:0;
+	left:auto;
 } 
 .profile{
 	width: 150px !important;
