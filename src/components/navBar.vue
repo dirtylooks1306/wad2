@@ -175,18 +175,18 @@
 						>
 					</li>
 					<li class="nav-item d-lg-none" v-else>
-						<router-link to="/profile" class="nav-link">
+						<!-- <router-link to="/profile" class="nav-link">
 							<img
 								src="../assets/icons/profile.png"
 								class="profile-icon"
 							/>
-						</router-link>
+						</router-link> -->
 					</li>
 				</ul>
 			</div>
 
-			<div class="d-none d-lg-flex ms-auto align-items-center">
-				<div class="dropdown me-3 position-relative">
+			<div class="d-flex ms-auto align-items-center">
+				<div class="d-flex align-items-center dropdown me-3 position-relative">
 					<font-awesome-icon
 						:icon="['fas', 'bell']"
 						class="notification-bell"
@@ -414,9 +414,9 @@ onMounted(() => {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2&display=swap');
 li{
-	font-family: 'Baloo 2', sans-serif;
+	font-family: "Comic Sans MS", "Comic Sans", cursive;
+
 }
 #belownavBar {
 	height: 80px;
@@ -430,6 +430,7 @@ li{
 	width: 100%;
 	z-index: 1000;
 }
+
 
 .nav-logo {
 	max-height: 50px;
