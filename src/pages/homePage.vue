@@ -52,6 +52,28 @@
       <div class="col-md-1"></div>
     </div>
   </div>
+  <div class="container-fluid secondary-background p-3">
+    <CustomHeader header="Vaccine Tracker" />
+    <div class="row align-items-center">
+      <div class="col-md-1"></div>
+      <div class="col-md-5 d-flex justify-content-center align-items-center">
+        <img src="../assets/calender-homepage.jpg" class="d-block p-3 carousel-image" />
+      </div>
+      <div class="col-md-5 text-start mt-3 d-flex flex-column justify-content-between carousel-content">
+        <div>
+          <h3 class="carousel-title">Your Baby's Vaccine Schedule, Simplified</h3>
+          <hr class="title-divider" />
+          <p>Stay on track with your baby's vaccinations—never miss a dose!</p>
+        </div>
+        
+        <router-link to="/vaccinetracker">
+          <button class="btn btn-primary read-more-button">Vaccine Tracker</button>
+        </router-link>
+      </div>
+      
+      <div class="col-md-1"></div>
+    </div>
+  </div>
 
   <!-- Remaining sections unchanged -->
 
@@ -136,7 +158,7 @@ const goToArticleDetails = (itemId) => {
 .secondary-background {
   background-color: #eed4d4;
   width: 100%;
-  display: flex;
+  /* display: flex; */
 }
 
 h2{
@@ -169,7 +191,7 @@ h2{
 }
 .carousel-image {
   width: 100%;
-  max-width: 600px !important;
+  max-width: 500px !important;
   height: auto;
 }
 .carousel-title {
@@ -236,5 +258,8 @@ h2{
     max-width: 200px;
   }
 }
-
+img {
+  object-fit: cover; 
+  border-radius: 8px;
+}
 </style>
