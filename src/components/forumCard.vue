@@ -34,18 +34,18 @@
     <div class="post-actions mt-3 d-flex align-items-center">
       <div class="action-buttons d-flex">
         <button @click.stop="likePost" :class="['interactive-buttons me-2', { active: liked }]">
-          <i class="fa-solid fa-thumbs-up"></i> {{ post.likes || 0 }}
+          <i class="fa-solid fa-thumbs-up"></i> &nbsp;{{ post.likes || 0 }}
         </button>
         <button @click.stop="dislikePost" :class="['interactive-buttons me-2', { active: disliked }]">
-          <i class="fa-solid fa-thumbs-down"></i> {{ post.dislikes || 0 }}
+          <i class="fa-solid fa-thumbs-down "></i> &nbsp;{{ post.dislikes || 0 }}
         </button>
         <button @click.stop="openComments" class="interactive-buttons me-2">
-          <i class="fa-solid fa-comments"></i> {{ commentCount || 0 }}
+          <i class="fa-solid fa-comments"></i> &nbsp;{{ commentCount || 0 }}
         </button>
       </div>
       
       <!-- Bookmark button on the far right -->
-      <button @click.stop="bookmarkPost" :class="['interactive-buttons', { active: bookmarked }]">
+      <button @click.stop="bookmarkPost" id="bookmark" :class="['interactive-buttons', { active: bookmarked }]">
         <i class="fa-solid fa-bookmark"></i>
       </button>
     </div>
@@ -346,6 +346,53 @@ const dislikePost = async () => {
     max-height: 100%;
   }
 }
+@media (max-width: 460px) {
+  .post-actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between; /* Equal spacing between buttons */
+    align-items: center;
+    width: 100%;
+    gap: 0; /* Remove extra gaps between buttons */
+  }
+
+  .interactive-buttons {
+    flex: 1; /* Makes each button take equal space */
+    padding: 8px; /* Compact padding */
+    font-size: 0.85rem; /* Adjust font size for mobile */
+    text-align: center;
+    white-space: nowrap; /* Prevent text wrapping */
+    overflow: hidden; /* Hide overflow text */
+    text-overflow: ellipsis; /* Truncate text with ellipses */
+    max-width: 60px; /* Set max width to keep buttons compact */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* Hide text inside the buttons except the icons */
+  .interactive-buttons span {
+    display: none; /* Hide any text within the button */
+  }
+
+  .interactive-buttons i {
+    font-size: 1.2em; /* Make icon slightly larger for better visibility */
+    margin: 0; /* Remove margin around icon */
+  }
+
+  /* Adjust for the bookmark button specifically */
+  .interactive-buttons.bookmark {
+    max-width: 40px; /* Make the bookmark button smaller */
+    padding: 8px; /* Match padding with other buttons */
+  }
+  #bookmark{
+    width:42.21px;
+    margin: 17px;
+    padding: 11px 19px;
+  }
+}
+
+
 
 .post-header {
   display: flex;
