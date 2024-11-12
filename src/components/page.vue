@@ -140,6 +140,12 @@ export default {
         // Set initial form fields of editing page to the current entry
         this.editData = entry;
         this.entryIndex = index;  // Save the index of the entry being edited
+        if (this.editData.date) {
+          this.editData.date = new Date(this.editData.date);
+          const formattedDate = this.editData.date.toLocaleDateString('en-GB');
+          const [day, month, year] = formattedDate.split('/');
+          this.editData.date = `${year}-${month}-${day}`;
+        }
       } else {
         this.entryIndex = null;  // Reset the index when not editing
       }
