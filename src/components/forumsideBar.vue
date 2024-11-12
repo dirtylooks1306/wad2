@@ -197,7 +197,7 @@ export default {
 
 .forum-button {
   position: relative;
-  margin-left: 16px;
+  margin-left: 10px;
   height: 54px;
   display: flex;
   align-items: center;
@@ -381,7 +381,7 @@ label[for=forum-footer-toggle] {
   #forum-footer-avatar {
     position: relative;
 
-    left: 8px;
+    left: 2px;
     width: 32px;
     height: 32px;
     border-radius: 50%;
@@ -397,7 +397,7 @@ label[for=forum-footer-toggle] {
     align-items: center;
   }
   #forum-bar {
-  width: 80px;
+  width: 65px;
   position: fixed;
   margin-top: 100px;
   left: 1vw;

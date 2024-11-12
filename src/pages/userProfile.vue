@@ -6,7 +6,7 @@
       <img :src="user.profileimage" alt="User Avatar" class="user-avatar" />
       <div class="user-details">
         <h2>{{ user.username }}</h2>
-        <p><strong>Bio:</strong> {{ user.bio || 'Too busy taking care of my child. No time to write a bio!' }}</p>
+        <!-- <p><strong>Bio:</strong> {{ user.bio || 'Too busy taking care of my child. No time to write a bio!' }}</p> -->
         <p>Posts: {{ userPosts.length }} | Likes: {{ totalLikes }} | Saves: {{ totalSaves }}</p>
       </div>
     </div>
@@ -111,6 +111,15 @@ onMounted(async () => {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+.user-avatar {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  margin: 5px;
+  border: 3px solid white; /* Use theme color for border */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+}
+
 /* Media query for smaller screens */
 @media (max-width: 768px) {
   .user-profile-container {
@@ -118,26 +127,31 @@ onMounted(async () => {
     padding-bottom: 5px;
     margin-left: 75px;
   }
+
+  .user-avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 2px solid white; /* Use theme color for border */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+}
 }
 
 
-h2, h3 {
+h2 {
   color: #FF6E61; /* Match theme colors for headings */
   font-weight: bold;
+}
+
+h3 {
+  color: #FF6E61;
+  margin-left: 20px;
 }
 
 .user-info {
   display: flex;
   gap: 20px;
   margin-bottom: 20px;
-}
-
-.user-avatar {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  border: 3px solid white; /* Use theme color for border */
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
 }
 
 .user-details p {
