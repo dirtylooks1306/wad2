@@ -32,7 +32,7 @@
     <div class="row align-items-center">
       <div class="col-md-1"></div>
       
-      <div class="col-md-5 text-start mt-3 d-flex flex-column justify-content-between carousel-content">
+      <div class="col-md-5 text-start mt-3 d-flex flex-column justify-content-between carousel-content order-2 order-md-1">
         <div>
           <h3 class="carousel-title">Begin Your Little One's Journey to Healthy Growth!</h3>
           <hr class="title-divider" />
@@ -45,7 +45,7 @@
         </router-link>
       </div>
 
-      <div class="col-md-5 d-flex justify-content-center align-items-center">
+      <div class="col-md-5 order-1 order-md-2 d-flex justify-content-center align-items-center">
         <img src="../assets/homepageBaby.jpg" class="d-block p-3 carousel-image" />
       </div>
       

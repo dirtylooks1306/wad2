@@ -340,6 +340,20 @@ const fetchAndMonitorEvents = async () => {
 			notifications.value = [];
 			notificationCount.value = 0;
 			events.value = [];
+			const months = [
+				"January",  
+				"February", 
+				"March",    
+				"April",    
+				"May",      
+				"June",     
+				"July",     
+				"August",   
+				"September",
+				"October",   
+				"November",  
+				"December"   
+			];
 
 			for (let i = 0; i < children.value.length; i++) {
 				// Query to get events that are undismissed and in the future
@@ -349,9 +363,8 @@ const fetchAndMonitorEvents = async () => {
 				const eventsSnapshot = await getDocs(eventsQuery);
 				eventsSnapshot.forEach((doc) => {
 					const eventData = doc.data();
-					const eventDate = new Date(eventData.start); // Convert Firestore Timestamp to JS Date
+					const eventDate = new Date(eventData.start); 
 
-					// Only add events that have not passed
 					if (eventDate > currentTime) {
 						events.value.push({
 							childId: children.value[i],
@@ -365,10 +378,20 @@ const fetchAndMonitorEvents = async () => {
 			events.value.forEach((event) => {
 				const eventDate = new Date(event.start);
 				const timeDifference = eventDate - currentTime;
-
+				let x = eventDate.getDate()
 				if (timeDifference > 0 && timeDifference <= 24 * 60 * 60 * 1000) {
 					notifications.value.push({
 						message: `You have an appointment at ${eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} for ${event.title}.`,
+						eventId: event.eventId,
+						timeRemaining: Math.floor(timeDifference / (60 * 60 * 1000)), // Hours remaining
+						childId: event.childId,
+					});
+					notificationCount.value += 1;
+				}
+				//check events for in 1 wk
+				if (timeDifference > 0 && timeDifference <= 24 * 60 * 60 * 1000 * 7) {
+					notifications.value.push({
+						message: `You have an appointment at ${eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} on ${eventDate.getDate()} ${months[eventDate.getMonth()]} for ${event.title}.`,
 						eventId: event.eventId,
 						timeRemaining: Math.floor(timeDifference / (60 * 60 * 1000)), // Hours remaining
 						childId: event.childId,
@@ -400,12 +423,13 @@ const handleNotificationTabClick = () => {
 	isDropdownOpen.value = !isDropdownOpen.value;
 };
 
-const { pause, resume } = useIntervalFn(fetchAndMonitorEvents, 8000, { immediate: true });
+const { pause, resume } = useIntervalFn(fetchAndMonitorEvents, 30 * 60 * 1000, { immediate: true });
 
 
 onMounted(() => {
 	fetchUserData();
 	resume();
+	fetchAndMonitorEvents();
 	onAuthStateChanged(auth, (currentUser) => {
 		user.value = currentUser;
 		
@@ -414,10 +438,10 @@ onMounted(() => {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap');
+
 
 li{
-	font-family: 'Comic Neue', sans-serif;
+	font-family: "Cherry Bomb", sans-serif;
 }
 #belownavBar {
 	height: 80px;
@@ -575,6 +599,7 @@ li{
     border: 1px solid #dee2e6;
     border-radius: 5px;
     transition: background-color 0.3s;
+	font-family: "Segoe UI", Arial, sans-serif;
 }
 
 .notification-item:hover {
