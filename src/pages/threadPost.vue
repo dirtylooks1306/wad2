@@ -308,10 +308,12 @@ onMounted(async () => {
 
 <style scoped>
 .post-thread-container {
-  max-width: 800px;
-  margin: 0 auto;
+  margin: 0 auto; /* Center the container horizontally */
   padding: 20px;
+  max-width: min(calc(100% - 75px), 800px);
+  transform: translateX(37.5px); /* Shift it to the center */
 }
+
 
 .post-content {
   background-color: #EED4D4;

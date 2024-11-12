@@ -103,13 +103,23 @@ onMounted(async () => {
 
 <style scoped>
 .user-profile-container {
-  max-width: 800px;
+  max-width: min(calc(100% - 75px), 800px);
   margin: 20px auto;
   padding: 25px;
   background-color: white; /* Soft pastel background */
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
+
+/* Media query for smaller screens */
+@media (max-width: 768px) {
+  .user-profile-container {
+    padding: 0px;
+    padding-bottom: 5px;
+    margin-left: 75px;
+  }
+}
+
 
 h2, h3 {
   color: #FF6E61; /* Match theme colors for headings */
