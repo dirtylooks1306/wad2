@@ -24,7 +24,7 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { db, collection, doc, getDoc, getDocs, query, orderBy, limit, where, auth } from '../firebaseConfig.js';
 import NavBar from "../components/navBar.vue";
 import ForumSidebar from '../components/forumsideBar.vue';
@@ -33,6 +33,7 @@ import ForumCard from '../components/forumCard.vue';
 import ToTop from '../components/ToTop.vue';
  
 const route = useRoute();
+const router = useRouter();
 const forumPosts = ref([]);
 const isSidebarVisible = ref(true); // State to control sidebar visibility
 
@@ -134,8 +135,13 @@ watch(
 onMounted(() => {
   const categories = ['trending', 'new', 'saved', 'recently-viewed'];
   const currentCategory = categories.find(category => route.path.includes(category)) || 'new';
-  fetchPostsByCategory(currentCategory);
-
+  
+  if (!route.path.includes(currentCategory)) {
+    // Redirect to /forum/new if no category is found in the URL
+    router.push('/forum/new');
+  } else {
+    fetchPostsByCategory(currentCategory);
+  }
   // Intersection Observer to hide sidebar when it touches the content area
   const observer = new IntersectionObserver(
     ([entry]) => {

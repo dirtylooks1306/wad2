@@ -18,7 +18,7 @@
       <h2 class="post-title">{{ post.title }}</h2>
       <p class="post-description">{{ post.desc }}</p>
 
-      <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel" v-if="post.media && post.media.length">
+      <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel" v-if="post.media && post.media.length" @click="openFullScreen">
         <div class="carousel-inner">
           <div v-for="(image, index) in post.media" :key="index" :class="['carousel-item', { active: index === 0 }]">
             <img :src="image" class="d-block w-100 carousel-image" :alt="'Image ' + (index + 1)" />
@@ -33,6 +33,28 @@
           <span class="visually-hidden">Next</span>
         </button>
       </div>
+
+    <!-- Full Screen Modal -->
+    <div v-if="showModal" class="modal" @click.stop>
+      <div class="modal-content">
+        <button class="close-button" @click="closeFullScreen">✕</button>
+        <div id="modalCarousel" class="carousel slide" data-bs-ride="carousel">
+          <div class="carousel-inner">
+            <div v-for="(image, index) in post.media" :key="index" :class="['carousel-item', { active: index === 0 }]">
+              <img :src="image" class="d-block w-100 modal-image" :alt="'Image ' + (index + 1)" />
+            </div>
+          </div>
+          <button class="carousel-control-prev" type="button" data-bs-target="#modalCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#modalCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+          </button>
+        </div>
+      </div>
+    </div>
 
       <div class="post-actions mt-3 d-flex align-items-center">
         <div class="action-buttons d-flex">
@@ -88,6 +110,7 @@ const bookmarked = ref(false);
 const showComments = ref(false);
 const comments = ref([]);
 const newComment = ref("");
+const showModal = ref(false);
 
 const logError = (error, location) => {
   console.error(`Error in ${location}:`, error);
@@ -122,6 +145,14 @@ const fetchPost = async () => {
   }
 };
 
+const openFullScreen = () => {
+  showModal.value = true;
+};
+
+const closeFullScreen = () => {
+  showModal.value = false;
+};
+
 const loadCurrentUser = async () => {
   const user = auth.currentUser;
   if (user) {
@@ -136,6 +167,17 @@ const loadCurrentUser = async () => {
         liked.value = userDoc.data().liked?.includes(postId) || false;
         disliked.value = userDoc.data().disliked?.includes(postId) || false;
         bookmarked.value = userDoc.data().savedPosts?.includes(postId) || false;
+
+        // Add post id to recently viewed list, ensuring max length of 10
+        const recentlyViewed = userDoc.data().recentlyViewed || [];
+        if (!recentlyViewed.includes(postId)) {
+          recentlyViewed.unshift(postId);
+          if (recentlyViewed.length > 10) {
+            recentlyViewed.pop();
+          }
+          await updateDoc(userDocRef, { recentlyViewed });
+        }
+        
       } else {
         console.error("User document not found.");
       }
@@ -409,5 +451,46 @@ button.btn-primary {
 
 button.btn-primary:hover {
   background-color: #e65b4e;
+}
+
+/* Full Screen Modal */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-content {
+  max-width: 80%;
+  max-height: 80%;
+  background-color: black;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.modal-image {
+  object-fit: contain;
+  width: 100%;
+  max-height: 70vh;
+  border-radius: 8px;
+}
+
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  z-index: 1001;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
 }
 </style>

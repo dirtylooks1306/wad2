@@ -50,6 +50,28 @@
       </button>
     </div>
 
+    <!-- Full Screen Modal -->
+    <div v-if="showModal" class="modal" @click.stop>
+      <div class="modal-content">
+        <button class="close-button" @click="closeFullScreen">✕</button>
+        <div id="modalCarousel" class="carousel slide" data-bs-ride="carousel">
+          <div class="carousel-inner">
+            <div v-for="(image, index) in post.media" :key="index" :class="['carousel-item', { active: index === 0 }]">
+              <img :src="image" class="d-block w-100 modal-image" :alt="'Image ' + (index + 1)" />
+            </div>
+          </div>
+          <button class="carousel-control-prev" type="button" data-bs-target="#modalCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#modalCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Comments Section -->
     <div v-if="showComments" class="comments-section">
       <div v-for="(comment, index) in comments" :key="index" class="comment">
@@ -326,12 +348,6 @@ const dislikePost = async () => {
   max-height: 90%;
 }
 
-.modal-image {
-  object-fit: contain;
-  width: 100%;
-  height: auto;
-}
-
 @media (max-width: 768px) {
   .post-card {
     max-width: 90%;
@@ -470,20 +486,10 @@ const dislikePost = async () => {
   right: 10px;
   background: transparent;
   border: none;
+  z-index: 1001;
   color: #fff;
   font-size: 24px;
   cursor: pointer;
-}
-
-@media (max-width: 768px) {
-  .modal-content {
-    max-width: 90%;
-    max-height: 90%;
-  }
-
-  .modal-image {
-    max-height: 60vh;
-  }
 }
 
 .close-button {
