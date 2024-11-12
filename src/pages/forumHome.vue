@@ -16,7 +16,7 @@
       </div>
 
       <!-- Right Sidebar -->
-      <ForumRightbar v-show="isSidebarVisible" />
+      <!-- <ForumRightbar v-show="isSidebarVisible" /> -->
     </div>
   </div>
   <ToTop />
@@ -24,7 +24,7 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { db, collection, doc, getDoc, getDocs, query, orderBy, limit, where, auth } from '../firebaseConfig.js';
 import NavBar from "../components/navBar.vue";
 import ForumSidebar from '../components/forumsideBar.vue';
@@ -33,6 +33,7 @@ import ForumCard from '../components/forumCard.vue';
 import ToTop from '../components/ToTop.vue';
  
 const route = useRoute();
+const router = useRouter();
 const forumPosts = ref([]);
 const isSidebarVisible = ref(true); // State to control sidebar visibility
 
@@ -101,12 +102,15 @@ const fetchPostsByCategory = async (category) => {
       const forumQuery = query(forumCollection, orderBy('likes', 'desc'), limit(50));
       const querySnapshot = await getDocs(forumQuery);
       postsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
     } else if (category === 'new') {
       const forumQuery = query(forumCollection, orderBy('date', 'desc'), limit(50));
       const querySnapshot = await getDocs(forumQuery);
       postsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
     } else if (category === 'saved') {
       postsData = await fetchSavedPosts();
+
     } else if (category === 'recently-viewed') {
       postsData = await fetchRecentlyViewedPosts();
     }
@@ -130,9 +134,14 @@ watch(
 
 onMounted(() => {
   const categories = ['trending', 'new', 'saved', 'recently-viewed'];
-  const currentCategory = categories.find(category => route.path.includes(category)) || 'trending';
-  fetchPostsByCategory(currentCategory);
-
+  const currentCategory = categories.find(category => route.path.includes(category)) || 'new';
+  
+  if (!route.path.includes(currentCategory)) {
+    // Redirect to /forum/new if no category is found in the URL
+    router.push('/forum/new');
+  } else {
+    fetchPostsByCategory(currentCategory);
+  }
   // Intersection Observer to hide sidebar when it touches the content area
   const observer = new IntersectionObserver(
     ([entry]) => {
@@ -145,15 +154,6 @@ onMounted(() => {
     { threshold: 0.1 }
   );
 
-  const forumContent = document.querySelector('.forum-content');
-  if (forumContent) {
-    observer.observe(forumContent);
-  }
-
-  // Adjust visibility on resize
-  window.addEventListener('resize', () => {
-    isSidebarVisible.value = window.innerWidth > 767;
-  });
 });
 </script>
 
@@ -161,10 +161,14 @@ onMounted(() => {
 .forum-home-container {
   display: flex;
   flex-direction: column;
+  align-items: center; /* Center align everything on small screens */
 }
 
 .forum-layout {
   display: flex;
+  width: 100%; /* Ensure it takes full width */
+  max-width: 1200px; /* Add max-width for larger screens */
+  margin: 0 auto; /* Center align the layout on larger screens */
 }
 
 .forum-cards-container {
@@ -195,15 +199,43 @@ onMounted(() => {
   pointer-events: none;
 }
 
-@media (max-width: 767px) {
-  .forum-content {
-    margin-left: 90px;
-    padding: 10px;
-  }
 
-  .right-sidebar {
-    display: none;
-  }
+
+
+.forum-home-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.forum-layout {
+  display: flex;
+}
+
+.forum-cards-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.forum-card-wrapper {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.right-sidebar {
+  width: 250px;
+  background-color: #f7f7f7;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-left: 10px;
+  transition: opacity 0.3s;
+}
+
+.right-sidebar.hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .forum-home-container {
@@ -222,9 +254,16 @@ onMounted(() => {
   padding: 20px;
   border-radius: 8px;
   margin-left: 280px; /* Adjust for left sidebar */
-  max-width: 800px; /* Keep content width controlled */
 }
-
+@media (max-width: 778px){
+  .forum-content {
+  flex-grow: 1;
+  padding: 20px;
+  border-radius: 8px;
+  margin-left: 80px; /* Adjust for left sidebar */
+  margin-right: 10px;
+}
+}
 .forum-cards-container {
   display: flex;
   flex-direction: column;

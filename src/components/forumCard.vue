@@ -1,9 +1,8 @@
 <template>
-  <!-- <div class="post-card"> -->
   <div class="post-card" @click="navigateToPost">
     <div class="post-header" @click.stop>
       <img :src="post.profileimage" alt="Author profile" class="profile-image" @click="navigateToProfile"/>
-      <div class="author-details" >
+      <div class="author-details">
         <p class="author-name" @click="navigateToProfile">{{ post.author }}</p>
         <p class="post-time">{{ timeElapsed(post.date) }}</p>
       </div>
@@ -11,12 +10,7 @@
 
     <p class="post-title">{{ post.title }}</p>
 
-    <div
-      v-if="post.media && post.media.length > 0"
-      class="carousel-container"
-      @click.stop="openFullScreen"
-    >
-      <!-- Carousel -->
+    <div v-if="post.media && post.media.length > 0" class="carousel-container" @click.stop="openFullScreen">
       <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">
         <div class="carousel-inner">
           <div v-for="(image, index) in post.media" :key="index" :class="['carousel-item', { active: index === 0 }]">
@@ -36,7 +30,27 @@
 
     <p v-else class="post-desc">{{ truncateDesc(post.desc, 400) }}</p>
 
-    <!-- Modal for Full-Screen Image Browsing -->
+    <!-- Interactive Bar with Action Buttons -->
+    <div class="post-actions mt-3 d-flex align-items-center">
+      <div class="action-buttons d-flex">
+        <button @click.stop="likePost" :class="['interactive-buttons me-2', { active: liked }]">
+          <i class="fa-solid fa-thumbs-up"></i> &nbsp;{{ post.likes || 0 }}
+        </button>
+        <button @click.stop="dislikePost" :class="['interactive-buttons me-2', { active: disliked }]">
+          <i class="fa-solid fa-thumbs-down "></i> &nbsp;{{ post.dislikes || 0 }}
+        </button>
+        <button @click.stop="openComments" class="interactive-buttons me-2">
+          <i class="fa-solid fa-comments"></i> &nbsp;{{ commentCount || 0 }}
+        </button>
+      </div>
+      
+      <!-- Bookmark button on the far right -->
+      <button @click.stop="bookmarkPost" id="bookmark" :class="['interactive-buttons', { active: bookmarked }]">
+        <i class="fa-solid fa-bookmark"></i>
+      </button>
+    </div>
+
+    <!-- Full Screen Modal -->
     <div v-if="showModal" class="modal" @click.stop>
       <div class="modal-content">
         <button class="close-button" @click="closeFullScreen">✕</button>
@@ -58,19 +72,20 @@
       </div>
     </div>
 
-    <div class="interactiveBar mt-3" @click.stop>
-        <button @click="likePost" class="interactive-buttons">👍 Like ({{ post.likes }})</button>
-        <button @click="navigateToPost" class="interactive-buttons"><i class="fa-solid fa-comments"></i> Comments</button>
-        <button @click="bookmarkPost" class="interactive-buttons">🔖 Bookmark</button>
+    <!-- Comments Section -->
+    <div v-if="showComments" class="comments-section">
+      <div v-for="(comment, index) in comments" :key="index" class="comment">
+        <p><strong>{{ comment.author }}:</strong> {{ comment.text }}</p>
+      </div>
+      <p v-if="comments.length === 0">No comments yet.</p>
     </div>
-
-    </div>
+  </div>
 </template>
 
 <script setup>
 import { ref, defineProps, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { db, auth, doc, updateDoc, getDoc, arrayRemove, arrayUnion} from '../firebaseConfig.js';
+import { db, auth, doc, updateDoc, getDoc, arrayRemove, arrayUnion, collection, getDocs } from '../firebaseConfig.js';
 
 const props = defineProps({
   post: {
@@ -81,37 +96,56 @@ const props = defineProps({
 
 const router = useRouter();
 const showModal = ref(false);
+const showComments = ref(false);
+const comments = ref([]);
+const commentCount = ref(0);
 const user = ref(auth.currentUser);
+const liked = ref(false);
+const disliked = ref(false);
+const bookmarked = ref(false);
 
-onMounted(() => {
-  adjustButtons();
+onMounted(async () => {
+  await adjustButtons();
+  await fetchComments();
 });
+
+const fetchComments = async () => {
+  try {
+    const commentsCollection = collection(db, 'forum', props.post.id, 'comments');
+    const commentsSnapshot = await getDocs(commentsCollection);
+    
+    comments.value = commentsSnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        author: data.username,
+        text: data.text || ''
+      };
+    });
+    commentCount.value = comments.value.length;
+  } catch (error) {
+    console.error("Error fetching comments:", error);
+  }
+};
+
 
 const adjustButtons = async () => {
   const userDocRef = doc(db, 'users', user.value.uid);
   const userDoc = await getDoc(userDocRef);
   const userData = userDoc.exists() ? userDoc.data() : {};
 
-  if (userData.liked && userData.liked.includes(props.post.id)) {
-    document.querySelector('.interactive-buttons:nth-child(1)').style.backgroundColor = '#FF9689';
-    document.querySelector('.interactive-buttons:nth-child(1)').style.color = 'white';
-  }
+  liked.value = userData.liked?.includes(props.post.id) || false;
+  disliked.value = userData.disliked?.includes(props.post.id) || false;
+  bookmarked.value = userData.savedPosts?.includes(props.post.id) || false;
 
-  if (userData.savedPosts && userData.savedPosts.includes(props.post.id)) {
-    document.querySelector('.interactive-buttons:nth-child(3)').style.backgroundColor = '#FF9689';
-    document.querySelector('.interactive-buttons:nth-child(3)').style.color = 'white';
-  }
-}
+  if (!props.post.likes) props.post.likes = 0;
+  if (!props.post.dislikes) props.post.dislikes = 0;
+};
 
-// Function to navigate to the individual forum post
 const navigateToPost = () => {
   router.push(`/forum/thread/${props.post.id}`);
 };
 
 const navigateToProfile = async () => {
-  const user = props.post.author;
-  console.log(user);
-
   try {
     router.push(`/forum/user/${props.post.author}`);
   } catch (error) {
@@ -119,17 +153,18 @@ const navigateToProfile = async () => {
   }
 };
 
-// Function to open the full-screen image modal
 const openFullScreen = () => {
   showModal.value = true;
 };
 
-// Function to close the full-screen image modal
 const closeFullScreen = () => {
   showModal.value = false;
 };
 
-// Function to calculate time elapsed since the post date
+const openComments = () => {
+  showComments.value = !showComments.value;
+};
+
 const timeElapsed = (date) => {
   const postDate = date.toDate ? date.toDate() : new Date(date);
 
@@ -161,7 +196,6 @@ const timeElapsed = (date) => {
   }
 };
 
-// Function to truncate the description to a specific length
 const truncateDesc = (text, maxLength) => {
   if (text.length > maxLength) {
     return text.slice(0, maxLength) + '...';
@@ -174,37 +208,22 @@ const bookmarkPost = async () => {
   if (!user) return;
 
   const userDocRef = doc(db, 'users', user.uid);
-  const postDocRef = doc(db, 'forum', props.post.id);
 
   try {
-    // Get the current user's saved array
-    const userDoc = await getDoc(userDocRef);
-    const userData = userDoc.exists() ? userDoc.data() : {};
-    const userSaved = userData.savedPosts || [];
-
-    if (userSaved.includes(props.post.id)) {
-      // Unsave the post
-      await updateDoc(userDocRef, {
-        savedPosts: arrayRemove(props.post.id)
-      });
-      await updateDoc(postDocRef, {
-        saves: props.post.saves - 1 || 0
-      });
-      props.post.saves -= 1; // Update locally for immediate feedback
-    } else {
-      // Save the post
+    bookmarked.value = !bookmarked.value;
+    if (bookmarked.value) {
       await updateDoc(userDocRef, {
         savedPosts: arrayUnion(props.post.id)
       });
-      await updateDoc(postDocRef, {
-        saves: props.post.saves + 1 || 1
+    } else {
+      await updateDoc(userDocRef, {
+        savedPosts: arrayRemove(props.post.id)
       });
-      props.post.saves += 1; // Update locally for immediate feedback
     }
   } catch (error) {
-    console.error("Error updating save status:", error);
+    console.error("Error updating bookmark status:", error);
   }
-}
+};
 
 const likePost = async () => {
   const user = auth.currentUser;
@@ -214,50 +233,90 @@ const likePost = async () => {
   const postDocRef = doc(db, 'forum', props.post.id);
 
   try {
-    // Get the current user's likes array
-    const userDoc = await getDoc(userDocRef);
-    const userData = userDoc.exists() ? userDoc.data() : {};
-    const userLiked = userData.liked || [];
-
-    if (userLiked.includes(props.post.id)) {
-      // Unlike the post
+    liked.value = !liked.value;
+    if (liked.value) {
+      if (disliked.value) {
+        disliked.value = false;
+        props.post.dislikes -= 1;
+        await updateDoc(postDocRef, { dislikes: props.post.dislikes });
+      }
+      props.post.likes += 1;
       await updateDoc(userDocRef, {
-        liked: arrayRemove(props.post.id)
+        liked: arrayUnion(props.post.id),
+        disliked: arrayRemove(props.post.id),
       });
-      await updateDoc(postDocRef, {
-        likes: props.post.likes - 1
-      });
-      props.post.likes -= 1; // Update locally for immediate feedback
-      adjustButtons();
+      await updateDoc(postDocRef, { likes: props.post.likes });
     } else {
-      // Like the post
+      props.post.likes -= 1;
       await updateDoc(userDocRef, {
-        liked: arrayUnion(props.post.id)
+        liked: arrayRemove(props.post.id),
       });
-      await updateDoc(postDocRef, {
-        likes: props.post.likes + 1
-      });
-      props.post.likes += 1; // Update locally for immediate feedback
-      adjustButtons();
-  } 
-  }catch (error) {
+      await updateDoc(postDocRef, { likes: props.post.likes });
+    }
+  } catch (error) {
     console.error("Error updating like status:", error);
   }
 };
 
+const dislikePost = async () => {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const userDocRef = doc(db, 'users', user.uid);
+  const postDocRef = doc(db, 'forum', props.post.id);
+
+  try {
+    disliked.value = !disliked.value;
+    if (disliked.value) {
+      if (liked.value) {
+        liked.value = false;
+        props.post.likes -= 1;
+        await updateDoc(postDocRef, { likes: props.post.likes });
+      }
+      props.post.dislikes += 1;
+      await updateDoc(userDocRef, {
+        disliked: arrayUnion(props.post.id),
+        liked: arrayRemove(props.post.id),
+      });
+      await updateDoc(postDocRef, { dislikes: props.post.dislikes });
+    } else {
+      props.post.dislikes -= 1;
+      await updateDoc(userDocRef, {
+        disliked: arrayRemove(props.post.id),
+      });
+      await updateDoc(postDocRef, { dislikes: props.post.dislikes });
+    }
+  } catch (error) {
+    console.error("Error updating dislike status:", error);
+  }
+};
 </script>
 
 <style scoped>
-/* Interactive Bar Styling */
-.interactiveBar {
+.post-actions {
   display: flex;
-  gap: 10px;
+  align-items: center;
+  justify-content: space-between; /* Space between left and right sections */
+}
+
+.action-buttons {
+  display: flex;
+  gap: 15px; /* Space between like, dislike, and comment buttons */
 }
 
 .interactive-buttons {
   background-color: transparent;
-  border: #ff6e61 solid 1px;
+  border: 1px solid #ff6e61;
   color: black;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.interactive-buttons.active {
+  background-color: #FF9689;
+  color: white;
 }
 
 .interactive-buttons:hover {
@@ -265,13 +324,9 @@ const likePost = async () => {
   color: white;
 }
 
-.interactive-buttons:active {
-  background-color: #FF9689;
-}
-
 .post-card {
-  max-width: 650px; /* Set a maximum width for the card */
-  margin: 15px auto; /* Center the card horizontally */
+  max-width: 650px;
+  margin: 15px auto;
   padding: 15px;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
@@ -282,31 +337,24 @@ const likePost = async () => {
 }
 
 .carousel-container {
-  max-height: 400px; /* Limit the height of the carousel */
+  max-height: 400px;
   overflow: hidden;
   border-radius: 8px;
   cursor: pointer;
 }
 
 .modal-content {
-  max-width: 90%; /* Limit the modal content to 90% of the viewport width */
-  max-height: 90%; /* Limit the modal content to 90% of the viewport height */
+  max-width: 90%;
+  max-height: 90%;
 }
 
-.modal-image {
-  object-fit: contain;
-  width: 100%;
-  height: auto;
-}
-
-/* Responsive adjustments */
 @media (max-width: 768px) {
   .post-card {
-    max-width: 90%; /* Reduce the max width for smaller screens */
+    max-width: 90%;
   }
 
   .carousel-container {
-    max-height: 250px; /* Reduce the max height of the carousel on smaller screens */
+    max-height: 250px;
   }
 
   .modal-content {
@@ -314,6 +362,53 @@ const likePost = async () => {
     max-height: 100%;
   }
 }
+@media (max-width: 460px) {
+  .post-actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between; /* Equal spacing between buttons */
+    align-items: center;
+    width: 100%;
+    gap: 0; /* Remove extra gaps between buttons */
+  }
+
+  .interactive-buttons {
+    flex: 1; /* Makes each button take equal space */
+    padding: 8px; /* Compact padding */
+    font-size: 0.85rem; /* Adjust font size for mobile */
+    text-align: center;
+    white-space: nowrap; /* Prevent text wrapping */
+    overflow: hidden; /* Hide overflow text */
+    text-overflow: ellipsis; /* Truncate text with ellipses */
+    max-width: 60px; /* Set max width to keep buttons compact */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* Hide text inside the buttons except the icons */
+  .interactive-buttons span {
+    display: none; /* Hide any text within the button */
+  }
+
+  .interactive-buttons i {
+    font-size: 1.2em; /* Make icon slightly larger for better visibility */
+    margin: 0; /* Remove margin around icon */
+  }
+
+  /* Adjust for the bookmark button specifically */
+  .interactive-buttons.bookmark {
+    max-width: 40px; /* Make the bookmark button smaller */
+    padding: 8px; /* Match padding with other buttons */
+  }
+  #bookmark{
+    width:42.21px;
+    margin: 17px;
+    padding: 11px 19px;
+  }
+}
+
+
 
 .post-header {
   display: flex;
@@ -370,8 +465,8 @@ const likePost = async () => {
   z-index: 1000;
 }
 .modal-content {
-  max-width: 80%; /* Limit the modal content width to 80% of the viewport */
-  max-height: 80%; /* Limit the modal content height to 80% of the viewport */
+  max-width: 80%;
+  max-height: 80%;
   background-color: black;
   border-radius: 8px;
   padding: 15px;
@@ -379,34 +474,22 @@ const likePost = async () => {
 }
 
 .modal-image {
-  object-fit: contain; /* Ensure the image fits within its container */
-  width: 100%; /* Take up the full width of the modal content */
-  max-height: 70vh; /* Set a maximum height relative to the viewport */
+  object-fit: contain;
+  width: 100%;
+  max-height: 70vh;
   border-radius: 8px;
 }
 
-/* Adjust modal close button for better visibility */
 .close-button {
   position: absolute;
   top: 10px;
   right: 10px;
   background: transparent;
   border: none;
-  color: #000;
+  z-index: 1001;
+  color: #fff;
   font-size: 24px;
   cursor: pointer;
-  z-index: 999;
-}
-
-@media (max-width: 768px) {
-  .modal-content {
-    max-width: 90%; /* Make modal content slightly larger on smaller screens */
-    max-height: 90%; /* Adjust modal content height */
-  }
-
-  .modal-image {
-    max-height: 60vh; /* Reduce image height for smaller screens */
-  }
 }
 
 .close-button {
@@ -418,5 +501,18 @@ const likePost = async () => {
   color: #fff;
   font-size: 24px;
   cursor: pointer;
+}
+
+.comments-section {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.comment {
+  padding: 5px 0;
+  border-bottom: 1px solid #ddd;
 }
 </style>
