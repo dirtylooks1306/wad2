@@ -101,12 +101,15 @@ const fetchPostsByCategory = async (category) => {
       const forumQuery = query(forumCollection, orderBy('likes', 'desc'), limit(50));
       const querySnapshot = await getDocs(forumQuery);
       postsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
     } else if (category === 'new') {
       const forumQuery = query(forumCollection, orderBy('date', 'desc'), limit(50));
       const querySnapshot = await getDocs(forumQuery);
       postsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
     } else if (category === 'saved') {
       postsData = await fetchSavedPosts();
+
     } else if (category === 'recently-viewed') {
       postsData = await fetchRecentlyViewedPosts();
     }
@@ -130,7 +133,7 @@ watch(
 
 onMounted(() => {
   const categories = ['trending', 'new', 'saved', 'recently-viewed'];
-  const currentCategory = categories.find(category => route.path.includes(category)) || 'trending';
+  const currentCategory = categories.find(category => route.path.includes(category)) || 'new';
   fetchPostsByCategory(currentCategory);
 
   // Intersection Observer to hide sidebar when it touches the content area
