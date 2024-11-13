@@ -157,7 +157,7 @@ const listenForResponse = (parentMessageId) => {
 
                     <!-- Bot Message aligned to the left -->
                     <div v-if="message.response" class="message bot-message">
-                    <p><strong>Bot:</strong> {{ message.response }}</p>
+                    <p><strong>Cradle Chat:</strong> {{ message.response }}</p>
                     </div>
                 </div>
 			</div>
@@ -196,8 +196,8 @@ const listenForResponse = (parentMessageId) => {
 	color: #fff;
 	border: none;
 	border-radius: 50%;
-	width: 50px;
-	height: 50px;
+	width: 70px;
+	height: 70px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -212,8 +212,8 @@ const listenForResponse = (parentMessageId) => {
 }
 
 .chatbot-icon {
-	width: 24px;
-	height: 24px;
+	width: 35px;
+	height: 35px;
 }
 
 /* Tooltip */

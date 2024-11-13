@@ -7,15 +7,6 @@ import CustomHeader from "./CustomHeader.vue";
             <CustomHeader header="SUBMIT A NEW ENTRY"/>
             <div class="row pt-1">
                 <span id="submission" v-if="owner">Submitting an entry for: <span id="ownerName">{{ owner }}</span></span>
-                <!--
-                <div class="col-xl-4 col-lg-6 py-2">
-                    <label for="name" class="col-form-label">Owner Name:</label>
-                    <select id="name" class="form-select" aria-label="Default Select Example" v-model="formData.name">
-                        <option value="" selected>Select a Child</option>
-                        <option v-for="(diary, i) in diaries" :value="diary.id">{{ diary.id }}</option>
-                    </select>
-                </div>
-                -->
                 <div class="col-xl-6 col-lg-12 py-2">
                     <label for="header" class="col-form-label">Entry Header:</label>
                     <input type="text" class="form-control" id="header" v-model="formData.header">
@@ -94,6 +85,7 @@ import CustomHeader from "./CustomHeader.vue";
             submitEntry() {
                 this.$emit('submitEntry', this.formData);
                 this.resetFormData();
+                this.formData.name = this.owner;
             },
             resetFormData() {
                 this.formData =  {

@@ -24,7 +24,7 @@ library.add(faTrash); // Add trash icon
         <button type="button" class="btn btn-secondary border-0 p-3 my-2 collapsible d-flex justify-content-between align-items-center" :class="{ active: open }" @click="toggle">            
             <span>{{ dbDiary.id }}</span>
             <span class="d-flex align-items-center">
-                <FontAwesomeIcon :icon="['fas', 'trash']" class="border rounded-1 p-1 bg-danger" @click="deleteDiary(dbDiary.id)"/>
+                <FontAwesomeIcon :icon="['fas', 'trash']" class="border rounded-1 p-1 bg-danger mx-5" @click="deleteDiary(dbDiary.id)"/>
                 <span class="toggle-icon ms-2">{{ open ? '-' : '+' }}</span>
             </span>
         </button>
@@ -322,20 +322,6 @@ button {
 button:focus {
   outline: none;
 }
-
-/* Paper stack order
-#p1 {
-  z-index: 3;
-}
-
-#p2 {
-  z-index: 2;
-}
-
-#p3 {
-  z-index: 1;
-}
-*/
 
 @media (max-width: 768px) {
     /* Diary */

@@ -340,11 +340,13 @@ onMounted(fetchArticles);
 }
 
 .article-image {
-  width: 100%;
+  max-width: 100%;
+  max-height: 150px;
+  width: auto;
   height: auto;
   border-radius: 8px;
-  margin: 10px 0; /* Add spacing above and below */
-  object-fit: cover; /* Ensure image covers the area without distortion */
+  margin: 10px 0;
+  object-fit: contain;
 }
 
 .partition-line {
@@ -358,11 +360,11 @@ onMounted(fetchArticles);
 
 .article-meta {
   display: flex;
-  gap: 12px;
-  position: absolute;
+  gap: 8px;
+  align-items: center;
+  position: relative;
   bottom: 10px;
   left: 10px;
-  align-items: center;
 }
 
 .reaction {
@@ -396,13 +398,13 @@ button.active i {
 }
 
 .saved button i {
-  color: white; /* White color when not saved */
-  background-color: transparent; /* Ensure alignment */
+  color: white;
+  background-color: transparent;
 }
 
 .saved button.saved i {
-  color: black; /* Black color when saved */
-  background-color: transparent; /* No background needed for saved state */
+  color: black;
+  background-color: transparent;
 }
 
 button:hover i {
@@ -466,6 +468,27 @@ button:hover i {
   background-color: #0056b3;
 }
 
+@media (max-width: 600px) {
+  .reaction button,
+  .saved button {
+    font-size: 0.9em;
+    padding: 4px;
+  }
+  .article-meta {
+    gap: 4px;
+  }
+}
+
+@media (max-width: 400px) {
+  .reaction button,
+  .saved button {
+    font-size: 0.8em;
+    padding: 3px;
+  }
+  .article-meta {
+    gap: 2px;
+  }
+}
 #to-top {
   position: fixed;
   bottom: 20px;

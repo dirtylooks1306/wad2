@@ -197,7 +197,7 @@ const createChartHeight = () => {
 				},
 				title: {
 					display: true,
-					text: "Weight Over Time",
+					text: "Height Over Time",
 				},
 			},
 			scales: {
@@ -267,15 +267,18 @@ watch(
 
 <template>
     <div class="chart-container">
-        <canvas
-            id="babyGrowthWeightChart"
-            v-show="activeChart === 'WeightGraph'"
-        ></canvas>
-        <canvas
-            id="babyGrowthHeightChart"
-            v-show="activeChart === 'HeightGraph'"
-        ></canvas>
-    </div>
+		<div class="chart-wrapper">
+			<canvas
+			id="babyGrowthWeightChart"
+			v-show="activeChart === 'WeightGraph'"
+			></canvas>
+			<canvas
+			id="babyGrowthHeightChart"
+			v-show="activeChart === 'HeightGraph'"
+			></canvas>
+		</div>
+	</div>
+
 
     <ul class="d-md-flex desktop-tabs mt-3">
         <li
@@ -307,11 +310,23 @@ watch(
     width: 100%;
     height:auto;
     margin: auto;
+	overflow: hidden;
 }
+.chart-wrapper {
+  overflow-x: auto; 
+  width: 100%;
+}
+
+.chart-wrapper canvas {
+  width: 100% !important;
+  height: auto !important;
+  max-width: 100%;
+}
+
 .chart-container canvas {
-	width: 100% !important; /* Ensures the canvas takes the full width of its container */
-	height: auto !important; /* Maintains aspect ratio */
-	max-width: 100%; /* Prevents overflow */
+	width: 100% !important; 
+	height: auto !important; 
+	max-width: 100%; 
 }
 /* Tabs for Chart Selection */
 .desktop-tabs {
@@ -363,13 +378,16 @@ watch(
 	}
 
 	.chart-container {
-		max-height: 400px;
+		height: auto;
 	}
 
 	.desktop-tabs {
 		flex-direction: column;
 		align-items: center;
 	}
+	.chart-wrapper {
+    min-width: 430px; /* Minimum width for mobile view */
+  }
 }
 
 </style>

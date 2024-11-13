@@ -50,7 +50,7 @@ onMounted(fetchUsers);
 <template>
 	<AdminNavBar />
 	<div>
-		<h1 class="text-center">User Management</h1>
+		<h1 class="text-center title">User Management</h1>
 		<div class="table-container">
 			<table>
 				<thead>
@@ -84,6 +84,19 @@ onMounted(fetchUsers);
 </template>
 
 <style scoped>
+.title{
+    text-align: center;
+    font-size: 36px;
+    color: #ff9689;
+    font-family: "Cherry Bomb", sans-serif;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin: 0 auto;
+    padding: 20px;
+    max-width: 1200px;
+}
+
 .table-container {
 	display: flex;
 	justify-content: center;

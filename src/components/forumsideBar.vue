@@ -1,70 +1,81 @@
 <template>
-  <div id="forum-bar">
+  <div id="forum-bar" :class="{ 'mobile-view': isMobileView }">
     <input id="forum-toggle" type="checkbox" />
     <div id="forum-header"><a id="forum-title">Forum</a>
-      <label for="forum-toggle"><span id="forum-toggle-burger"></span></label>
+      <label for="forum-toggle"><i class="fa-solid fa-bars"></i> </label>
       <hr />
     </div>
     <div id="forum-content">
-      <div class="forum-button">
-        <i class="fas fa-solid fa-plus"></i>
-        <router-link to="/forum/create-post"><span>Create</span></router-link>
-      </div>
+      <router-link to="/forum/create-post">
+        <div class="forum-button">
+          <i class="fas fa-solid fa-plus"></i>
+          <span>Create</span>
+        </div>
+      </router-link>
       <hr />
-      <div class="forum-button">
-        <i class="fas fa-chart-line"></i>
-        <router-link to="/forum/trending"><span>Trending</span></router-link>
-      </div>
+      <router-link to="/forum/trending">
+        <div class="forum-button">
+          <i class="fas fa-chart-line"></i>
+          <span>Trending</span>
+        </div>
+      </router-link>
       <hr />
-      <div class="forum-button">
-        <i class="fas fa-solid fa-fire"></i>
-        <router-link to="/forum/new"><span>New</span></router-link>
-      </div>
+      <router-link to="/forum/new">
+        <div class="forum-button">
+          <i class="fas fa-solid fa-fire"></i>
+          <span>New</span>
+        </div>
+      </router-link>
       <hr />
-      <div class="forum-button">
-        <i class="fas fa-thumbtack"></i>
-        <router-link to="/forum/saved"><span>Saved</span></router-link>
-      </div>
+      <router-link to="/forum/saved">
+        <div class="forum-button">
+          <i class="fas fa-thumbtack"></i>
+          <span>Saved</span>
+        </div>
+      </router-link>
       <hr />
-      <div class="forum-button">
-        <i class="fas fa-solid fa-clock"></i>
-        <router-link to="/forum/recently-viewed"><span>Recently Viewed</span></router-link>
-      </div>
+      <router-link to="/forum/recently-viewed">
+        <div class="forum-button">
+          <i class="fas fa-solid fa-clock"></i>
+          <span>History</span>
+        </div>
+      </router-link>
       <hr />
       <div id="forum-content-highlight"></div>
     </div>
     <input id="forum-footer-toggle" type="checkbox" />
     <div id="forum-footer">
-      <div id="forum-footer-heading">
-        <div id="forum-footer-avatar">
-          <img :src="userData.profileimage" alt="Author profile" class="profile-image" />
+      <router-link :to="`/forum/user/${userData.username}`">
+        <div id="forum-footer-heading">
+          <div id="forum-footer-avatar">
+            <img :src="userData.profileimage" alt="Author profile" class="profile-image" />
+          </div>
+          
+          <div id="forum-footer-titlebox">
+            <span id="forum-footer-title">{{ userData.username }}</span>
+            <!-- <span id="forum-footer-subtitle">{{ userData.role || 'user' }}</span> -->
+          </div>
         </div>
-        <div id="forum-footer-titlebox">
-          <span id="forum-footer-title">{{ userData.username }}</span>
-          <span id="forum-footer-subtitle">{{ userData.role || 'user' }}</span>
-        </div>
-        <label for="forum-footer-toggle"><i class="fas fa-caret-up"></i></label>
-      </div>
-      <div id="forum-footer-content">
-        <p>Hello, {{ userData.username }}!</p>
-      </div>
+      </router-link>
     </div>
   </div>
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
+
+import { ref, onMounted, computed } from 'vue';
 import { auth, db, doc, getDoc } from '../firebaseConfig.js';
 
 export default {
   name: 'ForumSidebar',
   setup() {
+    
     const userData = ref({
       username: 'Loading...',
       profileimage: 'default-profile.png', // Path to a default image
       role: 'user'
     });
-
+    const isHamburger = ref(false);
     const fetchUserData = async () => {
       try {
         const currentUser = await auth.currentUser;
@@ -86,19 +97,25 @@ export default {
         console.error('Error fetching user data:', error);
       }
     };
-
+    const toggleIcon = () => {
+      isHamburger.value = !isHamburger.value;
+    };
     onMounted(() => {
       fetchUserData();
     });
 
     return {
-      userData
+      userData,
+      isHamburger,
+      toggleIcon,
+      iconClass: computed(() => (isHamburger.value ? 'fas fa-bars' : 'fas fa-arrow-left'))
     };
   }
 };
 </script>
 
 <style scoped>
+
 .profile-image {
   width: 40px;
   height: 40px;
@@ -111,7 +128,7 @@ export default {
   position: relative;
   width: 16px;
   height: 2px;
-  background: var(--forumbar-dark-primary);
+  background: #EED4D4;
   border-radius: 99px;
   transition: background 0.2s;
 }
@@ -137,8 +154,8 @@ export default {
   position: relative;
   flex: 1;
   width: var(--forumbar-width);
-  background: var(--forumbar-dark-primary);
-  box-shadow: 0 0 0 16px var(--forumbar-dark-primary);
+  background: #EED4D4;
+  box-shadow: 0 0 0 16px var(#EED4D4);
   direction: rtl;
   overflow-x: hidden;
   transition: width 0.2s;
@@ -158,7 +175,7 @@ export default {
   top: -70px;
   width: calc(100% - 16px);
   height: 54px;
-  background: var(--background);
+  background: var(--forumbar-dark-secondary);
   background-attachment: fixed;
   border-radius: 16px 0 0 16px;
   transition: top 0.2s;
@@ -180,11 +197,10 @@ export default {
 
 .forum-button {
   position: relative;
-  margin-left: 16px;
+  margin-left: 10px;
   height: 54px;
   display: flex;
   align-items: center;
-  color: var(--forumbar-light-secondary);
   direction: ltr;
   cursor: pointer;
   z-index: 1;
@@ -196,35 +212,10 @@ export default {
 .forum-button .fas {
   transition: min-width 0.2s;
 }
-.forum-button:nth-of-type(1):hover {
-  color: var(--forumbar-dark-secondary);
-}
-.forum-button:nth-of-type(1):hover ~ #forum-content-highlight {
-  top: 16px;
-}
-.forum-button:nth-of-type(2):hover {
-  color: var(--forumbar-dark-secondary);
-}
-.forum-button:nth-of-type(2):hover ~ #forum-content-highlight {
-  top: 70px;
-}
-.forum-button:nth-of-type(3):hover {
-  color: var(--forumbar-dark-secondary);
-}
-.forum-button:nth-of-type(3):hover ~ #forum-content-highlight {
-  top: 124px;
-}
-.forum-button:nth-of-type(4):hover {
-  color: var(--forumbar-dark-secondary);
-}
-.forum-button:nth-of-type(4):hover ~ #forum-content-highlight {
-  top: 178px;
-}
-.forum-button:nth-of-type(5):hover {
-  color: var(--forumbar-dark-secondary);
-}
-.forum-button:nth-of-type(5):hover ~ #forum-content-highlight {
-  top: 232px;
+.forum-button:hover {
+  background-color: #ff9689;
+  border-radius: 10px 10px 10px 10px;
+  color: #ffffff;
 }
 
 #forum-bar .fas {
@@ -368,7 +359,7 @@ label[for=forum-footer-toggle] {
   left: 1vw;
   top: 1vw;
   z-index: 999;
-  height: calc(80% - 1vw);
+  height: 600px;
   background: #EED4D4;
   border-radius: 16px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
@@ -379,6 +370,63 @@ label[for=forum-footer-toggle] {
   overflow: hidden;
   user-select: none;
   transition: height 0.3s ease; /* Smooth transition */
+}
+@media  (max-width: 767px) {
+  #forum-header{
+    visibility: hidden;
+  }
+  #forum-footer-titlebox{
+    visibility: hidden;
+  }
+  #forum-footer-avatar {
+    position: relative;
+
+    left: 2px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    overflow: hidden;
+    transform: translate(0);
+    transition: 0.2s;
+  }
+  #forum-footer-heading{
+    position: relative;
+    width: 80px;
+    height: 54px;
+    display: flex;
+    align-items: center;
+  }
+  #forum-bar {
+  width: 65px;
+  position: fixed;
+  margin-top: 100px;
+  left: 1vw;
+  top: 1vw;
+  z-index: 999;
+  height: 450px;
+  background: #EED4D4;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  color: var(--forumbar-light-primary);
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  overflow: hidden;
+  user-select: none;
+  transition: height 0.3s ease; /* Smooth transition */
+}
+#forum-content {
+  margin: -16px 0;
+  padding: 16px 0;
+  position: relative;
+  flex: 1;
+  width: 80%;
+  background: #EED4D4;
+  box-shadow: 0 0 0 16px var(#EED4D4);
+  direction: rtl;
+  overflow-x: hidden;
+  transition: width 0.2s;
+}
 }
 
 #forum-bar hr {
@@ -431,4 +479,5 @@ label[for=forum-toggle] {
   justify-content: center;
   cursor: pointer;
 }
+
 </style>

@@ -151,6 +151,16 @@ const routes = [
 const router = createRouter({
     history: createWebHistory(),
     routes,
+    scrollBehavior(to, from, savedPosition) { 
+        if (to.hash) {
+            return {
+                el: to.hash,  // Scroll to the element with the id matching the hash
+                behavior: 'smooth'  // Optional smooth scrolling
+            };
+        }
+        
+        return {  top: 0, behavior: 'auto'};
+      },
 });
 
 router.beforeEach((to, from, next) => {
