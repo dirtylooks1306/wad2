@@ -173,9 +173,9 @@ export default {
         this.editData = {}; // Resets the edit form field when users decide not to commit changes
       }
     },
-    setImage() {
-      const fileInput = document.getElementById('imageURL');
-      this.editData.imageURL = fileInput.files[0];
+    setImage(event) {
+      const fileInput = event.target.files;
+      this.editData.imageURL = fileInput[0];
     },
     async saveEntry() {
       if (this.entryIndex !== null) {
