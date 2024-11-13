@@ -74,12 +74,79 @@
         </button>
       </div>
 
-      <div v-if="showComments" class="comments-section mt-4">
+      <!-- <div v-if="showComments" class="comments-section mt-4">
         <h5>Comments</h5>
         <div v-for="(comment, index) in comments" :key="index" class="comment mb-2">
           <strong>{{ comment.username }}</strong>: {{ comment.text }}
+          <div class="btn-container">
+          <button class="btn btn-sm btn-primary ms-2">Edit</button>
+          <button class="btn btn-sm btn-danger ms-2">Delete</button>
+          </div>
         </div>
         <div v-if="!comments.length" class="text-muted">No comments yet.</div>
+      </div> -->
+
+        
+    <div v-if="showComments" class="comments-section mt-4">
+    <h5>Comments</h5>
+    <div v-for="(comment, index) in comments" :key="index" class="comment mb-2">
+      <strong>{{ comment.username }}</strong>: 
+      
+      <span v-if="editIndex !== index">{{ comment.text }}</span>
+      
+      <input
+        v-if="editIndex === index"
+        v-model="editedText"
+        type="text"
+        class="form-control"
+      />
+      
+      <div class="btn-container">
+        <button
+        v-if="IsCommentedByUser(comment) && editIndex !== index"
+        @click="startEdit(index, comment.text)"
+        class="btn btn-sm btn-primary ms-2 btn-container"
+      >
+        Edit
+      </button>
+
+      <button
+        v-if="IsCommentedByUser(comment) && editIndex !== index"
+        @click="openDeleteModal(comment.id)"
+        class="btn btn-sm btn-danger ms-2 btn-container"
+      >
+        Delete
+      </button>
+
+        <button
+          v-if="editIndex === index"
+          @click="updateComment(comment.id)"
+          class="btn btn-sm btn-success ms-2"
+        >
+          Update
+        </button>
+        
+        <button
+          v-if="editIndex === index"
+          @click="cancelEdit"
+          class="btn btn-sm btn-secondary ms-2"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+    <div v-if="!comments.length" class="text-muted">No comments yet.</div>
+
+    <div v-if="showDeleteModal" class="dmodal-overlay">
+    <div class="dmodal-content">
+      <h5>Confirm Deletion</h5>
+      <p>Are you sure you want to delete this comment?</p>
+      <div class="dmodal-buttons">
+        <button @click="confirmDelete" class="btn btn-danger">Confirm</button>
+        <button @click="closeDeleteModal" class="btn btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
 
         <div class="mt-3">
           <textarea v-model="newComment" class="form-control" placeholder="Write a comment..."></textarea>
@@ -95,7 +162,7 @@ import NavBar from "../components/navBar.vue";
 import ForumSidebar from '../components/forumsideBar.vue';
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { db, doc, getDoc, auth, updateDoc, arrayUnion, arrayRemove, collection, addDoc, getDocs, Timestamp } from '../firebaseConfig.js';
+import { db, doc, getDoc, auth, updateDoc, arrayUnion, arrayRemove, collection, addDoc, getDocs, Timestamp, deleteDoc } from '../firebaseConfig.js';
 
 const route = useRoute();
 const router = useRouter();
@@ -111,6 +178,28 @@ const showComments = ref(false);
 const comments = ref([]);
 const newComment = ref("");
 const showModal = ref(false);
+const editIndex = ref(null);
+const editedText = ref("");
+const showDeleteModal = ref(false);
+const selectedCommentId = ref(null);
+
+const openDeleteModal = (commentId) => {
+  selectedCommentId.value = commentId;
+  showDeleteModal.value = true;
+};
+
+const closeDeleteModal = () => {
+  showDeleteModal.value = false;
+  selectedCommentId.value = null;
+};
+
+const confirmDelete = async () => {
+  if (selectedCommentId.value) {
+    await deleteComment(selectedCommentId.value);
+    closeDeleteModal();
+  }
+};
+
 
 const logError = (error, location) => {
   console.error(`Error in ${location}:`, error);
@@ -125,6 +214,52 @@ const formattedDate = computed(() => {
   return date ? date.toLocaleDateString() : '';
 });
 
+const IsCommentedByUser = (comment) => {
+  return comment.username === currentUsername.value;
+};
+
+const startEdit = (index, text) => {
+  editIndex.value = index;
+  editedText.value = text;
+};
+
+const cancelEdit = () => {
+  editIndex.value = null;
+  editedText.value = '';
+};
+
+const updateComment = async (commentId) => {
+  try {
+    const commentRef = doc(db, 'forum', postId, 'comments', commentId);
+    await updateDoc(commentRef, { text: editedText.value });
+
+    // Find and update the specific comment in the comments array
+    const comment = comments.value.find((c) => c.id === commentId);
+    if (comment) {
+      comment.text = editedText.value;
+    }
+
+    cancelEdit();
+  } catch (error) {
+    console.error('Error updating comment:', error);
+  }
+};
+
+
+const deleteComment = async (commentId) => {
+  try {
+    const commentRef = doc(db, 'forum', postId, 'comments', commentId);
+    await deleteDoc(commentRef);
+
+    // Find the index of the comment to remove from the comments array
+    const index = comments.value.findIndex((comment) => comment.id === commentId);
+    if (index !== -1) {
+      comments.value.splice(index, 1); // Use splice to remove it reactively
+    }
+  } catch (error) {
+    console.error('Error deleting comment:', error);
+  }
+};
 const fetchPost = async () => {
   if (!postId) {
     console.error("postId is undefined or null in fetchPost.");
@@ -190,7 +325,10 @@ const loadCurrentUser = async () => {
 const fetchComments = async () => {
   const commentsRef = collection(db, 'forum', postId, 'comments');
   const commentsSnap = await getDocs(commentsRef);
-  comments.value = commentsSnap.docs.map(doc => doc.data());
+  comments.value = commentsSnap.docs.map(doc => ({
+    ...doc.data(),
+    id: doc.id, // Add the unique document ID to each comment
+  }));
 };
 
 const publishComment = async () => {
@@ -198,18 +336,19 @@ const publishComment = async () => {
 
   const commentsRef = collection(db, 'forum', postId, 'comments');
   try {
-    await addDoc(commentsRef, {
+    const docRef = await addDoc(commentsRef, {
       text: newComment.value,
       username: currentUsername.value,
       timestamp: Timestamp.now()
     });
-    comments.value.push({ text: newComment.value, username: currentUsername.value });
+
+    // Add the new comment with its ID to the comments array for reactivity
+    comments.value.push({ text: newComment.value, username: currentUsername.value, id: docRef.id });
     newComment.value = "";
   } catch (error) {
     logError(error, "publishComment");
   }
 };
-
 const isAuthor = computed(() => {
   return currentUsername.value === post.value.author;
 });
@@ -439,6 +578,7 @@ onMounted(async () => {
   padding: 10px;
   border-radius: 5px;
   border: 1px solid #ddd;
+  justify-content: space-between;
 }
 
 textarea.form-control {
@@ -495,4 +635,43 @@ button.btn-primary:hover {
   font-size: 24px;
   cursor: pointer;
 }
+
+.btn-container{
+  display: inline-block;
+  margin-left: auto; 
+  margin-right: 0;
+}
+
+/* .dmodal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+} */
+
+.dmodal-content {
+  background-color: white;
+  padding: 20px;
+  /* border-radius: 8px;
+  width: 300px; */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+.dmodal-buttons {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 15px;
+}
+
+.dmodal-buttons .btn {
+  width: 80px;
+}
+
 </style>
