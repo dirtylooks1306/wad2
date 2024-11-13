@@ -162,7 +162,7 @@ import NavBar from "../components/navBar.vue";
 import ForumSidebar from '../components/forumsideBar.vue';
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { db, doc, getDoc, auth, updateDoc, arrayUnion, arrayRemove, collection, addDoc, getDocs, Timestamp, deleteDoc } from '../firebaseConfig.js';
+import { db, doc, getDoc, auth, updateDoc, arrayUnion, arrayRemove, collection, addDoc, getDocs, Timestamp, deleteDoc, query, orderBy } from '../firebaseConfig.js';
 
 const route = useRoute();
 const router = useRouter();
@@ -323,8 +323,11 @@ const loadCurrentUser = async () => {
 };
 
 const fetchComments = async () => {
+  // Create a query that sorts comments by timestamp in descending order (newest first)
   const commentsRef = collection(db, 'forum', postId, 'comments');
-  const commentsSnap = await getDocs(commentsRef);
+  const sortedCommentsQuery = query(commentsRef, orderBy('timestamp', 'asc'));
+
+  const commentsSnap = await getDocs(sortedCommentsQuery);
   comments.value = commentsSnap.docs.map(doc => ({
     ...doc.data(),
     id: doc.id, // Add the unique document ID to each comment
