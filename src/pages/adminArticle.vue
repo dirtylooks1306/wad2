@@ -1,495 +1,603 @@
-<script setup>
-import { onMounted, ref, computed, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import NavBar from "../components/navBar.vue";
-import CustomHeader from "../components/CustomHeader.vue";
-import ToTop from '../components/ToTop.vue';
-import { collection, query, where, getDocs, doc, updateDoc, increment, runTransaction, Timestamp } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
-import { db, auth, getDoc } from "../firebaseConfig.js";
-
-const route = useRoute();
-const router = useRouter();
-const articles = ref([]);
-const userReactions = ref({});
-const userId = ref(null);
-const userRole = ref(null);
-
-const sortOption = ref('date');
-const sortOptions = {
-  likes: 'Likes (Descending)',
-  date: 'Date (Newest First)',
-  dateAsc: 'Date (Oldest First)',
-  likesAsc: 'Likes (Ascending)'
-};
-
-const category = computed(() => route.params.category || '');
-const isSavedView = computed(() => category.value.toLowerCase() === 'saved');
-const categories = ['Activities', 'Education', 'Nutrition'];
-
-auth.onAuthStateChanged(async (user) => {
-  if (user) {
-    userId.value = user.uid;
-    const userDocRef = doc(db, "users", user.uid);
-    const userDoc = await getDoc(userDocRef);
-    userRole.value = userDoc.exists() ? userDoc.data().role : null;
-    fetchArticles();
-  } else {
-    userId.value = null;
-    articles.value = [];
-  }
-});
-
-const capitalizeCategory = (cat) => cat ? cat.charAt(0).toUpperCase() + cat.slice(1) : '';
-
-const fetchArticles = async () => {
-  try {
-    const articlesCollection = collection(db, "articles");
-    let q;
-
-    if (isSavedView.value) {
-      q = query(articlesCollection, where("Saved", "==", true));
-    } else {
-      q = category.value.toLowerCase() === 'new'
-        ? query(articlesCollection, where("Date", ">=", Timestamp.fromDate(new Date(new Date().setMonth(new Date().getMonth() - 1)))))
-        : query(articlesCollection, where("Filter", "==", capitalizeCategory(category.value)));
-    }
-
-    const querySnapshot = await getDocs(q);
-    articles.value = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-      Date: doc.data().Date instanceof Timestamp ? doc.data().Date.toMillis() : new Date(doc.data().Date).getTime()
-    }));
-
-    sortArticles();
-  } catch (error) {
-    console.error("Error fetching articles:", error.message);
-  }
-};
-
-const sortArticles = () => {
-  if (sortOption.value === 'likes') {
-    articles.value.sort((a, b) => (b.Likes ?? 0) - (a.Likes ?? 0));
-  } else if (sortOption.value === 'date') {
-    articles.value.sort((a, b) => b.Date - a.Date);
-  } else if (sortOption.value === 'dateAsc') {
-    articles.value.sort((a, b) => a.Date - b.Date);
-  } else if (sortOption.value === 'likesAsc') {
-    articles.value.sort((a, b) => (a.Likes ?? 0) - (b.Likes ?? 0));
-  }
-};
-
-const formattedArticles = computed(() => {
-  return articles.value.map(article => ({
-    ...article,
-    displayDate: new Date(article.Date).toLocaleDateString()
-  }));
-});
-
-watch(sortOption, sortArticles);
-
-const toggleSaved = async (articleId) => {
-  if (!userId.value) return;
-
-  try {
-    const articleRef = doc(db, "articles", articleId);
-    const article = articles.value.find(a => a.id === articleId);
-    const newSavedStatus = !article.Saved;
-
-    await updateDoc(articleRef, { Saved: newSavedStatus });
-    article.Saved = newSavedStatus;
-
-    if (isSavedView.value) fetchArticles();
-  } catch (error) {
-    console.error("Error toggling saved status:", error.message);
-  }
-};
-
-const goToArticleDetails = (articleId) => {
-  router.push({ name: 'ArticleDetails', params: { id: articleId } });
-};
-
-const likeArticle = async (articleId) => {
-  if (!userId.value) return;
-
-  await runTransaction(db, async (transaction) => {
-    const articleRef = doc(db, "articles", articleId);
-    const reactionRef = doc(db, "articles", articleId, "reactions", userId.value);
-    const article = articles.value.find(a => a.id === articleId);
-
-    const articleSnapshot = await transaction.get(articleRef);
-    const reactionSnapshot = await transaction.get(reactionRef);
-
-    const currentLikes = articleSnapshot.data().Likes || 0;
-    const currentReaction = reactionSnapshot.exists() ? reactionSnapshot.data().type : null;
-
-    if (currentReaction === 'liked') {
-      transaction.update(articleRef, { Likes: increment(-1) });
-      transaction.delete(reactionRef);
-      article.Likes -= 1;
-      userReactions.value[articleId] = null;
-    } else {
-      if (currentReaction === 'disliked') {
-        transaction.update(articleRef, { Dislikes: increment(-1) });
-        article.Dislikes -= 1;
-      }
-      transaction.update(articleRef, { Likes: increment(1) });
-      transaction.set(reactionRef, { type: 'liked' });
-      article.Likes += 1;
-      userReactions.value[articleId] = 'liked';
-    }
-  });
-};
-
-const dislikeArticle = async (articleId) => {
-  if (!userId.value) return;
-
-  await runTransaction(db, async (transaction) => {
-    const articleRef = doc(db, "articles", articleId);
-    const reactionRef = doc(db, "articles", articleId, "reactions", userId.value);
-    const article = articles.value.find(a => a.id === articleId);
-
-    const articleSnapshot = await transaction.get(articleRef);
-    const reactionSnapshot = await transaction.get(reactionRef);
-
-    const currentDislikes = articleSnapshot.data().Dislikes || 0;
-    const currentReaction = reactionSnapshot.exists() ? reactionSnapshot.data().type : null;
-
-    if (currentReaction === 'disliked') {
-      transaction.update(articleRef, { Dislikes: increment(-1) });
-      transaction.delete(reactionRef);
-      article.Dislikes -= 1;
-      userReactions.value[articleId] = null;
-    } else {
-      if (currentReaction === 'liked') {
-        transaction.update(articleRef, { Likes: increment(-1) });
-        article.Likes -= 1;
-      }
-      transaction.update(articleRef, { Dislikes: increment(1) });
-      transaction.set(reactionRef, { type: 'disliked' });
-      article.Dislikes += 1;
-      userReactions.value[articleId] = 'disliked';
-    }
-  });
-};
-
-watch(category, fetchArticles, { immediate: true });
-onMounted(fetchArticles);
-</script>
-
 <template>
-  <NavBar />
-  <div class="articles-container">
-    <h1 class="article-title">{{ capitalizeCategory(category) }} Articles</h1>
-
-    <div class="sort-container">
-      <CustomHeader header="Sort By:" />
-      <div class="sort-dropdown">
-        <select id="sort" v-model="sortOption">
-          <option value="date">{{ sortOptions.date }}</option>
-          <option value="dateAsc">{{ sortOptions.dateAsc }}</option>
-          <option value="likes">{{ sortOptions.likes }}</option>
-          <option value="likesAsc">{{ sortOptions.likesAsc }}</option>
+  <AdminNavBar />
+  <div>
+    <h1 class="text-center mt-1 title">Articles Management</h1>
+    <div class="header-container">
+      <div class="spacer"></div>
+      <div class="pagination-controls-center">
+        <CustomHeader header="Articles Per Page:" />
+        <select v-model="itemsPerPage" @change="updateItemsPerPage">
+          <option value="5">5</option>
+          <option value="10">10</option>
         </select>
       </div>
+      <button @click="showArticleForm = true" class="add-article-button">Add Article</button>
     </div>
 
-    <div v-if="formattedArticles.length" class="articles-grid">
-      <div
-        v-for="article in formattedArticles"
-        :key="article.id"
-        class="article-card"
-        @click="goToArticleDetails(article.id)"
-      >
-        <h1 class="article-card-title">{{ article.Title }}</h1>
-        <div class="article-info">
-          <p class="article-author"><b>Author: {{ article.Author || 'Unknown' }}</b></p>
-          <p class="article-date">{{ article.displayDate || 'No Date' }}</p>
-        </div>
+    <!-- Article Form (Modal) -->
+    <div v-if="showArticleForm" class="modal-overlay" @click.self="closeArticleForm">
+      <div class="modal-content">
+        <h2>Add New Article</h2>
+        <form @submit.prevent="publishArticle">
+          <label>Title</label>
+          <input v-model="newArticle.Title" type="text" required />
 
-        <img v-if="article.ImageUrl" :src="article.ImageUrl" alt="Article Image" class="article-image" />
+          <label>Author</label>
+          <input v-model="newArticle.Author" type="text" required />
 
-        <div class="partition-line"></div>
-        <p>{{ article.Description || 'No description available' }}</p>
-        <div class="partition-line"></div>
+          <div class="form-group">
+                <label for="category" class="form-label">Category</label>
+                <select id="categoryNew" v-model="newArticle.Category" required class="form-select full-width">
+                    <option disabled value="">Select Category</option>
+                    <option>Activities</option>
+                    <option>Education</option>
+                    <option>Nutrition</option>
+                </select>
+            </div>
 
-        <div class="article-meta">
-          <span class="reaction">
-            <button @click.stop="likeArticle(article.id)" :class="{ active: userReactions[article.id] === 'liked' }">
-              <i class="fas fa-thumbs-up"></i>
-            </button>
-            <span class="reaction-count">{{ article.Likes ?? 0 }}</span>
-          </span>
-          <span class="reaction">
-            <button @click.stop="dislikeArticle(article.id)" :class="{ active: userReactions[article.id] === 'disliked' }">
-              <i class="fas fa-thumbs-down"></i>
-            </button>
-            <span class="reaction-count">{{ article.Dislikes ?? 0 }}</span>
-          </span>
-        </div>
+          <label>Description</label>
+          <textarea v-model="newArticle.Description" placeholder="Enter article description" required></textarea>
 
-        <div class="saved">
-          <button @click.stop="toggleSaved(article.id)" :class="{ saved: article.Saved }">
-            <i class="fas fa-bookmark"></i>
-          </button>
-        </div>
+          <label>Content</label>
+          <textarea v-model="newArticle.Content" placeholder="Enter article content" required></textarea>
+
+          <!-- Image Upload for Article -->
+          <label>Upload Article Image</label>
+          <input type="file" @change="handleImageUpload" accept="image/*" />
+
+          <button type="submit">Publish Article</button>
+          <button type="button" @click="closeArticleForm">Cancel</button>
+        </form>
       </div>
     </div>
-    <div v-else>
-      <p>No articles found in {{ capitalizeCategory(category) }}.</p>
+
+    <!-- Articles Table -->
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Category</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="article in paginatedArticles" :key="article.id">
+            <td>{{ article.Title }}</td>
+            <td>{{ article.Author }}</td>
+            <td>{{ article.Category }}</td>
+            <td>
+              <button @click="openEditModal(article)">Edit</button>
+              <button @click="deleteArticle(article.id)">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-    
-    <ToTop />
+
+    <!-- Pagination Navigation -->
+    <div class="pagination-navigation">
+      <button @click="changePage(currentPage - 1)" :disabled="currentPage === 1">Previous</button>
+      <span>Page {{ currentPage }} of {{ totalPages }}</span>
+      <button @click="changePage(currentPage + 1)" :disabled="currentPage === totalPages">Next</button>
+    </div>
+
+    <!-- Edit Article Modal -->
+    <div v-if="showEditModal" class="modal-overlay" @click.self="closeEditModal">
+      <div class="modal-content">
+        <h2>Edit Article</h2>
+        <form @submit.prevent="saveArticleChanges">
+          <label>Title</label>
+          <input v-model="editedArticle.Title" type="text" required />
+
+          <label>Author</label>
+          <input v-model="editedArticle.Author" type="text" required />
+
+            <div class="form-group">
+              <label for="category" class="form-label">Category</label>
+              <select id="categoryEdit" v-model="editedArticle.Category" required class="form-select full-width">
+                  <option disabled value="">Select Category</option>
+                  <option>Activities</option>
+                  <option>Education</option>
+                  <option>Nutrition</option>
+              </select>
+            </div>
+
+          <label>Description</label>
+          <textarea v-model="editedArticle.Description" placeholder="Enter the article description" required></textarea>
+
+          <label>Content</label>
+          <textarea 
+              v-model="editedArticle.Content" 
+              placeholder="Enter the article content" 
+              required 
+              rows="10" 
+              style="resize: vertical;">
+          </textarea>
+
+          <!-- Display Existing Article Image if available -->
+          <label>Current Article Image</label>
+          <div v-if="editedArticle.ImageUrl" class="current-image-container">
+              <img :src="editedArticle.ImageUrl" alt="Current Article Image" class="current-article-image" />
+          </div>
+
+          <!-- Upload New Article Image -->
+          <label>Upload New Article Image</label>
+          <input type="file" @change="handleEditedImageUpload" accept="image/*" />
+
+          <button type="submit">Save Changes</button>
+          <button type="button" @click="closeEditModal">Cancel</button>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
+<script setup>
+import { ref as vueRef, onMounted } from 'vue';
+import { db, collection, getDocs, deleteDoc, doc, updateDoc, addDoc, Timestamp, storage } from '../firebaseConfig.js';
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-storage.js';
+import AdminNavBar from '../components/AdminNavBar.vue';
+import CustomHeader from "../components/CustomHeader.vue";
+
+const articles = vueRef([]);
+const showEditModal = vueRef(false);
+const editedArticle = vueRef(null);
+const showArticleForm = vueRef(false);
+const newArticle = vueRef({
+  Title: '',
+  Author: '',
+  Category: '',
+  Description: '',
+  Content: '',
+  ImageUrl: null
+});
+
+const articleImageFile = vueRef(null);
+const editedArticleImageFile = vueRef(null);
+
+const handleImageUpload = (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    articleImageFile.value = file;
+  }
+};
+
+const handleEditedImageUpload = (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    editedArticleImageFile.value = file;
+  }
+};
+
+const closeArticleForm = () => {
+  showArticleForm.value = false;
+  newArticle.value = { Title: '', Author: '', Category: '', Description: '', Content: '', ImageUrl: null };
+  articleImageFile.value = null;
+};
+
+const publishArticle = async () => {
+  if (!newArticle.value.Title || !newArticle.value.Author || !newArticle.value.Category || !newArticle.value.Description) return;
+
+  try {
+    const articlesCollection = collection(db, "articles");
+    let imageUrl = null;
+
+    if (articleImageFile.value) {
+      const articleDoc = await addDoc(articlesCollection, {});
+      const imageRef = storageRef(storage, `Articles/${articleDoc.id}.jpg`);
+      await uploadBytes(imageRef, articleImageFile.value);
+      imageUrl = await getDownloadURL(imageRef);
+
+      await updateDoc(articleDoc, {
+        Title: newArticle.value.Title,
+        Author: newArticle.value.Author,
+        Category: newArticle.value.Category,
+        Description: newArticle.value.Description,
+        Content: newArticle.value.Content.split('\n').filter(line => line.trim() !== ''),
+        Date: Timestamp.fromDate(new Date()),
+        Likes: 0,
+        Dislikes: 0,
+        Saved: false,
+        ImageUrl: imageUrl
+      });
+    } else {
+      await addDoc(articlesCollection, {
+        Title: newArticle.value.Title,
+        Author: newArticle.value.Author,
+        Category: newArticle.value.Category,
+        Description: newArticle.value.Description,
+        Content: newArticle.value.Content.split('\n').filter(line => line.trim() !== ''),
+        Date: Timestamp.fromDate(new Date()),
+        Likes: 0,
+        Dislikes: 0,
+        Saved: false,
+        ImageUrl: null
+      });
+    }
+
+    closeArticleForm();
+    fetchArticles();
+  } catch (error) {
+    console.error("Error publishing article:", error.message);
+  }
+};
+
+const fetchArticles = async () => {
+  const articlesCollection = collection(db, 'articles');
+  const querySnapshot = await getDocs(articlesCollection);
+  articles.value = querySnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
+  updateTotalPages();
+};
+
+const deleteArticle = async (articleId) => {
+  try {
+    await deleteDoc(doc(db, 'articles', articleId));
+    articles.value = articles.value.filter((article) => article.id !== articleId);
+    fetchArticles();
+  } catch (error) {
+    console.error('Error deleting article:', error);
+  }
+};
+
+const closeEditModal = () => {
+  showEditModal.value = false;
+  editedArticle.value = null;
+  editedArticleImageFile.value = null;
+};
+
+const openEditModal = (article) => {
+  showEditModal.value = true;
+  editedArticle.value = {
+    ...article,
+    Content: Array.isArray(article.Content) 
+      ? article.Content.join('\n\n') 
+      : article.Content,
+  };
+};
+
+const saveArticleChanges = async () => {
+  if (!editedArticle.value) return;
+
+  try {
+    const articleDocRef = doc(db, 'articles', editedArticle.value.id);
+    let updatedImageUrl = editedArticle.value.ImageUrl;
+
+    if (editedArticleImageFile.value) {
+      const imageRef = storageRef(storage, `Articles/${editedArticle.value.id}.jpg`);
+      await uploadBytes(imageRef, editedArticleImageFile.value);
+      updatedImageUrl = await getDownloadURL(imageRef);
+    }
+
+    const articleData = {
+      Title: editedArticle.value.Title,
+      Author: editedArticle.value.Author,
+      Category: editedArticle.value.Category,
+      Description: editedArticle.value.Description,
+      Content: editedArticle.value.Content.split('\n').filter(line => line.trim() !== ''),
+    };
+
+    if (updatedImageUrl !== undefined) {
+      articleData.ImageUrl = updatedImageUrl;
+    }
+
+    await updateDoc(articleDocRef, articleData);
+    closeEditModal();
+    fetchArticles();
+  } catch (error) {
+    console.error('Error saving article changes:', error);
+  }
+};
+
+const itemsPerPage = vueRef(5);
+const currentPage = vueRef(1);
+const totalPages = vueRef(1);
+const paginatedArticles = vueRef([]);
+
+const changePage = (page) => {
+  currentPage.value = Math.min(Math.max(page, 1), totalPages.value);
+  updatePaginatedArticles();
+};
+
+const updatePaginatedArticles = () => {
+  const start = (currentPage.value - 1) * itemsPerPage.value;
+  const end = start + parseInt(itemsPerPage.value, 10);
+  paginatedArticles.value = articles.value.slice(start, end);
+};
+
+const updateTotalPages = () => {
+  totalPages.value = Math.ceil(articles.value.length / itemsPerPage.value);
+  currentPage.value = 1;
+  updatePaginatedArticles();
+};
+
+const updateItemsPerPage = () => {
+  updateTotalPages();
+};
+
+onMounted(fetchArticles);
+</script>
+
 <style scoped>
-.article-title {
-  text-align: center;
-  font-size: 32px;
-  color: #ff9689;
-  font-family: "Cherry Bomb", sans-serif;
-  font-weight: bold;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  margin: 0.5em 0;
+.title{
+    text-align: center;
+    font-size: 36px;
+    color: #ff9689;
+    font-family: "Cherry Bomb", sans-serif;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin: 0 auto;
+    padding: 20px;
+    max-width: 1200px;
 }
 
-.articles-container {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
+.header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #f4f4f4;
+    position: relative;
 }
 
-.sort-container {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 20px 0;
+.header-container h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
 }
 
-.sort-dropdown select {
-  padding: 8px 12px;
-  font-size: 16px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  background-color: #f5f5f5;
-  color: #555;
-  cursor: pointer;
-  transition: border-color 0.3s;
+.add-article-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    font-size: 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
-.sort-dropdown select:focus {
-  outline: none;
-  border-color: #ff9689;
+.add-article-button:hover {
+    background-color: #45a049;
 }
 
-.articles-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  margin-top: 20px;
+.add-article-button:active {
+    background-color: #3e8e41;
+}
+.table-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
 }
 
-.article-card {
-  flex: 1 1 30%;
-  background-color: #f5e1e1;
-  padding: 15px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  cursor: pointer;
-  transition: transform 0.2s;
-  border-radius: 25px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  position: relative;
+table {
+    width: 90%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: #fff;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
 }
 
-.article-card:hover {
-  transform: scale(1.02);
+th, td {
+    padding: 12px;
+    border: 1px solid #ddd;
+    text-align: left;
 }
 
-.article-card-title {
-  text-align: center;
-  font-size: 18px;
-  color: #ff9689;
-  font-family: "Cherry Bomb", sans-serif;
-  font-weight: bold;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  margin: 0.5em 0;
+thead th {
+    background-color: #FF9689;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    text-transform: uppercase;
 }
 
-.article-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
+th {
+    background-color: #f4f4f4;
+    font-weight: bold;
 }
 
-.article-author {
-  font-style: italic;
-  color: #555;
-  margin: 0;
-}
-
-.article-date {
-  color: #555;
-  margin: 0;
-  font-size: 0.9em;
-}
-
-.article-image {
-  max-width: 100%;
-  max-height: 150px;
-  width: auto;
-  height: auto;
-  border-radius: 8px;
-  margin: 10px 0;
-  object-fit: contain;
-}
-
-.partition-line {
-  width: 100%;
-  height: 2px;
-  background-color: #ff9689;
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
-  border-radius: 2px;
-}
-
-.article-meta {
-  display: flex;
-  gap: 12px;
-  position: absolute;
-  bottom: 10px;
-  left: 10px;
-  align-items: center;
-}
-
-.reaction {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-}
-
-.reaction-count {
-  font-size: 0.9em;
-  color: #555;
+tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
 }
 
 button {
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
-  color: #555;
-  font-size: 1.2em;
+    margin-right: 8px;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
-button.active i {
-  color: #007bff;
+button:not(.add-article-button):first-of-type {
+    background-color: #FFC107;
+    color: white;
 }
 
-.saved {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  margin-top: 10px;
+button:not(.add-article-button):last-of-type {
+    background-color: #f44336; 
+    color: white;
 }
 
-.saved button i {
-  color: white;
-  background-color: transparent;
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
 }
 
-.saved button.saved i {
-  color: black;
-  background-color: transparent;
-}
-
-button:hover i {
-  color: #0056b3;
-}
-
-.write-article-button {
-  position: fixed;
-  top: 90px;
-  right: 20px;
-  background-color: #007bff;
-  color: #fff;
-  border: none;
-  padding: 12px;
-  cursor: pointer;
-  font-size: 16px;
-  font-family: "Cherry Bomb", sans-serif;
-}
-
-.write-article-button:hover {
-  background-color: #0056b3;
-}
-
-.article-form {
-  background-color: transparent;
+.modal-content {
+  background: white;
   padding: 20px;
-  border-radius: 10px;
-  margin-bottom: 20px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh; 
+  overflow-y: auto; 
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.3s ease;
 }
 
-.article-form input,
-.article-form textarea,
-.article-form select {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
+.modal-content h2 {
+  margin-top: 0;
+  text-align: center;
+}
+
+
+form label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+form input, form textarea {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+form button {
+    margin-top: 15px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+form button[type="submit"] {
+    background-color: #4CAF50;
+    color: white;
+}
+
+form button[type="button"]:not(:last-of-type) {
+    background-color: #2196F3;
+    color: white;
+}
+
+form button[type="button"]:last-of-type {
+    background-color: #f44336;
+    color: white;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.current-image-container {
+  margin: 10px 0;
+  text-align: center;
+}
+
+.current-article-image {
+  max-width: 200px; 
+  max-height: 150px; 
+  height: auto;
+  border-radius: 8px;
   border: 1px solid #ddd;
-  border-radius: 5px;
-  color: inherit;
+  object-fit: cover; 
 }
 
-.article-form input::placeholder,
-.article-form textarea::placeholder,
-.article-form select::placeholder {
-  color: inherit;
+.pagination-controls-center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-.article-form button {
-  margin-right: 10px;
+.pagination-controls, .pagination-navigation {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0;
 }
 
-.article-form button.article-form-button {
-  color: #fff;
-  background-color: #007bff;
+.pagination-controls select {
+  margin-left: 10px;
+  padding: 5px;
+}
+
+.pagination-navigation button {
+  padding: 8px 12px;
+  margin: 0 5px;
   border: none;
-  font-size: 16px;
-  font-family: "Cherry Bomb", sans-serif;
-}
-
-.article-form button.article-form-button:hover {
-  background-color: #0056b3;
-}
-
-#to-top {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background-color: #333;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 5px;
+  border-radius: 4px;
   cursor: pointer;
-  z-index: 1000;
+  background-color: #4CAF50;
+  color: white;
 }
 
-@media (max-width: 600px) {
-  .article-meta, .saved {
-    position: static;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 5px;
-  }
-
-  .article-card {
-    padding-bottom: 20px;
-  }
+.pagination-navigation span {
+  margin: 0 10px;
 }
+
+.pagination-navigation button:disabled {
+  background-color: #ddd;
+  cursor: not-allowed;
+}
+.current-image-container {
+  margin: 10px 0;
+  text-align: center;
+  }
+  
+.current-article-image {
+max-width: 200px; /* Limit the image width */
+max-height: 150px; /* Limit the image height */
+height: auto;
+border-radius: 8px;
+border: 1px solid #ddd;
+object-fit: cover; /* Ensures image fits nicely within specified dimensions */
+}
+
+.form-group {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.form-select {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    appearance: none; /* Removes default dropdown arrow for custom styling */
+}
+
+.form-select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    outline: none;
+}
+
+.full-width {
+    width: 100%;
+}
+  
 </style>
