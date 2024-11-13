@@ -230,7 +230,7 @@ onMounted(fetchArticles);
 
         <div class="saved">
           <button @click.stop="toggleSaved(article.id)" :class="{ saved: article.Saved }">
-            <i class="fas fa-bookmark"></i>
+            <i :class="article.Saved ? 'fas fa-bookmark' : 'far fa-bookmark'"></i>
           </button>
         </div>
       </div>
@@ -387,7 +387,7 @@ button {
 }
 
 button.active i {
-  color: #007bff;
+  color: #ff9689 ;
 }
 
 .saved {
@@ -398,7 +398,7 @@ button.active i {
 }
 
 .saved button i {
-  color: white;
+  color: black;
   background-color: transparent;
 }
 
@@ -408,7 +408,7 @@ button.active i {
 }
 
 button:hover i {
-  color: #0056b3;
+  color: #464648;
 }
 
 .write-article-button {
