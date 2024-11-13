@@ -13,6 +13,9 @@
             <hr />
           </div>
         </div>
+        <div v-if="forumPosts.length === 0">
+          <p style="margin-top: 10%">No posts found in Saved.</p>
+        </div>
       </div>
 
       <!-- Right Sidebar -->
@@ -32,6 +35,14 @@ import ForumRightbar from '../components/forumRightbar.vue';
 import ForumCard from '../components/forumCard.vue';
 import ToTop from '../components/ToTop.vue';
  
+
+const props = defineProps({
+  category: {
+    type: String,
+    default: 'new', // default to 'new' or whatever default makes sense
+  }
+});
+
 const route = useRoute();
 const router = useRouter();
 const forumPosts = ref([]);
@@ -103,58 +114,36 @@ const fetchPostsByCategory = async (category) => {
       const querySnapshot = await getDocs(forumQuery);
       postsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-    } else if (category === 'new') {
-      const forumQuery = query(forumCollection, orderBy('date', 'desc'), limit(50));
-      const querySnapshot = await getDocs(forumQuery);
-      postsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
     } else if (category === 'saved') {
       postsData = await fetchSavedPosts();
 
     } else if (category === 'recently-viewed') {
       postsData = await fetchRecentlyViewedPosts();
+    } else {
+      const forumQuery = query(forumCollection, orderBy('date', 'desc'), limit(50));
+      const querySnapshot = await getDocs(forumQuery);
+      postsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     }
 
+    
     forumPosts.value = postsData;
   } catch (error) {
     console.error('Error fetching posts:', error);
   }
 };
 
-// Watch the route for changes and fetch posts accordingly
+// Fetch posts when the component is mounted
+onMounted(() => {
+  fetchPostsByCategory(props.category);
+});
+
 watch(
-  () => route.path,
-  () => {
-    const categories = ['trending', 'new', 'saved', 'recently-viewed'];
-    const currentCategory = categories.find(category => route.path.includes(category)) || 'trending';
-    fetchPostsByCategory(currentCategory);
-  },
-  { immediate: true }
+  () => props.category,
+  (newCategory) => {
+    fetchPostsByCategory(newCategory);
+  }
 );
 
-onMounted(() => {
-  const categories = ['trending', 'new', 'saved', 'recently-viewed'];
-  const currentCategory = categories.find(category => route.path.includes(category)) || 'new';
-  
-  if (!route.path.includes(currentCategory)) {
-    // Redirect to /forum/new if no category is found in the URL
-    router.push('/forum/new');
-  } else {
-    fetchPostsByCategory(currentCategory);
-  }
-  // Intersection Observer to hide sidebar when it touches the content area
-  const observer = new IntersectionObserver(
-    ([entry]) => {
-      if (window.innerWidth > 767) { // Only trigger on larger screens
-        isSidebarVisible.value = !entry.isIntersecting;
-      } else {
-        isSidebarVisible.value = false;
-      }
-    },
-    { threshold: 0.1 }
-  );
-
-});
 </script>
 
 <style scoped>

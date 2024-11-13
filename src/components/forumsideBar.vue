@@ -62,20 +62,20 @@
 </template>
 
 <script>
-
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
 import { auth, db, doc, getDoc } from '../firebaseConfig.js';
 
 export default {
   name: 'ForumSidebar',
   setup() {
-    
     const userData = ref({
       username: 'Loading...',
       profileimage: 'default-profile.png', // Path to a default image
       role: 'user'
     });
     const isHamburger = ref(false);
+    const isMobileView = ref(window.innerWidth <= 767); // Define isMobileView based on initial window width
+
     const fetchUserData = async () => {
       try {
         const currentUser = await auth.currentUser;
@@ -97,22 +97,36 @@ export default {
         console.error('Error fetching user data:', error);
       }
     };
+
     const toggleIcon = () => {
       isHamburger.value = !isHamburger.value;
     };
+
+    // Update isMobileView when window is resized
+    const handleResize = () => {
+      isMobileView.value = window.innerWidth <= 767;
+    };
+
     onMounted(() => {
       fetchUserData();
+      window.addEventListener('resize', handleResize); // Add resize listener
+    });
+
+    onBeforeUnmount(() => {
+      window.removeEventListener('resize', handleResize); // Remove resize listener
     });
 
     return {
       userData,
       isHamburger,
+      isMobileView,
       toggleIcon,
       iconClass: computed(() => (isHamburger.value ? 'fas fa-bars' : 'fas fa-arrow-left'))
     };
   }
 };
 </script>
+
 
 <style scoped>
 

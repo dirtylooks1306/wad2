@@ -89,8 +89,8 @@
         
     <div v-if="showComments" class="comments-section mt-4">
     <h5>Comments</h5>
-    <div v-for="(comment, index) in comments" :key="index" class="comment mb-2">
-      <strong>{{ comment.username }}</strong>: 
+    <div v-for="(comment, index) in comments" :key="index" class="comment d-flex mb-2">
+      <strong>{{ comment.username }}:</strong>&nbsp;
       
       <span v-if="editIndex !== index">{{ comment.text }}</span>
       
