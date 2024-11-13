@@ -240,10 +240,12 @@ onMounted(() => {
   <NavBar />
   <div class="profile-container" v-if="user">
     <h1>Welcome, {{ username || 'User' }}!</h1>
+
     <div v-if="profileImage" class="profile-image-container" @click="triggerFileInput">
       <img :src="profileImage" alt="Profile Image" class="profile-image">
       <input type="file" ref="fileInput" @change="handleImageSelection" accept="image/*" class="file-input" />
     </div>
+    
     <div v-if="children.length > 0">
         <h2>Your Children:</h2>
         <div v-for="child in children" :key="child.id" class="child-card">

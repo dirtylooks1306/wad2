@@ -8,9 +8,9 @@
       </button>
       
       <div class="author-info d-flex align-items-center mb-3">
-        <img :src="post.profileimage" alt="Author profile" class="author-avatar" />
+        <img :src="post.profileimage" alt="Author profile" class="author-avatar" @click="navigateToProfile"/>
         <div class="author-details ms-3">
-          <h5 class="author-name mb-0">{{ post.author }}</h5>
+          <h5 class="author-name mb-0" @click="navigateToProfile">{{ post.author }}</h5>
           <small class="text-muted">{{ formattedDate }}</small>
         </div>
       </div>
@@ -277,6 +277,14 @@ const fetchPost = async () => {
     }
   } catch (error) {
     logError(error, "fetchPost");
+  }
+};
+
+const navigateToProfile = async () => {
+  try {
+    router.push(`/forum/user/${post.value.author}`);
+  } catch (error) {
+    console.error('Error navigating to profile:', error);
   }
 };
 
