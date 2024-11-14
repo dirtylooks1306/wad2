@@ -170,9 +170,9 @@
 						>
 					</li>
 					<li class="nav-item d-lg-none" v-if="!user">
-						<router-link to="/login" class="nav-link login-register"
+						<!-- <router-link to="/login" class="nav-link login-register"
 							>Login/Register</router-link
-						>
+						> -->
 					</li>
 					<li class="nav-item d-lg-none" v-else>
 						<!-- <router-link to="/profile" class="nav-link">
@@ -229,7 +229,7 @@
 					Login/Register
 				</router-link>
 
-				<div v-else class="d-flex align-items-center position-relative">
+				<div class="d-flex align-items-center position-relative">
 					<div class="dropdown">
 						<router-link
 							to="/profile"
