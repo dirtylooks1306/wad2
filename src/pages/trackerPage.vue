@@ -20,6 +20,7 @@ const gender = ref(null);
 const currentUserValue = ref(null);
 const error = ref("");
 const todayDate = ref("");
+const childImage = ref("");
 
 const defaultQuestions = ref([
 	"How can I tell if my baby is growing at a healthy rate?",
@@ -62,31 +63,52 @@ function calculateAgeRange(dob) {
 	else if (months > 12 && months <= 18) return "12-18 months";
 	else if (months > 18 && months <= 24) return "18-24 months";
 }
+const calculateAge = (birthDate, targetDate = new Date()) => {
+	const birth = new Date(birthDate);
+	const target = new Date(targetDate);
 
+	let months = (target.getFullYear() - birth.getFullYear()) * 12 + (target.getMonth() - birth.getMonth());
+
+	// Adjust if the target date is earlier in the month than the birth date
+	if (target.getDate() < birth.getDate()) {
+		months -= 1;
+	}
+
+	// Determine age range
+	if (months >= 0 && months <= 2) return "0-2 months";
+	else if (months > 2 && months <= 4) return "2-4 months";
+	else if (months > 4 && months <= 6) return "4-6 months";
+	else if (months > 6 && months <= 9) return "6-9 months";
+	else if (months > 9 && months <= 12) return "9-12 months";
+	else if (months > 12 && months <= 18) return "12-18 months";
+	else if (months > 18 && months <= 24) return "18-24 months";
+	else return "24+ months"; // Optional: Handle cases over 24 months
+};
 const fetchPosts = async () => {
-  const childDocRef = doc(db, "users", userId.value, "children", selectedChildId.value);
-  const childSnapshot = await getDoc(childDocRef);
-  gender.value = childSnapshot.data().gender;
+	const childDocRef = doc(db, "users", userId.value, "children", selectedChildId.value);
+	const childSnapshot = await getDoc(childDocRef);
+	gender.value = childSnapshot.data().gender;
+	childImage.value = childSnapshot.data().imageUrl;
 
-  const childPostsRef = collection(db, "users", userId.value, "children", selectedChildId.value, "posts");
-  const snapshot = await getDocs(childPostsRef);
+	const childPostsRef = collection(db, "users", userId.value, "children", selectedChildId.value, "posts");
+	const snapshot = await getDocs(childPostsRef);
+	if (snapshot.empty) { // If no posts exist in Firestore, add the first post
+		let ageVal = calculateAgeRange(childSnapshot.data().age);
+		const firstPost = {
+		dateOfBirth: childSnapshot.data().age,
+		date: todayDate.value,
+		age: ageVal,
+		weight: childSnapshot.data().weight,
+		height: childSnapshot.data().height,
+		};
+		await addDoc(childPostsRef, firstPost); // Save first post to Firestore
+		posts.value = [firstPost];
+	} else {
+		// Load existing posts from Firestore if they exist
+		posts.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+	}
 
-  if (snapshot.empty) { // If no posts exist in Firestore, add the first post
-    let ageVal = calculateAgeRange(childSnapshot.data().age);
-    const firstPost = {
-      date: todayDate.value,
-      age: ageVal,
-      weight: childSnapshot.data().weight,
-      height: childSnapshot.data().height,
-    };
-    await addDoc(childPostsRef, firstPost); // Save first post to Firestore
-    posts.value = [firstPost];
-  } else {
-    // Load existing posts from Firestore if they exist
-    posts.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-  }
-
-  sortPosts();
+	sortPosts();
 };
 
 // Handle child selection change
@@ -111,9 +133,13 @@ const handleDeletePost = async (postId) => {
 const savePost = async (formData) => {
 	const postRef = collection(db, "users", userId.value, "children", selectedChildId.value, "posts");
 	// Use formData passed from FormComponent
+	const childDocRef = doc(db, "users", userId.value, "children", selectedChildId.value);
+	const childSnapshot = await getDoc(childDocRef);
+	let ageVal = calculateAge(childSnapshot.data().age,formData.selectedDate);
 	const newPost = {
+		dateOfBirth: childSnapshot.data().age,
 		date: formData.selectedDate || new Date(), // Default to current date if not provided
-		age: formData.selectedAge,
+		age: ageVal,
 		weight: formData.selectedWeight,
 		height: formData.selectedHeight,
 		remarks: formData.selectedRemarks,
@@ -163,6 +189,7 @@ onAuthStateChanged(auth, async (user) => {
 		<div class="container-fluid header-section">
 		<div class="left-align">
 			<CustomHeader header="GrowthTracker" />
+			<img :src="childImage" alt="Child's Image" class="child-image mb-3" v-if="childImage" />
 			<div class="child-selector mb-3">
 				<label for="childDropdown" class="me-2">Select Child:</label>
 				<select id="childDropdown" v-model="selectedChildId" @change="handleChildSelection">
@@ -171,6 +198,7 @@ onAuthStateChanged(auth, async (user) => {
 					</option>
 				</select>
 			</div>
+			
 		</div>
 		</div>
   
@@ -185,14 +213,16 @@ onAuthStateChanged(auth, async (user) => {
 		</div>
 	
 		<div>
-			<div class="table-tracker text-center">
-				<div class="center">
-					<TableTracker
-						:posts="posts"
-						@delete-post="handleDeletePost"
-						@update-post="handleUpdatePost"
-						class="m-3"
-					/>
+			<div class="table-wrapper">
+				<div class="table-tracker text-center">
+					<div class="center">
+						<TableTracker
+							:posts="posts"
+							@delete-post="handleDeletePost"
+							@update-post="handleUpdatePost"
+							class="m-3"
+						/>
+					</div>
 				</div>
 			</div>
 
@@ -243,15 +273,30 @@ onAuthStateChanged(auth, async (user) => {
 	font-size: 1rem;
 }
 
-/* Table Tracker Section */
+.table-wrapper {
+  overflow-x: auto; /* Enable horizontal scrolling on the wrapper */
+  margin: 0 -10px; /* Adjust margins to align with screen */
+}
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2&display=swap');
 .table-tracker {
 	background-color: #ffffff;
 	padding: 20px;
 	border-radius: 8px;
 	box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+	font-family: 'Baloo 2', sans-serif;
 	margin-bottom: 20px;
 	width: 100%;
 	text-align: center;
+	overflow-x: auto;
+	min-width: 600px;
+}
+
+.table-tracker .table-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #ddd;
 }
 .center {
 	display: flex;
@@ -271,6 +316,7 @@ onAuthStateChanged(auth, async (user) => {
 	border-radius: 8px;
 	box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
 	flex: 1 1 40%;
+	font-family: 'Comic Sans MS', sans-serif;
 }
 
 .charts-section {
@@ -342,6 +388,31 @@ onAuthStateChanged(auth, async (user) => {
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
+}
+
+.child-image {
+	width: 100px; /* Adjust width to your preference */
+	height: 100px;
+	border-radius: 50%; /* Make the image circular */
+	object-fit: cover;
+}
+
+@media (max-width: 768px) {
+  .table-tracker {
+    font-size: 0.9rem; /* Reduce font size for mobile */
+    padding: 10px; /* Reduce padding */
+
+  }
+
+  .table-tracker .table-row {
+    flex-direction: column; /* Stack each cell vertically */
+    text-align: left;
+  }
+
+  .table-tracker .table-row > div {
+    padding: 8px 0; /* Adjust padding for mobile */
+    text-align: left;
+  }
 }
 
 

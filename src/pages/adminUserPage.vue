@@ -50,7 +50,7 @@ onMounted(fetchUsers);
 <template>
 	<AdminNavBar />
 	<div>
-		<h1 class="text-center">User Management</h1>
+		<h1 class="text-center title">User Management</h1>
 		<div class="table-container">
 			<table>
 				<thead>
@@ -84,16 +84,31 @@ onMounted(fetchUsers);
 </template>
 
 <style scoped>
+.title{
+    text-align: center;
+    font-size: 36px;
+    color: #ff9689;
+    font-family: "Cherry Bomb", sans-serif;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin: 0 auto;
+    padding: 20px;
+    max-width: 1200px;
+}
+
 .table-container {
 	display: flex;
 	justify-content: center;
-	margin-top: 20px;
+	overflow-x:auto
+	
 }
 
 table {
 	width: 100%;
 	border-collapse: collapse;
 	margin-top: 20px;
+	overflow: hidden;
 }
 
 th,
@@ -207,5 +222,44 @@ button:last-of-type:hover {
 /* Button hover effect for slight opacity change */
 button:hover {
 	opacity: 0.95;
+}
+
+@media (max-width: 768px) {
+	.table-container{
+		overflow-x: scroll;
+		align-items: center;
+	}
+	th, td {
+	padding: 0px;
+	font-size: 0.75em;
+	max-width: min-content;
+	text-align: center
+	}
+
+	thead th{
+		font-size: 0.75em;
+		max-width: min-content;
+		text-align: center
+	}
+
+	table {
+	min-width: 100%; 
+	margin-left: 40px;
+	margin-right:10px;
+	}
+
+
+	button {
+	/* padding: 8px 10px; */
+	font-size: 0.85em;
+	width: 70%;
+	margin-top: 5px;
+	}
+
+
+	.title {
+	font-size: 1.5em;
+	margin-bottom: 15px;
+	}
 }
 </style>

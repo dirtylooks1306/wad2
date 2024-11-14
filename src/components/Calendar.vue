@@ -355,6 +355,19 @@ button:hover {
 ::v-deep .fc-day-sun .fc-daygrid-day-frame {
    background-color: #FFE9D6; /* Soft pastel peach for weekends */
 }
+
+::v-deep .fc-day-today .fc-daygrid-day-frame {
+    background-color: #f0cadf; /* Bright yellow background */
+    border: 2px solid #FFA500; /* Orange border for contrast */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); /* Add a shadow for depth */
+    color: #000; /* Dark text for readability */
+    font-weight: bold; /* Bold font to make the text stand out */
+}
+
+/* Optional: Add hover effect specifically for today's date */
+::v-deep .fc-day-today .fc-daygrid-day-frame:hover {
+    background-color: #e49ac3; /* Slightly darker shade on hover */
+}
 input[type="text"],
 select {
    width: 100%;

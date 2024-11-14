@@ -40,7 +40,7 @@
           </div>
         </div>
       </div>
-      <button type="submit" class="btn btn-primary w-100 submit-button">Submit Post</button>
+      <button type="submit" style="background-color: #ff6e61;" class="w-100 submit-button">Submit Post</button>
     </form>
     <p v-if="submissionMessage" class="submission-message text-center mt-3">{{ submissionMessage }}</p>
   </div>
@@ -186,6 +186,7 @@ const submitPost = async () => {
   } else {
     submissionMessage.value = 'You must be logged in to submit a post.';
   }
+  router.push('/forum');
 };
 </script>
 

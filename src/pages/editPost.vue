@@ -1,11 +1,12 @@
 <template>
   <NavBar />
-  <div class="container my-5 edit-post-container">
-    <h2 class="text-center mb-4">Edit Post</h2>
+  <div class="container my-5 edit-post-container">    
     <button @click.prevent="deletePost" class="btn btn-danger delete-button mb-3">
       <img src="../assets/icons/delete.png" style="background: transparent; width: 20px; margin-right: 8px;">
       Delete Post
     </button>
+    <h2 class="text-center mb-4">Edit Post</h2>
+
     <div v-if="isAuthor">
       <form @submit.prevent="updatePost" class="post-form">
         <div class="form-group mb-3">
@@ -67,7 +68,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { db, storage, auth, doc, getDoc, updateDoc, ref as storageRef, arrayRemove, uploadBytes, getDownloadURL, deleteDoc, listAll, deleteObject, collection, getDocs } from '../firebaseConfig.js';
-import NavBar from '../components/NavBar.vue';
+import NavBar from "../components/navBar.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -224,7 +225,7 @@ onMounted(async () => {
   max-width: 700px;
   border: 1px solid #ddd;
   border-radius: 8px;
-  background-color: #D9C5B2;
+  background-color: #EED4D4;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   padding: 20px;
 }

@@ -14,7 +14,9 @@
 					<div class="row">
 						<div class="col-md-1"></div>
 						<div class="col-md-5 d-flex justify-content-center align-items-center">
-							<img :src="item.image" class="d-block w-100 p-3" :alt="item.alt" />
+							<div style="width: 300px; height: 300px; overflow: hidden;">
+								<img :src="item.image" class="d-block p-3 carousel-image" :alt="item.alt" />
+							</div>
 						</div>
 						<div class="col-md-5 text-start mt-3 d-flex flex-column justify-content-between carousel-content">
 							<div>
@@ -23,7 +25,6 @@
 								<p>{{ item.description }}</p>
 							</div>
 							
-							<!-- Read More button positioned at the bottom left -->
 							<button class="btn btn-primary read-more-button" @click="$emit('item-click', item.id)">
 								Read More
 							</button>
@@ -87,7 +88,12 @@ export default {
 	height: auto;
 }
 
-/* Style for the title in Cherry Bomb font aligned left */
+.carousel-image {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
 .carousel-title {
     font-family: "Cherry Bomb", sans-serif;
     font-size: 24px;
@@ -96,20 +102,17 @@ export default {
     margin-bottom: 10px;
 }
 
-/* Partition line below the title */
 .title-divider {
     border-top: 4px solid #ff9689;
     margin-bottom: 15px;
 }
 
-/* Carousel content container to align "Read More" button at bottom */
 .carousel-content {
     display: flex;
     flex-direction: column;
     height: 100%;
 }
 
-/* Style for the Read More button as a primary blue button at the bottom */
 .read-more-button {
     font-family: "Cherry Bomb", sans-serif;
     font-size: 16px;

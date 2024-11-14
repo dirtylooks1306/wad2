@@ -6,6 +6,8 @@
         <li v-for="comment in comments" :key="comment.id" class="list-group-item">
           <p>{{ comment.text }}</p>
           <small>— {{ comment.author }}</small>
+          <button @click="editComment(comment.id)">Edit</button>
+          <button @click="deleteComment(comment.id)">Delete</button>
         </li>
       </ul>
   
@@ -71,6 +73,14 @@
     // Clear the comment input after successful submission
     newComment.value = '';
   };
+
+    // Function to delete a comment
+    // const commentsRef = collection(db, 'forum', props.docId, 'comments');
+    // const querySnapshot = await getDocs(commentsRef);
+
+    
+
+    // Function to edit a comment
   </script>
   
   <style scoped>

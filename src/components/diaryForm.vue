@@ -85,6 +85,7 @@ import CustomHeader from "./CustomHeader.vue";
             submitEntry() {
                 this.$emit('submitEntry', this.formData);
                 this.resetFormData();
+                this.formData.name = this.owner;
             },
             resetFormData() {
                 this.formData =  {

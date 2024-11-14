@@ -5,35 +5,33 @@ import { useRouter } from "vue-router";
 import { auth, signOut, db, collection, doc, getDocs, getDoc, addDoc, query, where, updateDoc, deleteDoc, storage, ref as sRef  } from "../firebaseConfig.js";
 import { setPersistence, browserLocalPersistence,onAuthStateChanged } from "firebase/auth";
 import { getDownloadURL, ref as storageRef, uploadBytes } from "firebase/storage";
-// State for user information and child details
+
 const user = ref(null);
 const username = ref("");
 const profileImage = ref("");
 const fileInput = ref(null); // Reference to the file input element
 const router = useRouter();
 
-// Child details form fields
-const isNewUser = ref(false); // Flag to indicate if it's a new user or first-time data entry
+
+const isNewUser = ref(false); 
 const childName = ref("");
 const childAge = ref(getCurrentDate());
 const childWeight = ref("");
 const childHeight = ref("");
 const childGender = ref("male");
 const imageFile = ref(null); 
-const children = ref([]); // Array to store the list of children
+const children = ref([]); 
 const successMessage = ref("");
 const errorMessage = ref("");
-// Track expanded and edit mode for each child
-const expandedChildId = ref(null); // ID of the currently expanded child
-const editModeChildId = ref(null); // ID of the child being edited
+const expandedChildId = ref(null); 
+const editModeChildId = ref(null); 
 setPersistence(auth, browserLocalPersistence)
   .then(() => {
-    // Handle successful persistence setting if needed
   })
   .catch((error) => {
     console.error("Error setting persistence:", error);
   });
-// Function to fetch the user's username and child data from Firestore
+
 const fetchUserData = async () => {
   onAuthStateChanged(auth, async (currentUser) => {
     if (currentUser) {
@@ -49,10 +47,10 @@ const fetchUserData = async () => {
           ...doc.data(),
         }));
 
-        // Check if any children exist
+        // check if any children exist
         isNewUser.value = children.value.length === 0;
 
-        // Fetch and set user information
+        // fetch user information
         const userCollection = collection(db, "users");
         const q = query(userCollection, where("email", "==", currentUser.email));
         const querySnapshot = await getDocs(q);
@@ -242,10 +240,12 @@ onMounted(() => {
   <NavBar />
   <div class="profile-container" v-if="user">
     <h1>Welcome, {{ username || 'User' }}!</h1>
+
     <div v-if="profileImage" class="profile-image-container" @click="triggerFileInput">
       <img :src="profileImage" alt="Profile Image" class="profile-image">
       <input type="file" ref="fileInput" @change="handleImageSelection" accept="image/*" class="file-input" />
     </div>
+    
     <div v-if="children.length > 0">
         <h2>Your Children:</h2>
         <div v-for="child in children" :key="child.id" class="child-card">

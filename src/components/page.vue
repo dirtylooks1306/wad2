@@ -1,97 +1,128 @@
 <template>
-    <div :class="['paper', { flipped: isFlipped }]" :style="{ zIndex: zIndex }" v-if="isWideEnough">
-      <div class="front" :key="frontIndex" v-if="front">
-        <div class="front-content d-block">
-          <div v-if="!isEditing">
-            <h3 class=text-center>{{ front.header }}</h3>
-            <p class="text-center">{{ front.date }}</p>
-            <hr>
-            <img :src="front.imageURL" class="border rounded-1 d-block mx-auto" v-if="front.imageURL" style="max-width: 300px; height: 150px;">
-            <p class="p-3">{{ front.body }}</p>
-            <span class="d-flex justify-content-around">
-              <button type="button" class="btn btn-primary p-1" @click="toggleEdit(front, frontIndex)">Edit Entry</button>
-              <button type="button" class="btn btn-danger p-1" @click="deleteFrontEntry">Delete Entry</button>
-            </span>
-          </div>
-          <div v-else>
-            <form @submit.prevent="saveEntry">
-              <div class="mb-3">
-                <label for="header" class="form-label">Header:</label>
-                <input type="text" id="header" v-model="editData.header" class="form-control">
-              </div>
-              <div class="mb-3">
-                <label for="date" class="form-label">Date:</label>
-                <input type="date" id="date" v-model="editData.date" class="form-control">
-              </div>
-              <div class="mb-3">
-                <label for="imageURL" class="form-label">Image URL:</label>
-                <input type="file" id="imageFile" class="form-control" @change="setImage">
-              </div>
-              <div class="mb-3">
-                <label for="body" class="form-label">Body:</label>
-                <textarea id="body" v-model="editData.body" class="form-control"></textarea>
-              </div>
-              <button type="submit" class="btn btn-success p-1 d-flex mx-auto">Save Changes</button>
-              <button type="button" class="btn btn-secondary p-1 d-flex mx-auto mt-2" @click="toggleEdit">Cancel</button>
-            </form>
-          </div>
+  <!-- For desktop view -->
+  <div :class="['paper', { flipped: isFlipped }]" :style="{ zIndex: zIndex }" v-if="isWideEnough">
+    <div class="front" :key="frontIndex" v-if="front">
+      <div class="front-content d-block">
+        <div v-if="!isEditing">
+          <h3 class=text-center>{{ front.header }}</h3>
+          <p class="text-center">{{ front.date }}</p>
+          <hr>
+          <img :src="front.imageURL" class="border rounded-1 d-block mx-auto" v-if="front.imageURL" style="max-width: 300px; height: 150px;">
+          <p class="p-3">{{ front.body }}</p>
+          <span class="d-flex justify-content-around">
+            <button type="button" class="btn btn-primary p-1" @click="toggleEdit(front, frontIndex)">Edit Entry</button>
+            <button type="button" class="btn btn-danger p-1" @click="deleteFrontEntry">Delete Entry</button>
+          </span>
+        </div>
+        <div v-else>
+          <form @submit.prevent="saveEntry">
+            <div class="mb-3">
+              <label for="header" class="form-label">Header:</label>
+              <input type="text" id="header" v-model="editData.header" class="form-control">
+            </div>
+            <div class="mb-3">
+              <label for="date" class="form-label">Date:</label>
+              <input type="date" id="date" v-model="editData.date" class="form-control">
+            </div>
+            <div class="mb-3">
+              <label for="imageURL" class="form-label">Image URL:</label>
+              <input type="file" id="imageURL" class="form-control" @change="setImage">
+            </div>
+            <div class="mb-3">
+              <label for="body" class="form-label">Body:</label>
+              <textarea id="body" v-model="editData.body" class="form-control" rows="7"></textarea>
+            </div>
+            <button type="submit" class="btn btn-success p-1 d-flex mx-auto">Save Changes</button>
+            <button type="button" class="btn btn-secondary p-1 d-flex mx-auto mt-2" @click="toggleEdit">Cancel</button>
+          </form>
         </div>
       </div>
-      <div class="back" :key="backIndex" v-if="back">
-        <div class="back-content d-block">
-          <div v-if="!isEditing">
-            <h3 class=text-center>{{ back.header }}</h3>
-            <p class="text-center">{{ back.date }}</p>
-            <hr>
-            <img :src="back.imageURL" class="border rounded-1 d-block mx-auto" v-if="back.imageURL" style="max-width: 300px; height: 150px;">
-            <p class="p-3">{{ back.body }}</p>
-            <span class="d-flex justify-content-around">
-              <button type="button" class="btn btn-primary p-1" @click="toggleEdit(back, backIndex)">Edit Entry</button>
-              <button type="button" class="btn btn-danger p-1" @click="deleteFrontEntry">Delete Entry</button>
-            </span>
-          </div>
-          <div v-else>
-            <form @submit.prevent="saveEntry">
-              <div class="mb-3">
-                <label for="header" class="form-label">Header:</label>
-                <input type="text" id="header" v-model="editData.header" class="form-control">
-              </div>
-              <div class="mb-3">
-                <label for="date" class="form-label">Date:</label>
-                <input type="date" id="date" v-model="editData.date" class="form-control">
-              </div>
-              <div class="mb-3">
-                <label for="imageURL" class="form-label">Image URL:</label>
-                <input type="file" id="imageFile" class="form-control" @change="setImage">
-              </div>
-              <div class="mb-3">
-                <label for="body" class="form-label">Body:</label>
-                <textarea id="body" v-model="editData.body" class="form-control"></textarea>
-              </div>
-              <button type="submit" class="btn btn-success p-1 d-flex mx-auto">Save Changes</button>
-              <button type="button" class="btn btn-secondary p-1 d-flex mx-auto mt-2" @click="toggleEdit">Cancel</button>
-            </form>
-          </div>
+    </div>
+    <div class="back" :key="backIndex" v-if="back">
+      <div class="back-content d-block">
+        <div v-if="!isEditing">
+          <h3 class=text-center>{{ back.header }}</h3>
+          <p class="text-center">{{ back.date }}</p>
+          <hr>
+          <img :src="back.imageURL" class="border rounded-1 d-block mx-auto" v-if="back.imageURL" style="max-width: 300px; height: 150px;">
+          <p class="p-3">{{ back.body }}</p>
+          <span class="d-flex justify-content-around">
+            <button type="button" class="btn btn-primary p-1" @click="toggleEdit(back, backIndex)">Edit Entry</button>
+            <button type="button" class="btn btn-danger p-1" @click="deleteBackEntry">Delete Entry</button>
+          </span>
+        </div>
+        <div v-else>
+          <form @submit.prevent="saveEntry">
+            <div class="mb-3">
+              <label for="header" class="form-label">Header:</label>
+              <input type="text" id="header" v-model="editData.header" class="form-control">
+            </div>
+            <div class="mb-3">
+              <label for="date" class="form-label">Date:</label>
+              <input type="date" id="date" v-model="editData.date" class="form-control">
+            </div>
+            <div class="mb-3">
+              <label for="imageURL" class="form-label">Image URL:</label>
+              <input type="file" id="imageURL" class="form-control" @change="setImage">
+            </div>
+            <div class="mb-3">
+              <label for="body" class="form-label">Body:</label>
+              <textarea id="body" v-model="editData.body" class="form-control" rows="7"></textarea>
+            </div>
+            <button type="submit" class="btn btn-success p-1 d-flex mx-auto">Save Changes</button>
+            <button type="button" class="btn btn-secondary p-1 d-flex mx-auto mt-2" @click="toggleEdit">Cancel</button>
+          </form>
         </div>
       </div>
-      <div class="back d-flex justify-content-center align-items-center" v-if="!back"> <!-- Center content of empty page -->
-        <div class="back-content">
-          <h3 class="text-center">Log a new entry!</h3>
-        </div>
-      </div>
-  </div>
-  <div :class="['paper', { flipped: isFlipped }]" :style="{ zIndex: zIndex }" v-else>
-    <div class="front" :key="index" v-if="entry">
-      <div class="front-content d-block"> <!-- Both classes together in mobile screens -->
-        <h3 class=text-center>{{ entry.header }}</h3>
-        <p class="text-center">{{ entry.date }}</p>
-        <hr>
-        <img :src="entry.imageURL" v-if="entry.imageURL" class="border rounded-1 d-block mx-auto" style="max-width: 300px; height: 150px;">
-        <p class="p-3">{{ entry.body }}</p>
-        <button type="button" class="btn btn-danger p-1 d-flex mx-auto" @click="deleteEntry">Delete Entry</button>
+    </div>
+    <div class="back d-flex justify-content-center align-items-center" v-if="!back"> <!-- Center content of empty page -->
+      <div class="back-content">
+        <h3 class="text-center">Log a new entry!</h3>
       </div>
     </div>
   </div>
+  <!-- Desktop view end -->
+  <!-- For mobile view -->
+  <div :class="['paper', { flipped: isFlipped }]" :style="{ zIndex: zIndex }" v-else>
+    <div class="front" :key="index" v-if="entry">
+      <div class="front-content d-block">
+        <div v-if="!isEditing">
+          <h3 class=text-center>{{ entry.header }}</h3>
+          <p class="text-center">{{ entry.date }}</p>
+          <hr>
+          <img :src="entry.imageURL" v-if="entry.imageURL" class="border rounded-1 d-block mx-auto" style="max-width: 300px; height: 150px;">
+          <p class="p-3">{{ entry.body }}</p>
+          <span class="d-flex justify-content-around">
+            <button type="button" class="btn btn-primary p-1" @click="toggleEdit(entry, index)">Edit Entry</button>
+            <button type="button" class="btn btn-danger p-1" @click="deleteEntry">Delete Entry</button>
+          </span>
+        </div>
+        <div v-else>
+          <form @submit.prevent="saveEntry">
+            <div class="mb-3">
+              <label for="header" class="form-label">Header:</label>
+              <input type="text" id="header" v-model="editData.header" class="form-control">
+            </div>
+            <div class="mb-3">
+              <label for="date" class="form-label">Date:</label>
+              <input type="date" id="date" v-model="editData.date" class="form-control">
+            </div>
+            <div class="mb-3">
+              <label for="imageURL" class="form-label">Image URL:</label>
+              <input type="file" id="imageURL" class="form-control" @change="setImage">
+            </div>
+            <div class="mb-3">
+              <label for="body" class="form-label">Body:</label>
+              <textarea id="body" v-model="editData.body" class="form-control" rows="7"></textarea>
+            </div>
+            <button type="submit" class="btn btn-success p-1 d-flex mx-auto">Save Changes</button>
+            <button type="button" class="btn btn-secondary p-1 d-flex mx-auto mt-2" @click="toggleEdit">Cancel</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Mobile view end -->
 </template>
 
 <script>
@@ -101,7 +132,7 @@ export default {
       isWideEnough: window.innerWidth >= 768,
       isEditing: false,
       editData: {},
-      entryIndex: null  // Track the index of the entry being edited
+      entryIndex: null, // Track the index of the entry being edited
     }
   },
   props: {
@@ -127,40 +158,30 @@ export default {
     deleteEntry() {
       this.$emit('deleteEntry', this.index)
     },
-    currentDate() {
-      const today = new Date();
-      const day = String(today.getDate()).padStart(2, "0");
-      const month = String(today.getMonth() + 1).padStart(2, "0");
-      const year = today.getFullYear();
-      return `${year}-${month}-${day}`;
-    },
     toggleEdit(entry, index) {
       this.isEditing = !this.isEditing;
       if (this.isEditing) {
         // Set initial form fields of editing page to the current entry
-        this.editData = entry;
+        this.editData = { ...entry };
         this.entryIndex = index;  // Save the index of the entry being edited
         if (this.editData.date) {
-          this.editData.date = new Date(this.editData.date);
-          const formattedDate = this.editData.date.toLocaleDateString('en-GB');
-          const [day, month, year] = formattedDate.split('/');
-          this.editData.date = `${year}-${month}-${day}`;
-        }
+          const [day, month, year] = this.editData.date.split('/');
+          this.editData.date = `${year}-${month}-${day}`; 
+        }; // Re-convert the entry's date to yyyy-mm-dd format to prevent date format error
       } else {
         this.entryIndex = null;  // Reset the index when not editing
+        this.editData = {}; // Resets the edit form field when users decide not to commit changes
       }
     },
-    setImage() {
-      const fileInput = document.getElementById('imageFile');
-      this.editData.imageURL = fileInput.files[0];
+    setImage(event) {
+      const fileInput = event.target.files;
+      this.editData.imageURL = fileInput[0];
     },
     async saveEntry() {
       if (this.entryIndex !== null) {
         const updatedDoc = { ...this.editData };
         this.isEditing = false;
         this.$emit('updateEntry', updatedDoc, this.entryIndex);
-      } else {
-        console.log("Error updating entry.");
       }
     }
   },

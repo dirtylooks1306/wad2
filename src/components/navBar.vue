@@ -50,7 +50,7 @@
 						>
 							Explore articles
 						</a>
-						<ul class="dropdown-menu">
+						<ul class="dropdown-menu ">
 							<li>
 								<router-link
 									class="dropdown-item"
@@ -134,7 +134,7 @@
 						>
 							Explore trackers
 						</a>
-						<ul class="dropdown-menu">
+						<ul class="dropdown-menu ">
 							<li>
 								<router-link
 									to="/growthtracker"
@@ -170,23 +170,23 @@
 						>
 					</li>
 					<li class="nav-item d-lg-none" v-if="!user">
-						<router-link to="/login" class="nav-link login-register"
+						<!-- <router-link to="/login" class="nav-link login-register"
 							>Login/Register</router-link
-						>
+						> -->
 					</li>
 					<li class="nav-item d-lg-none" v-else>
-						<router-link to="/profile" class="nav-link">
+						<!-- <router-link to="/profile" class="nav-link">
 							<img
 								src="../assets/icons/profile.png"
 								class="profile-icon"
 							/>
-						</router-link>
+						</router-link> -->
 					</li>
 				</ul>
 			</div>
 
-			<div class="d-none d-lg-flex ms-auto align-items-center">
-				<div class="dropdown me-3 position-relative">
+			<div class="d-flex ms-auto align-items-center">
+				<div class="d-flex align-items-center dropdown me-3 position-relative">
 					<font-awesome-icon
 						:icon="['fas', 'bell']"
 						class="notification-bell"
@@ -200,7 +200,7 @@
 					<div class="dropdown-menu dropdown-menu-end p-3" aria-labelledby="notificationDropdown">
 						<p class="mb-2 fw-bold">You have {{ notificationCount }} new notifications.</p>
 						
-						<ul v-if="notifications.length > 0" class="notification-list">
+						<ul v-if="notifications.length > 0" class="notification-list ">
 							<li v-for="notification in notifications" :key="notification.eventId" class="notification-item mb-2 p-2">
 								{{ notification.message }}
 							</li>
@@ -229,7 +229,7 @@
 					Login/Register
 				</router-link>
 
-				<div v-else class="d-flex align-items-center position-relative">
+				<div class="d-flex align-items-center position-relative">
 					<div class="dropdown">
 						<router-link
 							to="/profile"
@@ -241,7 +241,7 @@
 							<img :src="profileImage" class="profile-icon" />
 						</router-link>
 						<ul
-							class="dropdown-menu dropdown-menu-end"
+							class="dropdown-menu dropdown-menu-end profile"
 							aria-labelledby="profileDropdown"
 						>
 							<li>
@@ -340,6 +340,20 @@ const fetchAndMonitorEvents = async () => {
 			notifications.value = [];
 			notificationCount.value = 0;
 			events.value = [];
+			const months = [
+				"January",  
+				"February", 
+				"March",    
+				"April",    
+				"May",      
+				"June",     
+				"July",     
+				"August",   
+				"September",
+				"October",   
+				"November",  
+				"December"   
+			];
 
 			for (let i = 0; i < children.value.length; i++) {
 				// Query to get events that are undismissed and in the future
@@ -349,9 +363,8 @@ const fetchAndMonitorEvents = async () => {
 				const eventsSnapshot = await getDocs(eventsQuery);
 				eventsSnapshot.forEach((doc) => {
 					const eventData = doc.data();
-					const eventDate = new Date(eventData.start); // Convert Firestore Timestamp to JS Date
+					const eventDate = new Date(eventData.start); 
 
-					// Only add events that have not passed
 					if (eventDate > currentTime) {
 						events.value.push({
 							childId: children.value[i],
@@ -365,10 +378,20 @@ const fetchAndMonitorEvents = async () => {
 			events.value.forEach((event) => {
 				const eventDate = new Date(event.start);
 				const timeDifference = eventDate - currentTime;
-
+				let x = eventDate.getDate()
 				if (timeDifference > 0 && timeDifference <= 24 * 60 * 60 * 1000) {
 					notifications.value.push({
 						message: `You have an appointment at ${eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} for ${event.title}.`,
+						eventId: event.eventId,
+						timeRemaining: Math.floor(timeDifference / (60 * 60 * 1000)), // Hours remaining
+						childId: event.childId,
+					});
+					notificationCount.value += 1;
+				}
+				//check events for in 1 wk
+				else if (timeDifference > 0 && timeDifference <= 24 * 60 * 60 * 1000 * 7) {
+					notifications.value.push({
+						message: `You have an appointment at ${eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} on ${eventDate.getDate()} ${months[eventDate.getMonth()]} for ${event.title}.`,
 						eventId: event.eventId,
 						timeRemaining: Math.floor(timeDifference / (60 * 60 * 1000)), // Hours remaining
 						childId: event.childId,
@@ -400,12 +423,13 @@ const handleNotificationTabClick = () => {
 	isDropdownOpen.value = !isDropdownOpen.value;
 };
 
-const { pause, resume } = useIntervalFn(fetchAndMonitorEvents, 0.1 * 60 * 1000, { immediate: true });
+const { pause, resume } = useIntervalFn(fetchAndMonitorEvents, 30 * 60 * 1000, { immediate: true });
 
 
 onMounted(() => {
 	fetchUserData();
 	resume();
+	fetchAndMonitorEvents();
 	onAuthStateChanged(auth, (currentUser) => {
 		user.value = currentUser;
 		
@@ -414,6 +438,11 @@ onMounted(() => {
 </script>
 
 <style scoped>
+
+
+li{
+	font-family: "Cherry Bomb", sans-serif;
+}
 #belownavBar {
 	height: 80px;
 }
@@ -426,6 +455,7 @@ onMounted(() => {
 	width: 100%;
 	z-index: 1000;
 }
+
 
 .nav-logo {
 	max-height: 50px;
@@ -457,9 +487,7 @@ onMounted(() => {
 	border: none;
 }
 
-.dropdown-menu {
-	background-color: #fbf4eb !important;
-}
+
 
 .active-item {
 	font-weight: bold;
@@ -482,16 +510,18 @@ onMounted(() => {
 	color: #555;
 }
 
-@media (max-width: 768px) {
-	.navbar-collapse {
-		text-align: center;
-	}
-	.notification-bell {
-        margin-right: 10px;
-        font-size: 1.25rem; 
-    }
+@media (max-width: 992px) {
+/* Ensure dropdown is below the button */
+.dropdown-menu {
+  position: absolute; 
+  left: 0; 
+  top: 100%; 
+  margin-top: 0.5rem; 
+  width:10%;
+  opacity: 1;
 }
 
+}
 @media (max-width: 440px) {
 	.text-logo {
 		display: none;
@@ -539,11 +569,18 @@ onMounted(() => {
 
 /* Notification Dropdown */
 .dropdown-menu {
-    width: 300px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+	background-color: #fbf4eb !important;
 }
-
+.dropdown-menu-end{
+	width:250px;
+	right:0;
+	left:auto;
+} 
+.profile{
+	width: 150px !important;
+}
 /* Notification List Styling */
 .notification-list {
     list-style: none;
@@ -557,6 +594,7 @@ onMounted(() => {
     border: 1px solid #dee2e6;
     border-radius: 5px;
     transition: background-color 0.3s;
+	font-family: "Segoe UI", Arial, sans-serif;
 }
 
 .notification-item:hover {

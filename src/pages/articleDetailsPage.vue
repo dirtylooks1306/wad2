@@ -143,6 +143,9 @@ onMounted(() => {
     <p class="article-author"><b><i>Author: {{ article.Author }}</i></b></p>
     <p class="article-date">{{ article.Date ? article.Date.toDate().toLocaleDateString() : 'No Date' }}</p>
     
+    <!-- Display Article Image if available -->
+    <img v-if="article.ImageUrl" :src="article.ImageUrl" alt="Article Image" class="article-image" />
+
     <div class="partition-line"></div>
 
     <!-- Display paragraphs from the array -->
@@ -216,6 +219,14 @@ onMounted(() => {
   font-size: 1em;
   color: #555;
   margin-bottom: 1em;
+}
+
+.article-image {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 10px 0; /* Add spacing above and below */
+  object-fit: cover; /* Ensure image covers the area without distortion */
 }
 
 .partition-line {
