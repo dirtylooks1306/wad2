@@ -6,9 +6,9 @@ import { doc, getDoc, updateDoc, increment, runTransaction } from 'https://www.g
 import { db, auth } from "../firebaseConfig.js"; 
 
 const route = useRoute();
-const article = ref(null); // Store article data
-const paragraphs = ref([]); // Store paragraphs dynamically
-const userReaction = ref(null); // Track user reaction (like/dislike)
+const article = ref(null);
+const paragraphs = ref([]);
+const userReaction = ref(null);
 const userId = ref(null);
 
 const fetchArticleDetails = async () => {
@@ -20,11 +20,8 @@ const fetchArticleDetails = async () => {
     if (articleDoc.exists()) {
       article.value = articleDoc.data();
       article.value.id = articleId;
-
-      // Use the "Content" array field for paragraphs
       paragraphs.value = article.value.Content || [];
 
-      // Fetch user reaction if logged in
       if (userId.value) {
         const reactionRef = doc(db, "articles", articleId, "reactions", userId.value);
         const reactionDoc = await getDoc(reactionRef);
@@ -38,28 +35,21 @@ const fetchArticleDetails = async () => {
   }
 };
 
-// Toggle save status
 const toggleSave = async () => {
   if (!userId.value || !article.value) return;
 
   try {
     const articleRef = doc(db, "articles", article.value.id);
     const newSaveStatus = !article.value.Saved;
-
-    // Update Firestore with the new save status
     await updateDoc(articleRef, { Saved: newSaveStatus });
-
-    // Update the local article object with the new save status
     article.value.Saved = newSaveStatus;
   } catch (error) {
     console.error("Error toggling save status:", error);
   }
 };
 
-// Like and dislike functions
 const likeArticle = async () => {
   if (!userId.value || !article.value) return;
-
   try {
     await runTransaction(db, async (transaction) => {
       const articleRef = doc(db, "articles", article.value.id);
@@ -127,7 +117,6 @@ const dislikeArticle = async () => {
   }
 };
 
-// Fetch user ID on mount and article details
 onMounted(() => {
   auth.onAuthStateChanged((user) => {
     userId.value = user ? user.uid : null;
@@ -143,12 +132,10 @@ onMounted(() => {
     <p class="article-author"><b><i>Author: {{ article.Author }}</i></b></p>
     <p class="article-date">{{ article.Date ? article.Date.toDate().toLocaleDateString() : 'No Date' }}</p>
     
-    <!-- Display Article Image if available -->
     <img v-if="article.ImageUrl" :src="article.ImageUrl" alt="Article Image" class="article-image" />
 
     <div class="partition-line"></div>
 
-    <!-- Display paragraphs from the array -->
     <div v-for="(paragraph, index) in paragraphs" :key="index" class="article-paragraph">
       <p>{{ paragraph }}</p>
     </div>
@@ -225,8 +212,8 @@ onMounted(() => {
   width: 100%;
   height: auto;
   border-radius: 8px;
-  margin: 10px 0; /* Add spacing above and below */
-  object-fit: cover; /* Ensure image covers the area without distortion */
+  margin: 10px 0;
+  object-fit: cover;
 }
 
 .partition-line {
