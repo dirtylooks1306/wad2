@@ -389,7 +389,7 @@ const fetchAndMonitorEvents = async () => {
 					notificationCount.value += 1;
 				}
 				//check events for in 1 wk
-				if (timeDifference > 0 && timeDifference <= 24 * 60 * 60 * 1000 * 7) {
+				else if (timeDifference > 0 && timeDifference <= 24 * 60 * 60 * 1000 * 7) {
 					notifications.value.push({
 						message: `You have an appointment at ${eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} on ${eventDate.getDate()} ${months[eventDate.getMonth()]} for ${event.title}.`,
 						eventId: event.eventId,
@@ -518,7 +518,6 @@ li{
   top: 100%; 
   margin-top: 0.5rem; 
   width:10%;
-  max-height: 300px; 
   opacity: 1;
 }
 
