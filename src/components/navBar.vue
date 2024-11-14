@@ -518,14 +518,10 @@ li{
   top: 100%; 
   margin-top: 0.5rem; 
   width:10%;
+  max-height: 300px; 
+  opacity: 1;
 }
 
-
-  /* Show dropdown smoothly when active in mobile mode */
-  .dropdown-menu.show {
-    max-height: 300px; /* Adjust as needed */
-    opacity: 1;
-  }
 }
 @media (max-width: 440px) {
 	.text-logo {

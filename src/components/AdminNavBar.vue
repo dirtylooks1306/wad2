@@ -29,9 +29,14 @@
               <router-link to="/login" class="nav-link login-register">Login/Register</router-link>
             </li>
             <li class="nav-item d-lg-none" v-else>
-              <router-link to="/profile" class="nav-link">
-                <img src="../assets/icons/profile.png" class="profile-icon">
+              <router-link to="/profile" class="nav-link" data-bs-toggle="dropdown" aria-expanded="false">
+                <img :src="profileImage" class="profile-icon">
               </router-link>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+                <li>
+                  <button class="dropdown-item" @click="handleLogout">Logout</button>
+                </li>
+              </ul>
             </li>
           </ul>
         </div>
@@ -58,10 +63,10 @@
       </div>
     </nav>
   
-    <div id="belownavBar"></div>
-  </template>
+  <div id="belownavBar"></div>
+</template>
   
-  <script setup>
+<script setup>
   import { useRoute } from 'vue-router';
   import { computed, ref, onMounted } from 'vue';
   import { useRouter } from "vue-router";
@@ -110,6 +115,10 @@ onMounted(() => {
 </script>
 
 <style scoped>
+
+li{
+	font-family: "Cherry Bomb", sans-serif;
+}
 #belownavBar {
   height: 80px;
 }
@@ -156,6 +165,7 @@ onMounted(() => {
 
 .dropdown-menu {
   background-color: #FBF4EB !important;
+  
 }
 
 .active-item {
@@ -183,6 +193,12 @@ onMounted(() => {
   .navbar-collapse {
     text-align: center;
   }
+  .dropdown-menu {
+  position: absolute; 
+  left: 0; 
+  top: 100%; 
+  width:10%;
+}
 }
 
 @media (max-width: 440px) {

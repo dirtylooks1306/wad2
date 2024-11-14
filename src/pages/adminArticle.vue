@@ -11,7 +11,7 @@
           <option value="10">10</option>
         </select>
       </div>
-      <button @click="showArticleForm = true" class="add-article-button">Add Article</button>
+      <button @click="showArticleForm = true" class="add-article-button ">Add Article</button>
     </div>
 
     <!-- Article Form (Modal) -->
@@ -375,6 +375,7 @@ onMounted(fetchArticles);
     display: flex;
     justify-content: center;
     margin-top: 20px;
+    overflow-x: auto;
 }
 
 table {
@@ -599,5 +600,41 @@ object-fit: cover; /* Ensures image fits nicely within specified dimensions */
 .full-width {
     width: 100%;
 }
-  
+@media (max-width: 768px) {
+    .header-container, .table-container, .modal-content {
+      width: 100%;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .table-container table {
+      margin-left: 30px;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .title {
+        font-size: 24px;
+    }
+
+    .pagination-navigation button {
+        width: 30%;
+        font-size: 16px;
+        margin-bottom: 10px;
+        margin-top:10px;
+    }
+    .add-article-button{
+      width: 40%;
+        font-size: 16px;
+        margin-top:60px;
+    }
+
+    .form-group {
+        width: 100%;
+    }
+    .modal-content{
+      width: 65%;
+      height: 70vh;
+    }
+}
 </style>
