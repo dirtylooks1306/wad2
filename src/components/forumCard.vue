@@ -85,7 +85,7 @@
 <script setup>
 import { ref, defineProps, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { db, auth, doc, updateDoc, getDoc, arrayRemove, arrayUnion, collection, getDocs } from '../firebaseConfig.js';
+import { db, auth, doc, updateDoc, getDoc, arrayRemove, arrayUnion, getDocs, collection, query, where } from '../firebaseConfig.js';
 
 const props = defineProps({
   post: {
@@ -105,9 +105,36 @@ const disliked = ref(false);
 const bookmarked = ref(false);
 
 onMounted(async () => {
+  await retrieveProfileImage();
   await adjustButtons();
   await fetchComments();
 });
+
+const retrieveProfileImage = async () => {
+  try {
+    // Reference the users collection
+    const usersCollectionRef = collection(db, 'users');
+    
+    // Query to find user document where username matches props.post.author
+    const q = query(usersCollectionRef, where("username", "==", props.post.author));
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      // Assuming only one user document matches
+      const userDoc = querySnapshot.docs[0];
+      const userData = userDoc.data();
+      
+      // Assign the retrieved profile image URL to props.post.profileimage
+      props.post.profileimage = userData.profileimage || '';
+    } else {
+      console.warn("No user found with the username:", props.post.author);
+      props.post.profileimage = '';
+    }
+  } catch (error) {
+    console.error("Error fetching profile image:", error);
+  }
+};
+
 
 const fetchComments = async () => {
   try {
