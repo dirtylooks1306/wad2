@@ -346,4 +346,14 @@ button:focus {
         font-family: 'Cherry Bomb', sans-serif;
     }
 }
+
+@media (max-height: 500px) {
+    .diary-block {
+        height: 200vh; /* Create more space for 'Next Page' and 'Prev Page' buttons on mobile */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: 'Cherry Bomb', sans-serif;
+    }
+}
 </style>
