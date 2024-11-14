@@ -169,19 +169,6 @@
 							>Emergency</router-link
 						>
 					</li>
-					<li class="nav-item d-lg-none" v-if="!user">
-						<!-- <router-link to="/login" class="nav-link login-register"
-							>Login/Register</router-link
-						> -->
-					</li>
-					<li class="nav-item d-lg-none" v-else>
-						<!-- <router-link to="/profile" class="nav-link">
-							<img
-								src="../assets/icons/profile.png"
-								class="profile-icon"
-							/>
-						</router-link> -->
-					</li>
 				</ul>
 			</div>
 
@@ -229,7 +216,7 @@
 					Login/Register
 				</router-link>
 
-				<div class="d-flex align-items-center position-relative">
+				<div v-else class="d-flex align-items-center position-relative">
 					<div class="dropdown">
 						<router-link
 							to="/profile"

@@ -150,12 +150,10 @@ const listenForResponse = (parentMessageId) => {
 		<div v-if="!isMinimized" class="chatbot-modal-content">
 			<div class="chat-content">
                 <div v-for="message in chatMessages" :key="message.id" class="message-container">
-                    <!-- User Message aligned to the right -->
                     <div v-if="message.prompt" class="message user-message">
                     <p><strong>You:</strong> {{ message.prompt }}</p>
                     </div>
 
-                    <!-- Bot Message aligned to the left -->
                     <div v-if="message.response" class="message bot-message">
                     <p><strong>Cradle Chat:</strong> {{ message.response }}</p>
                     </div>
@@ -240,7 +238,7 @@ const listenForResponse = (parentMessageId) => {
 	opacity: 1;
 }
 
-/* Modal Styles */
+
 .chatbot-modal {
 	position: fixed;
 	bottom: 80px;
@@ -284,16 +282,16 @@ const listenForResponse = (parentMessageId) => {
 .modal-controls {
 	display: flex;
 	align-items: center;
-	gap: 10px; /* Space between icons */
+	gap: 10px; 
 }
 
 .control-button {
 	background: none;
 	border: none;
-	color: inherit; /* Inherit color from the header */
+	color: inherit; 
 	cursor: pointer;
 	font-size: 16px;
-	padding: 5px; /* Adds some padding around the icon for easier clicking */
+	padding: 5px; 
 	display: flex;
 	align-items: center;
 }
@@ -310,7 +308,7 @@ const listenForResponse = (parentMessageId) => {
 	font-size: 14px;
 	color: #333;
 	overflow-y: auto;
-	flex-grow: 1; /* Allows chat content to expand and scroll if needed */
+	flex-grow: 1; 
 }
 
 /* Input Field */
@@ -345,7 +343,7 @@ const listenForResponse = (parentMessageId) => {
 	background-color: #0056b3;
 }
 
-/* Minimized State */
+
 .chatbot-modal.minimized {
 	height: 50px;
 }
@@ -356,7 +354,7 @@ const listenForResponse = (parentMessageId) => {
   margin: 10px 0;
 }
 
-/* User message aligned to the right */
+
 .user-message {
   align-self: flex-end;
   background-color: #d1f7c4; /* Light green */
@@ -365,45 +363,45 @@ const listenForResponse = (parentMessageId) => {
   border-radius: 10px 10px 0 10px;
   max-width: 70%;
   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
-  text-align: left; /* Optional for text alignment within the bubble */
+  text-align: left; 
   float: right;
   margin-top: 6px;
   margin-bottom: 15px;
 }
 
-/* Bot message aligned to the left */
 .bot-message {
-  align-self: flex-start;
-  background-color: #f1f1f1; /* Light gray */
-  color: #333;
-  padding: 10px;
-  border-radius: 10px 10px 0px 10px;
-  max-width: 70%;
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
-  text-align: left; /* Optional for text alignment within the bubble */
-  float:left;
+	align-self: flex-start;
+	background-color: #f1f1f1; 
+	color: #333;
+	padding: 10px;
+	border-radius: 10px 10px 0px 10px;
+	max-width: 70%;
+	box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+	text-align: left; 
+	float:left;
 }
 
 .default-questions {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
-  flex-wrap: wrap; /* Prevent wrapping to a new line */
-  overflow-x: auto; /* Allow horizontal scrolling */
+	display: flex;
+	gap: 10px;
+	margin-bottom: 15px;
+	flex-wrap: wrap; 
+	overflow-x: auto; 
 }
 
 .question-button {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 5px;
-  cursor: pointer;
-  white-space: nowrap; 
+	background-color: #007bff;
+	color: white;
+	border: none;
+	padding: 8px 12px;
+	border-radius: 5px;
+	cursor: pointer;
+	white-space: nowrap; 
+	margin-left: 10px;
 }
 
 .question-button:hover {
-  background-color: #0056b3;
+  	background-color: #0056b3;
 }
 
 

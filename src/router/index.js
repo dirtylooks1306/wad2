@@ -106,7 +106,7 @@ const routes = [
         path: '/emergency',
         name: 'Emergency',
         component: emergencyPage,
-        meta: { requiresAuth: false, adminOnly: false, nonAdminOnly: true }
+        meta: { requiresAuth: true, adminOnly: false, nonAdminOnly: true }
     },
 
     {
