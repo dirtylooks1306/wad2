@@ -206,4 +206,13 @@ button:hover span:after {
       opacity: 1;
   }
 }
+
+@media (max-width: 768px) {
+    .form-field {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-bottom: 50px; /* Create space for error message to appear on mobile screens */
+    }
+}
 </style>

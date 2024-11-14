@@ -7,7 +7,7 @@
           <h3 class=text-center>{{ front.header }}</h3>
           <p class="text-center">{{ front.date }}</p>
           <hr>
-          <img :src="front.imageURL" class="border rounded-1 d-block mx-auto" v-if="front.imageURL" style="max-width: 300px; height: 150px;">
+          <img :src="front.imageURL" class="border rounded-1 d-block mx-auto" v-if="front.imageURL">
           <p class="p-3">{{ front.body }}</p>
           <span class="d-flex justify-content-around">
             <button type="button" class="btn btn-primary p-1" @click="toggleEdit(front, frontIndex)">Edit Entry</button>
@@ -44,7 +44,7 @@
           <h3 class=text-center>{{ back.header }}</h3>
           <p class="text-center">{{ back.date }}</p>
           <hr>
-          <img :src="back.imageURL" class="border rounded-1 d-block mx-auto" v-if="back.imageURL" style="max-width: 300px; height: 150px;">
+          <img :src="back.imageURL" class="border rounded-1 d-block mx-auto" v-if="back.imageURL">
           <p class="p-3">{{ back.body }}</p>
           <span class="d-flex justify-content-around">
             <button type="button" class="btn btn-primary p-1" @click="toggleEdit(back, backIndex)">Edit Entry</button>
@@ -90,7 +90,7 @@
           <h3 class=text-center>{{ entry.header }}</h3>
           <p class="text-center">{{ entry.date }}</p>
           <hr>
-          <img :src="entry.imageURL" v-if="entry.imageURL" class="border rounded-1 d-block mx-auto" style="max-width: 300px; height: 150px;">
+          <img :src="entry.imageURL" v-if="entry.imageURL" class="border rounded-1 d-block mx-auto">
           <p class="p-3">{{ entry.body }}</p>
           <span class="d-flex justify-content-around">
             <button type="button" class="btn btn-primary p-1" @click="toggleEdit(entry, index)">Edit Entry</button>
@@ -253,6 +253,11 @@ export default {
   transition: transform 0.5s;
 }
 
+img {
+  max-width: 300px;
+  height: 150px;
+}
+
 @media (max-width: 768px) {
   .front .back {
     background-color: white;
@@ -267,5 +272,10 @@ export default {
     transform: translateX(-400px);
     transition: transform 0.5s;
   } /* Changed page animation for mobile */
+  /* Change image dimensions to prevent overflow of diary content on mobile */
+  img {
+    max-width: 200px; 
+    height: 100px;
+  }
 }
 </style>
