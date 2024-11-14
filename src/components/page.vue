@@ -182,8 +182,6 @@ export default {
         const updatedDoc = { ...this.editData };
         this.isEditing = false;
         this.$emit('updateEntry', updatedDoc, this.entryIndex);
-      } else {
-        console.log("Error updating entry.");
       }
     }
   },
