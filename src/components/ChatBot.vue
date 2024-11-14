@@ -245,7 +245,7 @@ const listenForResponse = (parentMessageId) => {
 	position: fixed;
 	bottom: 80px;
 	right: 20px;
-	width: 380px;
+	width: 340px;
 	height: 500px;
 	background-color: #FBF4EB;
 	border-radius: 8px;
@@ -388,7 +388,7 @@ const listenForResponse = (parentMessageId) => {
   display: flex;
   gap: 10px;
   margin-bottom: 15px;
-  flex-wrap: nowrap; /* Prevent wrapping to a new line */
+  flex-wrap: wrap; /* Prevent wrapping to a new line */
   overflow-x: auto; /* Allow horizontal scrolling */
 }
 
@@ -399,7 +399,7 @@ const listenForResponse = (parentMessageId) => {
   padding: 8px 12px;
   border-radius: 5px;
   cursor: pointer;
-  white-space: nowrap; /* Prevent text from wrapping within the button */
+  white-space: nowrap; 
 }
 
 .question-button:hover {
