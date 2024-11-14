@@ -337,5 +337,13 @@ button:focus {
         cursor: pointer;
         margin: 10px;
     }
+
+    .diary-block {
+        height: 110vh; /* Create more space for 'Next Page' and 'Prev Page' buttons on mobile */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: 'Cherry Bomb', sans-serif;
+    }
 }
 </style>

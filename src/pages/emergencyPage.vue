@@ -39,8 +39,9 @@ const steps = ref([]); //To show users the route to take
 //References for modals
 const reminderModal = ref(null);
 const isFirstInitialised = ref(false);
-const firstModal = ref(null);
 const pageInitialised = ref(false);
+//References for toast
+const toast = ref(null);
 //Modal references end
 var markerLat;
 var markerLng;
@@ -201,15 +202,25 @@ function updateLocation(event) {
 onMounted(() => {
   if (!pageInitialised.value) {
     pageInitialised.value = true;
-    const modalElement = firstModal.value;
-    const bootstrapModal = new window.bootstrap.Modal(modalElement);
-    bootstrapModal.show();
+    const toastElement = toast.value;
+    const bootstrapToast = bootstrap.Toast.getOrCreateInstance(toastElement);
+    bootstrapToast.show();
   }
 })
 </script>
 
 <template>
 	<NavBar />
+  <!-- Test bootstrap toast -->
+  <div class="toast position-absolute z-3 top-25 end-0 m-3" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="false" ref="toast">
+    <div class="toast-header">
+      <strong class="me-auto">NOTE</strong>
+      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body">
+      If location access is blocked, feel free to set your location manually. Otherwise, just click 'Initialise Map' and you're good to go!
+    </div>
+  </div>
 	<!-- Image overlay divider -->
 	<div class="container-fluid p-0 position-relative">
 		<!-- Remove padding from side of image -->
@@ -277,22 +288,6 @@ onMounted(() => {
       </div>
       <button type="button" class="btn btn-success m-2 p-1" @click="getCurrentLocation"><span>Initialise Map</span></button>
 	    <br>
-      <div class="modal fade" tabindex="-1" aria-hidden="true" ref="firstModal">
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title">NOTE</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="close"></button>
-            </div>
-            <div class="modal-body">
-              <p class="text-start">If location access is blocked, feel free to set your location manually. Otherwise, just click 'Initialise Map' and you're good to go!</p>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
-            </div>
-          </div>
-        </div>
-      </div>
       <span id="errorMsg" class="blinking-text"></span>
     </div>
     <div v-if="locationReady" class="centered-container">
