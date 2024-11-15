@@ -75,3 +75,10 @@ Copy the .env file provided and place it in the root directory and add your Fire
 - **OpenAI ChatGPT API** - For chatbot functionality and natural language processing.
 - **Google Maps API** - For displaying location-based data and mapping services.
 - **Firebase API** - For database management, authentication, and real-time data handling.
+
+### User acccounts
+- **Test Email** - testing@gmail.com
+- **Test password** - 123456
+- **Admin Email** - admin@gmail.com
+- **Admin password** - admin123
+
