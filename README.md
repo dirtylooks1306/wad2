@@ -1,3 +1,4 @@
+#GIT url: https://github.com/dirtylooks1306/wad2
 # CradleCare 
 
 This project is a web app built with **Vue.js** and **Firebase** using **Vite** as the build tool. It allows you to fetch and display data from Firebase Firestore, with the flexibility to add Firebase Authentication, Cloud Functions, and other Firebase services.
